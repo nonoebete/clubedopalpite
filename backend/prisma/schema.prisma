@@ -87,11 +87,24 @@ model Pagamento {
   @@map("pagamentos")
 }
 
-enum Perfil { ADMIN PALPITEIRO }
-enum TipoCampanha { CAMPEA CAMPEA_VICE }
-enum StatusPagamento { PENDENTE APROVADO EXPIRADO CANCELADO REJEITADO }
+enum Perfil {
+  ADMIN
+  PALPITEIRO
+}
 
-// ── Configuração global de indicações ─────────────────────────
+enum TipoCampanha {
+  CAMPEA
+  CAMPEA_VICE
+}
+
+enum StatusPagamento {
+  PENDENTE
+  APROVADO
+  EXPIRADO
+  CANCELADO
+  REJEITADO
+}
+
 model ConfigIndicacao {
   id              Int     @id @default(1)
   bonusCadastro   Decimal @default(5.00)  @map("bonus_cadastro")  @db.Decimal(10,2)
@@ -100,7 +113,6 @@ model ConfigIndicacao {
   @@map("config_indicacao")
 }
 
-// ── Indicação (quem indicou quem) ──────────────────────────────
 model Indicacao {
   id            Int      @id @default(autoincrement())
   indicadorId   Int      @map("indicador_id")
@@ -111,7 +123,6 @@ model Indicacao {
   @@map("indicacoes")
 }
 
-// ── Conta corrente do clube (saldo de indicações) ──────────────
 model ContaCorrente {
   id          Int      @id @default(autoincrement())
   usuarioId   Int      @unique @map("usuario_id")
@@ -123,7 +134,6 @@ model ContaCorrente {
   @@map("conta_corrente")
 }
 
-// ── Movimentos da conta corrente ───────────────────────────────
 model MovimentoConta {
   id          Int            @id @default(autoincrement())
   contaId     Int            @map("conta_id")
@@ -136,7 +146,6 @@ model MovimentoConta {
   @@map("movimentos_conta")
 }
 
-// ── Solicitações de resgate ────────────────────────────────────
 model Resgate {
   id          Int            @id @default(autoincrement())
   usuarioId   Int            @map("usuario_id")
@@ -150,7 +159,22 @@ model Resgate {
   @@map("resgates")
 }
 
-enum TipoMovimento  { BONUS_CADASTRO COMISSAO_PALPITE RESGATE_PIX USO_PALPITE ESTORNO }
-enum TipoResgate    { PIX PALPITE }
-enum StatusResgate  { PENDENTE APROVADO PAGO REJEITADO }
+enum TipoMovimento {
+  BONUS_CADASTRO
+  COMISSAO_PALPITE
+  RESGATE_PIX
+  USO_PALPITE
+  ESTORNO
+}
 
+enum TipoResgate {
+  PIX
+  PALPITE
+}
+
+enum StatusResgate {
+  PENDENTE
+  APROVADO
+  PAGO
+  REJEITADO
+}
