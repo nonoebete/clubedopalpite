@@ -86,6 +86,7 @@ model Pagamento {
   campanha Campanha @relation(fields: [campanhaId], references: [id])
   @@map("pagamentos")
 }
+
 enum Perfil { ADMIN PALPITEIRO }
 enum TipoCampanha { CAMPEA CAMPEA_VICE }
 enum StatusPagamento { PENDENTE APROVADO EXPIRADO CANCELADO REJEITADO }
