@@ -1,0 +1,155 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+model Usuario {
+  id           Int       @id @default(autoincrement())
+  codigoCdp    String    @unique @map("codigo_cdp")
+  nomeCompleto String    @map("nome_completo")
+  apelido      String
+  telefone     String
+  email        String?
+  cpf          String?
+  senhaHash    String    @map("senha_hash")
+  perfil       Perfil    @default(PALPITEIRO)
+  bloqueado    Boolean   @default(false)
+  criadoEm     DateTime  @default(now()) @map("criado_em")
+  palpites           PalpiteCampanha[]
+  pagamentos         Pagamento[]
+  indicacoesFeitas   Indicacao[]     @relation("Indicador")
+  indicacaoRecebida  Indicacao?      @relation("Indicado")
+  contaCorrente      ContaCorrente?
+  resgates           Resgate[]
+  @@map("usuarios")
+}
+model Campanha {
+  id           Int          @id @default(autoincrement())
+  nome         String
+  fase         Int
+  inicio       DateTime
+  fim          DateTime
+  valorPalpite Decimal      @map("valor_palpite") @db.Decimal(10,2)
+  tipo         TipoCampanha
+  percClube    Decimal      @default(40.00) @map("perc_clube")  @db.Decimal(5,2)
+  percPremio   Decimal      @default(60.00) @map("perc_premio") @db.Decimal(5,2)
+  ativa        Boolean      @default(true)
+  palpites     PalpiteCampanha[]
+  pagamentos   Pagamento[]
+  @@map("campanhas")
+}
+model Selecao {
+  id          Int    @id @default(autoincrement())
+  nome        String
+  sigla       String @unique @db.Char(3)
+  grupo       String @db.Char(1)
+  bandeiraCss String @map("bandeira_css")
+  palpitesCampea PalpiteCampanha[] @relation("CampeaRelation")
+  palpitesVice   PalpiteCampanha[] @relation("ViceRelation")
+  @@map("selecoes")
+}
+model PalpiteCampanha {
+  id                  Int      @id @default(autoincrement())
+  usuarioId           Int      @map("usuario_id")
+  campanhaId          Int      @map("campanha_id")
+  selecaoCampeaId     Int      @map("selecao_campea_id")
+  selecaoViceId       Int?     @map("selecao_vice_id")
+  valorPago           Decimal  @map("valor_pago") @db.Decimal(10,2)
+  pagamentoConfirmado Boolean  @default(false) @map("pagamento_confirmado")
+  acertou             Boolean?
+  premioRecebido      Decimal? @map("premio_recebido") @db.Decimal(10,2)
+  criadoEm            DateTime @default(now()) @map("criado_em")
+  usuario       Usuario  @relation(fields: [usuarioId],       references: [id])
+  campanha      Campanha @relation(fields: [campanhaId],      references: [id])
+  selecaoCampea Selecao  @relation("CampeaRelation", fields: [selecaoCampeaId], references: [id])
+  selecaoVice   Selecao? @relation("ViceRelation",   fields: [selecaoViceId],   references: [id])
+  @@map("palpites_campanha")
+}
+model Pagamento {
+  id            Int             @id @default(autoincrement())
+  usuarioId     Int             @map("usuario_id")
+  campanhaId    Int             @map("campanha_id")
+  palpiteIds    String          @map("palpite_ids")
+  mpPaymentId   String?         @unique @map("mp_payment_id")
+  qrCode        String?         @map("qr_code") @db.Text
+  qrCodeBase64  String?         @map("qr_code_base64") @db.Text
+  pixCopiaECola String?         @map("pix_copia_e_cola") @db.Text
+  valor         Decimal         @db.Decimal(10,2)
+  status        StatusPagamento @default(PENDENTE)
+  expiresAt     DateTime?       @map("expires_at")
+  pagoEm        DateTime?       @map("pago_em")
+  criadoEm      DateTime        @default(now()) @map("criado_em")
+  atualizadoEm  DateTime        @updatedAt @map("atualizado_em")
+  usuario  Usuario  @relation(fields: [usuarioId],  references: [id])
+  campanha Campanha @relation(fields: [campanhaId], references: [id])
+  @@map("pagamentos")
+}
+enum Perfil { ADMIN PALPITEIRO }
+enum TipoCampanha { CAMPEA CAMPEA_VICE }
+enum StatusPagamento { PENDENTE APROVADO EXPIRADO CANCELADO REJEITADO }
+
+// ── Configuração global de indicações ─────────────────────────
+model ConfigIndicacao {
+  id              Int     @id @default(1)
+  bonusCadastro   Decimal @default(5.00)  @map("bonus_cadastro")  @db.Decimal(10,2)
+  percentPalpite  Decimal @default(10.00) @map("percent_palpite") @db.Decimal(5,2)
+  ativo           Boolean @default(true)
+  @@map("config_indicacao")
+}
+
+// ── Indicação (quem indicou quem) ──────────────────────────────
+model Indicacao {
+  id            Int      @id @default(autoincrement())
+  indicadorId   Int      @map("indicador_id")
+  indicadoId    Int      @unique @map("indicado_id")
+  criadoEm      DateTime @default(now()) @map("criado_em")
+  indicador     Usuario  @relation("Indicador", fields: [indicadorId], references: [id])
+  indicado      Usuario  @relation("Indicado",  fields: [indicadoId],  references: [id])
+  @@map("indicacoes")
+}
+
+// ── Conta corrente do clube (saldo de indicações) ──────────────
+model ContaCorrente {
+  id          Int      @id @default(autoincrement())
+  usuarioId   Int      @unique @map("usuario_id")
+  saldo       Decimal  @default(0.00) @db.Decimal(10,2)
+  totalGanho  Decimal  @default(0.00) @map("total_ganho") @db.Decimal(10,2)
+  atualizadoEm DateTime @updatedAt @map("atualizado_em")
+  usuario     Usuario  @relation(fields: [usuarioId], references: [id])
+  movimentos  MovimentoConta[]
+  @@map("conta_corrente")
+}
+
+// ── Movimentos da conta corrente ───────────────────────────────
+model MovimentoConta {
+  id          Int            @id @default(autoincrement())
+  contaId     Int            @map("conta_id")
+  tipo        TipoMovimento
+  valor       Decimal        @db.Decimal(10,2)
+  descricao   String
+  referenciaId Int?          @map("referencia_id")
+  criadoEm   DateTime        @default(now()) @map("criado_em")
+  conta       ContaCorrente  @relation(fields: [contaId], references: [id])
+  @@map("movimentos_conta")
+}
+
+// ── Solicitações de resgate ────────────────────────────────────
+model Resgate {
+  id          Int            @id @default(autoincrement())
+  usuarioId   Int            @map("usuario_id")
+  tipo        TipoResgate
+  valor       Decimal        @db.Decimal(10,2)
+  status      StatusResgate  @default(PENDENTE)
+  pixChave    String?        @map("pix_chave")
+  obs         String?
+  criadoEm   DateTime        @default(now()) @map("criado_em")
+  usuario     Usuario        @relation(fields: [usuarioId], references: [id])
+  @@map("resgates")
+}
+
+enum TipoMovimento  { BONUS_CADASTRO COMISSAO_PALPITE RESGATE_PIX USO_PALPITE ESTORNO }
+enum TipoResgate    { PIX PALPITE }
+enum StatusResgate  { PENDENTE APROVADO PAGO REJEITADO }
+
