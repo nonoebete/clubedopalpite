@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meu Extrato · Clube de Palpites</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --night:#07101d;--navy:#0e1e32;--navy2:#152840;--navy3:#1b3353;
+  --gold:#F0A500;--green:#1db954;--blue:#4a9eff;--red:#e05252;--pix:#32BCAD;
+  --muted:#7a93ad;--border:rgba(255,255,255,0.07);--r:10px;--r-lg:16px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--night);color:#dce8f5;min-height:100vh;display:grid;grid-template-rows:56px 1fr}
+
+/* ── Topbar ── */
+.topbar{background:var(--navy);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;padding:0 24px;height:56px;position:sticky;top:0;z-index:50}
+.logo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px}
+.logo span{color:var(--gold)}
+.user-chip{display:flex;align-items:center;gap:8px;background:var(--navy2);border:1px solid var(--border);border-radius:var(--r);padding:5px 12px;font-size:12px;margin-left:auto}
+.btn-back{background:var(--navy2);border:1px solid var(--border);color:var(--muted);font-size:12px;padding:7px 14px;border-radius:var(--r);cursor:pointer;font-family:'Inter',sans-serif}
+
+/* ── Layout ── */
+.page{max-width:860px;margin:0 auto;padding:28px 24px 60px}
+.page-title{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700;margin-bottom:4px}
+.page-sub{font-size:13px;color:var(--muted);margin-bottom:24px}
+
+/* ── KPIs ── */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px}
+.kpi{background:var(--navy);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px 18px;position:relative;overflow:hidden}
+.kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.kpi.gold::after{background:var(--gold)}
+.kpi.green::after{background:var(--green)}
+.kpi.blue::after{background:var(--blue)}
+.kpi.pix::after{background:var(--pix)}
+.kpi-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.kpi-value{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;line-height:1.1;margin-top:4px}
+.kpi.gold .kpi-value{color:var(--gold)}
+.kpi.green .kpi-value{color:var(--green)}
+.kpi.blue .kpi-value{color:var(--blue)}
+.kpi.pix .kpi-value{color:var(--pix)}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:3px}
+
+/* ── Card genérico ── */
+.card{background:var(--navy);border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:16px;overflow:hidden}
+.card-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.card-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700}
+
+/* ── Tabs ── */
+.tabs-row{display:flex;gap:4px;background:var(--navy2);border-radius:var(--r);padding:3px;width:fit-content}
+.tab-btn{padding:6px 14px;border:none;background:transparent;color:var(--muted);font-size:12px;font-weight:500;border-radius:7px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.tab-btn.active{background:var(--night);color:#dce8f5}
+
+/* ── Filtros ── */
+.filter-row{display:flex;gap:6px;flex-wrap:wrap}
+.filter-btn{background:var(--navy2);border:1px solid var(--border);color:var(--muted);font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif}
+.filter-btn.active,.filter-btn:hover{background:rgba(240,165,0,.1);border-color:rgba(240,165,0,.3);color:var(--gold)}
+
+/* ── Tabela ── */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);padding:10px 16px;border-bottom:1px solid var(--border)}
+td{padding:12px 16px;border-bottom:1px solid var(--border);color:#dce8f5}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(255,255,255,.02)}
+
+/* ── Badges ── */
+.badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px}
+.badge-ok{background:rgba(29,185,84,.15);color:var(--green);border:1px solid rgba(29,185,84,.3)}
+.badge-pend{background:rgba(240,165,0,.12);color:var(--gold);border:1px solid rgba(240,165,0,.3)}
+.badge-exp{background:rgba(224,82,82,.12);color:var(--red);border:1px solid rgba(224,82,82,.3)}
+.badge-f1{background:rgba(240,165,0,.12);color:var(--gold);border:1px solid rgba(240,165,0,.3)}
+.badge-f2{background:rgba(29,185,84,.12);color:var(--green);border:1px solid rgba(29,185,84,.3)}
+
+/* ── Linha de extrato ── */
+.ext-icon{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.ext-icon.pago{background:rgba(29,185,84,.15)}
+.ext-icon.pend{background:rgba(240,165,0,.12)}
+.ext-icon.exp{background:rgba(224,82,82,.12)}
+.ext-info .ei-titulo{font-weight:500;font-size:13px}
+.ext-info .ei-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.ext-valor{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;text-align:right}
+.ext-valor.saida{color:var(--red)}
+.ext-valor.entrada{color:var(--green)}
+
+/* ── Prêmio card ── */
+.premio-banner{background:linear-gradient(135deg,rgba(240,165,0,.1),rgba(26,122,60,.1));border:1px solid rgba(240,165,0,.2);border-radius:var(--r-lg);padding:20px 22px;display:flex;align-items:center;gap:16px;margin-bottom:16px}
+.premio-icon{font-size:36px}
+.premio-txt h3{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700}
+.premio-txt p{font-size:13px;color:var(--muted);margin-top:3px}
+.premio-val{margin-left:auto;text-align:right}
+.premio-val .pv{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800;color:var(--gold)}
+.premio-val .ps{font-size:11px;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <svg width="26" height="26" viewBox="0 0 36 36"><circle cx="18" cy="18" r="17" stroke="#F0A500" stroke-width="1.5" fill="none"/><circle cx="18" cy="18" r="12" fill="#1A7A3C" opacity=".35"/><text x="18" y="22.5" text-anchor="middle" font-size="12" font-weight="800" fill="#F0A500" font-family="sans-serif">CP</text></svg>
+  <span class="logo">Clube <span>Palpite</span></span>
+  <div class="user-chip">👤 <strong>Joãozinho</strong> · CDP15</div>
+  <button class="btn-back" onclick="location.href='portal.html'">← Portal</button>
+</header>
+
+<div class="page">
+  <div class="page-title">💰 Meu Extrato</div>
+  <div class="page-sub">Histórico completo de pagamentos, palpites e prêmios · CDP15</div>
+
+  <!-- Banner prêmio (aparece quando tem acerto) -->
+  <div class="premio-banner" id="banner-premio" style="display:none">
+    <div class="premio-icon">🏆</div>
+    <div class="premio-txt">
+      <h3>Você acertou um palpite!</h3>
+      <p>Parabéns — entre em contato com o administrador para receber seu prêmio.</p>
+    </div>
+    <div class="premio-val">
+      <div class="pv" id="banner-valor">—</div>
+      <div class="ps">prêmio a receber</div>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpis">
+    <div class="kpi gold">
+      <div class="kpi-label">Total investido</div>
+      <div class="kpi-value">R$ 45,00</div>
+      <div class="kpi-sub">ambas as fases</div>
+    </div>
+    <div class="kpi blue">
+      <div class="kpi-label">Palpites ativos</div>
+      <div class="kpi-value">4</div>
+      <div class="kpi-sub">pagamentos confirmados</div>
+    </div>
+    <div class="kpi pix">
+      <div class="kpi-label">PIX pagos</div>
+      <div class="kpi-value">3</div>
+      <div class="kpi-sub">transações concluídas</div>
+    </div>
+    <div class="kpi green">
+      <div class="kpi-label">Prêmios recebidos</div>
+      <div class="kpi-value">R$ 0,00</div>
+      <div class="kpi-sub">aguardando apuração</div>
+    </div>
+  </div>
+
+  <!-- Extrato de movimentações -->
+  <div class="card">
+    <div class="card-hdr">
+      <span class="card-title">Movimentações</span>
+      <div class="tabs-row">
+        <button class="tab-btn active" onclick="setTab('tudo',this)">Tudo</button>
+        <button class="tab-btn" onclick="setTab('pagamentos',this)">Pagamentos</button>
+        <button class="tab-btn" onclick="setTab('premios',this)">Prêmios</button>
+      </div>
+    </div>
+    <div id="extrato-lista"></div>
+  </div>
+
+  <!-- Meus palpites detalhados -->
+  <div class="card">
+    <div class="card-hdr">
+      <span class="card-title">Meus Palpites</span>
+      <div class="filter-row">
+        <button class="filter-btn active" onclick="filtrarPalpites('todos',this)">Todos</button>
+        <button class="filter-btn" onclick="filtrarPalpites('1fase',this)">1ª Fase</button>
+        <button class="filter-btn" onclick="filtrarPalpites('2fase',this)">2ª Fase</button>
+      </div>
+    </div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr>
+          <th>Seleção apostada</th><th>Fase</th><th>Valor</th><th>Status pgto</th><th>Resultado</th><th>Data</th>
+        </tr></thead>
+        <tbody id="palpites-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+const MOVIMENTACOES = [
+  {id:1, tipo:'pix_pago',  titulo:'PIX confirmado · 1ª Fase',  sub:'2 palpites · Brasil + Argentina', valor:-20, data:'06/06/2026 14:32', status:'pago'},
+  {id:2, tipo:'pix_pago',  titulo:'PIX confirmado · 1ª Fase',  sub:'1 palpite · França',              valor:-10, data:'07/06/2026 09:15', status:'pago'},
+  {id:3, tipo:'pix_pago',  titulo:'PIX confirmado · 2ª Fase',  sub:'1 dupla · Brasil + França',       valor:-15, data:'01/07/2026 10:44', status:'pago'},
+  {id:4, tipo:'pix_pend',  titulo:'PIX aguardando',            sub:'1 palpite · Portugal',             valor:-10, data:'10/07/2026 16:20', status:'pendente'},
+];
+
+const PALPITES = [
+  {id:1, flag:'🇧🇷', sel:'Brasil',      fase:1, valor:10, pgto:'pago',     result:'—', data:'06/06/2026'},
+  {id:2, flag:'🇦🇷', sel:'Argentina',   fase:1, valor:10, pgto:'pago',     result:'—', data:'06/06/2026'},
+  {id:3, flag:'🇫🇷', sel:'França',      fase:1, valor:10, pgto:'pago',     result:'—', data:'07/06/2026'},
+  {id:4, flag:'🇧🇷', sel:'Brasil + França (Campeã+Vice)', fase:2, valor:15, pgto:'pago', result:'—', data:'01/07/2026'},
+  {id:5, flag:'🇵🇹', sel:'Portugal',    fase:1, valor:10, pgto:'pendente', result:'—', data:'10/07/2026'},
+];
+
+let tabAtual = 'tudo';
+let filtroPalpite = 'todos';
+
+const ICONS = {pix_pago:'✅', pix_pend:'⏳', pix_exp:'❌', premio:'🏆'};
+const ICON_CLASS = {pix_pago:'pago', pix_pend:'pend', pix_exp:'exp', premio:'pago'};
+
+function setTab(tab, btn) {
+  tabAtual = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderExtrato();
+}
+
+function renderExtrato() {
+  let dados = MOVIMENTACOES;
+  if (tabAtual === 'pagamentos') dados = dados.filter(m => m.tipo.startsWith('pix'));
+  if (tabAtual === 'premios')    dados = dados.filter(m => m.tipo === 'premio');
+
+  if (!dados.length) {
+    document.getElementById('extrato-lista').innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted);font-size:13px">Nenhuma movimentação encontrada.</div>';
+    return;
+  }
+
+  document.getElementById('extrato-lista').innerHTML = dados.map(m => `
+    <div style="display:flex;align-items:center;gap:12px;padding:13px 18px;border-bottom:1px solid var(--border)">
+      <div class="ext-icon ${ICON_CLASS[m.tipo]}">${ICONS[m.tipo]}</div>
+      <div class="ext-info" style="flex:1">
+        <div class="ei-titulo">${m.titulo}</div>
+        <div class="ei-sub">${m.sub} · ${m.data}</div>
+      </div>
+      <div>
+        <div class="ext-valor ${m.valor < 0 ? 'saida' : 'entrada'}">
+          ${m.valor < 0 ? '-' : '+'}R$ ${Math.abs(m.valor).toFixed(2)}
+        </div>
+        <div style="text-align:right;margin-top:3px">
+          <span class="badge ${m.status === 'pago' ? 'badge-ok' : m.status === 'pendente' ? 'badge-pend' : 'badge-exp'}">
+            ${m.status}
+          </span>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function filtrarPalpites(f, btn) {
+  filtroPalpite = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderPalpites();
+}
+
+function renderPalpites() {
+  let dados = PALPITES;
+  if (filtroPalpite === '1fase') dados = dados.filter(p => p.fase === 1);
+  if (filtroPalpite === '2fase') dados = dados.filter(p => p.fase === 2);
+
+  document.getElementById('palpites-tbody').innerHTML = dados.map(p => `
+    <tr>
+      <td><span style="font-size:18px">${p.flag}</span> ${p.sel}</td>
+      <td><span class="badge ${p.fase === 1 ? 'badge-f1' : 'badge-f2'}">${p.fase}ª Fase</span></td>
+      <td>R$ ${p.valor.toFixed(2)}</td>
+      <td><span class="badge ${p.pgto === 'pago' ? 'badge-ok' : 'badge-pend'}">${p.pgto}</span></td>
+      <td style="color:var(--muted)">${p.result}</td>
+      <td style="color:var(--muted)">${p.data}</td>
+    </tr>`).join('');
+}
+
+// Init
+renderExtrato();
+renderPalpites();
+</script>
+</body>
+</html>

@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin · Painel Avançado · Clube de Palpites</title>
+
+<!-- Fontes -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- Chart.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+<style>
+/* ── Tokens ─────────────────────────────────────── */
+:root {
+  --night:  #07101d;
+  --navy:   #0e1e32;
+  --navy2:  #152840;
+  --navy3:  #1b3353;
+  --gold:   #F0A500;
+  --gold2:  #c98a00;
+  --green:  #1db954;
+  --red:    #e05252;
+  --blue:   #4a9eff;
+  --muted:  #7a93ad;
+  --border: rgba(255,255,255,0.07);
+  --r:      10px;
+  --r-lg:   16px;
+  --shadow: 0 4px 32px rgba(0,0,0,0.5);
+}
+
+/* ── Reset ──────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:15px}
+body{font-family:'Inter',sans-serif;background:var(--night);color:#dce8f5;min-height:100vh;display:grid;grid-template-rows:56px 1fr}
+a{color:inherit;text-decoration:none}
+button{cursor:pointer;font-family:'Inter',sans-serif}
+
+/* ── Topbar ─────────────────────────────────────── */
+.topbar{
+  background:var(--navy);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:16px;
+  padding:0 24px;
+  position:sticky;top:0;z-index:100;
+}
+.logo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;display:flex;align-items:center;gap:8px}
+.logo span{color:var(--gold)}
+.topbar-sep{flex:1}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.3)}}
+.topbar-badge{font-size:11px;font-weight:600;background:rgba(240,165,0,.12);border:1px solid rgba(240,165,0,.25);color:var(--gold);padding:3px 10px;border-radius:20px}
+.btn-export{display:flex;align-items:center;gap:6px;background:var(--navy2);border:1px solid var(--border);color:#dce8f5;font-size:12px;font-weight:600;padding:7px 14px;border-radius:var(--r);transition:background .15s}
+.btn-export:hover{background:var(--navy3)}
+.btn-export-primary{background:var(--gold);color:var(--night);border-color:var(--gold)}
+.btn-export-primary:hover{background:var(--gold2)}
+.user-chip{display:flex;align-items:center;gap:8px;background:var(--navy2);border:1px solid var(--border);border-radius:var(--r);padding:5px 12px;font-size:12px}
+
+/* ── Layout ─────────────────────────────────────── */
+.body{display:grid;grid-template-columns:200px 1fr;overflow:hidden;height:calc(100vh - 56px)}
+
+/* ── Sidebar ────────────────────────────────────── */
+.sidebar{background:var(--navy);border-right:1px solid var(--border);padding:16px 10px;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
+.nav-section{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(122,147,173,.5);padding:12px 10px 5px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r);font-size:13px;font-weight:500;color:var(--muted);border:1px solid transparent;transition:all .15s;cursor:pointer}
+.nav-item:hover{color:#dce8f5;background:rgba(255,255,255,.04)}
+.nav-item.active{color:#dce8f5;background:rgba(240,165,0,.1);border-color:rgba(240,165,0,.2)}
+.nav-item .icon{font-size:15px}
+.nav-spacer{flex:1}
+
+/* ── Main ───────────────────────────────────────── */
+.main{overflow-y:auto;padding:28px}
+
+/* ── Seções ─────────────────────────────────────── */
+.section{display:none}
+.section.active{display:block}
+
+/* ── Page header ────────────────────────────────── */
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;gap:16px;flex-wrap:wrap}
+.page-title{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700;line-height:1}
+.page-sub{font-size:13px;color:var(--muted);margin-top:4px}
+.page-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+/* ── KPI grid ───────────────────────────────────── */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:24px}
+.kpi{background:var(--navy);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 20px;position:relative;overflow:hidden}
+.kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.kpi.gold::after{background:linear-gradient(90deg,var(--gold),#ffca5c)}
+.kpi.green::after{background:linear-gradient(90deg,var(--green),#5ecb7a)}
+.kpi.blue::after{background:linear-gradient(90deg,var(--blue),#8ec8ff)}
+.kpi.red::after{background:linear-gradient(90deg,var(--red),#ff9090)}
+.kpi-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.kpi-value{font-family:'Barlow Condensed',sans-serif;font-size:30px;font-weight:800;line-height:1.1;margin-top:6px}
+.kpi.gold .kpi-value{color:var(--gold)}
+.kpi.green .kpi-value{color:var(--green)}
+.kpi.blue .kpi-value{color:var(--blue)}
+.kpi.red .kpi-value{color:var(--red)}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:4px}
+.kpi-delta{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:600;margin-top:6px;padding:2px 7px;border-radius:20px}
+.kpi-delta.up{background:rgba(29,185,84,.15);color:var(--green)}
+.kpi-delta.dn{background:rgba(224,82,82,.15);color:var(--red)}
+
+/* ── Cards ──────────────────────────────────────── */
+.card{background:var(--navy);border:1px solid var(--border);border-radius:var(--r-lg)}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.card-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700}
+.card-body{padding:20px}
+
+/* ── Charts layout ───────────────────────────────── */
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.charts-row.thirds{grid-template-columns:2fr 1fr}
+.chart-wrap{position:relative}
+.chart-canvas-wrap{padding:16px 20px}
+
+/* ── Tabela ─────────────────────────────────────── */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:10px 14px;border-bottom:1px solid var(--border)}
+td{padding:11px 14px;border-bottom:1px solid var(--border);color:#dce8f5}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(255,255,255,.025)}
+
+/* ── Badge ──────────────────────────────────────── */
+.badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:.04em}
+.badge-gold{background:rgba(240,165,0,.15);color:var(--gold);border:1px solid rgba(240,165,0,.3)}
+.badge-green{background:rgba(29,185,84,.15);color:var(--green);border:1px solid rgba(29,185,84,.3)}
+.badge-blue{background:rgba(74,158,255,.15);color:var(--blue);border:1px solid rgba(74,158,255,.3)}
+.badge-muted{background:rgba(122,147,173,.12);color:var(--muted);border:1px solid rgba(122,147,173,.2)}
+.badge-red{background:rgba(224,82,82,.15);color:var(--red);border:1px solid rgba(224,82,82,.3)}
+
+/* ── Barra progresso ─────────────────────────────── */
+.prog-bar{height:4px;background:var(--navy2);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;border-radius:2px;transition:width .6s ease}
+
+/* ── Rateio bar visual ───────────────────────────── */
+.rateio-visual{height:36px;border-radius:var(--r);overflow:hidden;display:flex;margin:12px 0 8px}
+.rv-clube{width:40%;background:var(--navy2);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:var(--muted);border-right:2px solid var(--night)}
+.rv-premio{flex:1;background:linear-gradient(90deg,#1A7A3C,var(--green));display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:#fff}
+
+/* ── Apuração ────────────────────────────────────── */
+.sel-pick{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--navy2);border:1.5px solid transparent;border-radius:var(--r);cursor:pointer;transition:border-color .15s;font-size:13px;margin-bottom:6px}
+.sel-pick:hover{border-color:rgba(240,165,0,.3)}
+.sel-pick.picked{border-color:var(--gold);background:rgba(240,165,0,.07)}
+.sel-pick .chk{margin-left:auto;color:var(--gold);opacity:0;font-weight:700}
+.sel-pick.picked .chk{opacity:1}
+.apuracao-ok{background:rgba(29,185,84,.1);border:1px solid rgba(29,185,84,.3);border-radius:var(--r-lg);padding:20px;margin-top:16px;display:none}
+.apuracao-ok.show{display:block}
+.big-num{font-family:'Barlow Condensed',sans-serif;font-size:36px;font-weight:800;color:var(--green);line-height:1}
+
+/* ── Filtros ─────────────────────────────────────── */
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.filter-btn{background:var(--navy2);border:1px solid var(--border);color:var(--muted);font-size:12px;font-weight:600;padding:6px 14px;border-radius:20px;cursor:pointer;transition:all .15s}
+.filter-btn:hover,.filter-btn.active{background:rgba(240,165,0,.1);border-color:rgba(240,165,0,.3);color:var(--gold)}
+input[type=text]{background:var(--navy2);border:1px solid var(--border);color:#dce8f5;font-size:13px;padding:8px 12px;border-radius:var(--r);outline:none;font-family:'Inter',sans-serif;width:220px;transition:border-color .15s}
+input[type=text]:focus{border-color:var(--gold)}
+input[type=text]::placeholder{color:var(--muted)}
+
+/* ── Toast ───────────────────────────────────────── */
+.toast{position:fixed;bottom:28px;right:28px;z-index:999;background:var(--navy);border:1px solid rgba(29,185,84,.4);border-radius:var(--r-lg);padding:14px 20px;font-size:13px;font-weight:500;box-shadow:var(--shadow);display:flex;align-items:center;gap:10px;transform:translateY(80px);opacity:0;transition:all .3s;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+.toast .icon{font-size:18px}
+</style>
+</head>
+<body>
+
+<!-- ── TOPBAR ─────────────────────────────────────────── -->
+<header class="topbar">
+  <div class="logo">
+    <svg width="28" height="28" viewBox="0 0 36 36">
+      <circle cx="18" cy="18" r="17" stroke="#F0A500" stroke-width="1.5" fill="none"/>
+      <circle cx="18" cy="18" r="12" fill="#1A7A3C" opacity=".35"/>
+      <text x="18" y="22.5" text-anchor="middle" font-size="12" font-weight="800" fill="#F0A500" font-family="sans-serif">CP</text>
+    </svg>
+    Clube <span>Palpite</span>
+  </div>
+  <span class="topbar-badge">🏆 Copa 2026</span>
+  <div class="topbar-sep"></div>
+  <div class="live-dot"></div>
+  <span style="font-size:12px;color:var(--green);font-weight:600">Ao vivo</span>
+  <button class="btn-export" onclick="exportCSV()">⬇ CSV</button>
+  <button class="btn-export btn-export-primary" onclick="exportPDF()">📄 Relatório PDF</button>
+  <div class="user-chip">🔐 <strong>Admin</strong></div>
+</header>
+
+<!-- ── BODY ───────────────────────────────────────────── -->
+<div class="body">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="nav-section">Painel</div>
+    <div class="nav-item active" onclick="showSec('dashboard',this)"><span class="icon">📊</span> Dashboard</div>
+    <div class="nav-item" onclick="showSec('arrecadacao',this)"><span class="icon">💰</span> Arrecadação</div>
+    <div class="nav-item" onclick="showSec('selecoes',this)"><span class="icon">⚽</span> Seleções</div>
+
+    <div class="nav-section">Gestão</div>
+    <div class="nav-item" onclick="showSec('apurar',this)"><span class="icon">🏆</span> Apurar</div>
+    <div class="nav-item" onclick="showSec('membros',this)"><span class="icon">👥</span> Membros</div>
+    <div class="nav-item" onclick="showSec('relatorio',this)"><span class="icon">📑</span> Relatório</div>
+
+    <div class="nav-spacer"></div>
+    <a href="login.html" class="nav-item" style="color:#e05252">
+      <span class="icon">↩</span> Sair
+    </a>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main" id="main">
+
+    <!-- ════════════════ DASHBOARD ════════════════ -->
+    <div class="section active" id="sec-dashboard">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Dashboard Geral</div>
+          <div class="page-sub">Atualizado em tempo real · Copa 2026</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn-export" onclick="exportCSV()">⬇ Exportar CSV</button>
+          <button class="btn-export btn-export-primary" onclick="exportPDF()">📄 Gerar PDF</button>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="kpi-grid">
+        <div class="kpi gold">
+          <div class="kpi-label">Total arrecadado</div>
+          <div class="kpi-value" id="kpi-total">R$ 2.340</div>
+          <div class="kpi-sub">Ambas as fases</div>
+          <div class="kpi-delta up">▲ +R$480 hoje</div>
+        </div>
+        <div class="kpi green">
+          <div class="kpi-label">Membros ativos</div>
+          <div class="kpi-value" id="kpi-membros">87</div>
+          <div class="kpi-sub">Palpiteiros cadastrados</div>
+          <div class="kpi-delta up">▲ +12 essa semana</div>
+        </div>
+        <div class="kpi blue">
+          <div class="kpi-label">Palpites totais</div>
+          <div class="kpi-value" id="kpi-palpites">216</div>
+          <div class="kpi-sub">164 fase 1 · 52 fase 2</div>
+          <div class="kpi-delta up">▲ +28 hoje</div>
+        </div>
+        <div class="kpi gold" style="--c:var(--green)">
+          <div class="kpi-label">Fundo de prêmios</div>
+          <div class="kpi-value" style="color:var(--green)" id="kpi-fundo">R$ 1.404</div>
+          <div class="kpi-sub">60% da arrecadação</div>
+          <div class="kpi-delta up">▲ em crescimento</div>
+        </div>
+      </div>
+
+      <!-- Gráficos linha 1 -->
+      <div class="charts-row">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Arrecadação ao longo do tempo</span>
+            <div style="display:flex;gap:6px">
+              <button class="filter-btn active" onclick="togglePeriodo(this,'7d')">7d</button>
+              <button class="filter-btn" onclick="togglePeriodo(this,'15d')">15d</button>
+              <button class="filter-btn" onclick="togglePeriodo(this,'30d')">30d</button>
+            </div>
+          </div>
+          <div class="chart-canvas-wrap" style="height:220px"><canvas id="chartLinha"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Distribuição do fundo</span>
+          </div>
+          <div class="chart-canvas-wrap" style="height:220px;display:flex;align-items:center;justify-content:center">
+            <canvas id="chartDonuts" style="max-height:190px"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gráficos linha 2 -->
+      <div class="charts-row thirds">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Novos membros por dia</span>
+          </div>
+          <div class="chart-canvas-wrap" style="height:200px"><canvas id="chartBars"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Rateio por fase</span>
+          </div>
+          <div class="card-body">
+            <div style="margin-bottom:16px">
+              <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px">
+                <span>1ª Fase · R$ 1.640</span><span class="badge badge-gold">R$ 984 prêmios</span>
+              </div>
+              <div class="rateio-visual">
+                <div class="rv-clube">40% · R$ 656</div>
+                <div class="rv-premio">60% · R$ 984</div>
+              </div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px">
+                <span>2ª Fase · R$ 780</span><span class="badge badge-green">R$ 468 prêmios</span>
+              </div>
+              <div class="rateio-visual">
+                <div class="rv-clube">40% · R$ 312</div>
+                <div class="rv-premio">60% · R$ 468</div>
+              </div>
+            </div>
+            <div style="border-top:1px solid var(--border);margin-top:16px;padding-top:14px;display:flex;justify-content:space-between;align-items:center">
+              <span style="font-size:13px;color:var(--muted)">Lucro total do clube</span>
+              <span style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:var(--gold)">R$ 968</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /dashboard -->
+
+    <!-- ════════════════ ARRECADAÇÃO ════════════════ -->
+    <div class="section" id="sec-arrecadacao">
+      <div class="page-header">
+        <div><div class="page-title">Arrecadação Detalhada</div><div class="page-sub">Evolução financeira por fase e por dia</div></div>
+        <div class="page-actions"><button class="btn-export btn-export-primary" onclick="exportCSV()">⬇ Exportar CSV</button></div>
+      </div>
+      <div class="charts-row" style="margin-bottom:20px">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Arrecadação acumulada · 1ª Fase</span></div>
+          <div class="chart-canvas-wrap" style="height:210px"><canvas id="chartAcum1"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Arrecadação acumulada · 2ª Fase</span></div>
+          <div class="chart-canvas-wrap" style="height:210px"><canvas id="chartAcum2"></canvas></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Histórico diário</span></div>
+        <div class="table-wrap">
+          <table id="tbl-arrecadacao">
+            <thead><tr><th>Data</th><th>Fase</th><th>Palpites</th><th>Arrecadado</th><th>Acumulado</th><th>Novos membros</th></tr></thead>
+            <tbody id="tbody-arr"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════ SELEÇÕES ════════════════ -->
+    <div class="section" id="sec-selecoes">
+      <div class="page-header">
+        <div><div class="page-title">Ranking de Seleções</div><div class="page-sub">Seleções mais e menos apostadas · 1ª Fase</div></div>
+      </div>
+      <div class="charts-row">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Top 10 seleções mais apostadas</span></div>
+          <div class="chart-canvas-wrap" style="height:300px"><canvas id="chartTopSel"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Distribuição por confederação</span></div>
+          <div class="chart-canvas-wrap" style="height:300px;display:flex;align-items:center;justify-content:center"><canvas id="chartConf" style="max-height:270px"></canvas></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Todas as 48 seleções</span><span style="font-size:12px;color:var(--muted)">ordenadas por nº de palpites</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>#</th><th>Seleção</th><th>Grupo</th><th>Palpites</th><th>Valor apostado</th><th>% do total</th></tr></thead>
+            <tbody id="tbody-selecoes"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════ APURAR ════════════════ -->
+    <div class="section" id="sec-apurar">
+      <div class="page-header">
+        <div><div class="page-title">Apurar Resultado</div><div class="page-sub">Registre o resultado oficial e o sistema calcula o rateio automaticamente</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <!-- 1ª fase -->
+        <div class="card">
+          <div class="card-header"><span class="card-title">1ª Fase · Seleção Campeã</span><span class="badge badge-green">Aberta</span></div>
+          <div class="card-body">
+            <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Qual seleção ganhou a Copa do Mundo 2026?</p>
+            <input type="text" id="busca-f1" placeholder="🔍 Filtrar seleção…" oninput="filtrarSelApuracao('f1')" style="width:100%;margin-bottom:10px">
+            <div style="max-height:340px;overflow-y:auto" id="lista-sel-f1"></div>
+            <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:14px">
+              <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted)">
+                <span>Total arrecadado 1ª fase</span><strong style="color:#dce8f5">R$ 1.640,00</strong>
+              </div>
+              <div class="rateio-visual" style="margin:10px 0 6px">
+                <div class="rv-clube" style="font-size:12px">40% · R$ 656</div>
+                <div class="rv-premio" style="font-size:12px">60% · R$ 984</div>
+              </div>
+            </div>
+            <button class="btn-export btn-export-primary" style="width:100%;padding:12px;font-size:14px;margin-top:4px" onclick="apurar('f1')">
+              🏆 Apurar 1ª Fase
+            </button>
+            <div class="apuracao-ok" id="ok-f1">
+              <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--green)">Resultado registrado</p>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">
+                <div><div style="font-size:11px;color:var(--muted)">Acertadores</div><div class="big-num" id="ap-acert-f1">—</div></div>
+                <div><div style="font-size:11px;color:var(--muted)">Prêmio / acertador</div><div class="big-num" id="ap-premio-f1">—</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2ª fase -->
+        <div class="card">
+          <div class="card-header"><span class="card-title">2ª Fase · Campeã + Vice</span><span class="badge badge-muted">Aguardando</span></div>
+          <div class="card-body">
+            <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Selecione as duas finalistas. A ordem importa!</p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div>
+                <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--green);margin-bottom:8px">🥇 Campeã</p>
+                <input type="text" id="busca-f2c" placeholder="Filtrar…" oninput="filtrarSelApuracao('f2c')" style="width:100%;margin-bottom:8px">
+                <div style="max-height:260px;overflow-y:auto" id="lista-sel-f2c"></div>
+              </div>
+              <div>
+                <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--gold);margin-bottom:8px">🥈 Vice-Campeã</p>
+                <input type="text" id="busca-f2v" placeholder="Filtrar…" oninput="filtrarSelApuracao('f2v')" style="width:100%;margin-bottom:8px">
+                <div style="max-height:260px;overflow-y:auto" id="lista-sel-f2v"></div>
+              </div>
+            </div>
+            <button class="btn-export btn-export-primary" style="width:100%;padding:12px;font-size:14px;margin-top:14px" onclick="apurar('f2')">
+              🏆 Apurar 2ª Fase
+            </button>
+            <div class="apuracao-ok" id="ok-f2">
+              <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--green)">Resultado registrado</p>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">
+                <div><div style="font-size:11px;color:var(--muted)">Acertadores</div><div class="big-num" id="ap-acert-f2">—</div></div>
+                <div><div style="font-size:11px;color:var(--muted)">Prêmio / acertador</div><div class="big-num" id="ap-premio-f2">—</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════ MEMBROS ════════════════ -->
+    <div class="section" id="sec-membros">
+      <div class="page-header">
+        <div><div class="page-title">Membros do Clube</div><div class="page-sub" id="membros-count">87 membros cadastrados</div></div>
+        <div class="page-actions">
+          <input type="text" id="busca-membro" placeholder="🔍 Nome, apelido ou CDP…" oninput="filtrarMembros()">
+          <button class="btn-export btn-export-primary" onclick="exportCSV('membros')">⬇ Exportar</button>
+        </div>
+      </div>
+      <div class="filter-bar">
+        <button class="filter-btn active" onclick="filtroMembros('todos',this)">Todos (87)</button>
+        <button class="filter-btn" onclick="filtroMembros('1fase',this)">1ª Fase (78)</button>
+        <button class="filter-btn" onclick="filtroMembros('2fase',this)">2ª Fase (42)</button>
+        <button class="filter-btn" onclick="filtroMembros('ambas',this)">Ambas (33)</button>
+      </div>
+      <div class="card" style="padding:0">
+        <table>
+          <thead><tr><th>CDP</th><th>Nome / Apelido</th><th>Telefone</th><th>Fase 1</th><th>Fase 2</th><th>Total pago</th><th>Cadastro</th></tr></thead>
+          <tbody id="tbody-membros"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ════════════════ RELATÓRIO ════════════════ -->
+    <div class="section" id="sec-relatorio">
+      <div class="page-header">
+        <div><div class="page-title">Relatório Completo</div><div class="page-sub">Visão consolidada para exportação</div></div>
+        <div class="page-actions">
+          <button class="btn-export" onclick="exportCSV('full')">⬇ CSV Completo</button>
+          <button class="btn-export btn-export-primary" onclick="exportPDF()">📄 Exportar PDF</button>
+        </div>
+      </div>
+
+      <!-- Preview do relatório -->
+      <div id="relatorio-preview" style="background:var(--navy);border:1px solid var(--border);border-radius:var(--r-lg);padding:32px;font-family:'Inter',sans-serif">
+
+        <div style="text-align:center;border-bottom:1px solid var(--border);padding-bottom:20px;margin-bottom:24px">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800">CLUBE DE PALPITES</div>
+          <div style="font-size:13px;color:var(--muted);margin-top:4px">Relatório Financeiro · Copa do Mundo FIFA 2026</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px" id="rel-data">Gerado em: —</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px">
+          <div style="background:var(--navy2);border-radius:var(--r);padding:14px;text-align:center">
+            <div style="font-size:11px;color:var(--muted)">Total arrecadado</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:700;color:var(--gold)">R$ 2.340,00</div>
+          </div>
+          <div style="background:var(--navy2);border-radius:var(--r);padding:14px;text-align:center">
+            <div style="font-size:11px;color:var(--muted)">Lucro do clube</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:700">R$ 936,00</div>
+          </div>
+          <div style="background:var(--navy2);border-radius:var(--r);padding:14px;text-align:center">
+            <div style="font-size:11px;color:var(--muted)">Fundo de prêmios</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:700;color:var(--green)">R$ 1.404,00</div>
+          </div>
+          <div style="background:var(--navy2);border-radius:var(--r);padding:14px;text-align:center">
+            <div style="font-size:11px;color:var(--muted)">Total membros</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:700;color:var(--blue)">87</div>
+          </div>
+        </div>
+
+        <table style="margin-bottom:24px">
+          <thead><tr style="background:var(--navy2)"><th>Campanha</th><th>Período</th><th>Palpites</th><th>Arrecadado</th><th>Lucro (40%)</th><th>Prêmios (60%)</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td><strong>1ª Fase · Seleção Campeã</strong></td><td>06/06–30/06/2026</td><td>164</td><td>R$ 1.640,00</td><td>R$ 656,00</td><td style="color:var(--green)">R$ 984,00</td><td><span class="badge badge-green">Aberta</span></td></tr>
+            <tr><td><strong>2ª Fase · Campeã + Vice</strong></td><td>01/07–19/07/2026</td><td>52</td><td>R$ 780,00</td><td>R$ 312,00</td><td style="color:var(--green)">R$ 468,00</td><td><span class="badge badge-muted">Aguardando</span></td></tr>
+            <tr style="background:var(--navy2)"><td><strong>TOTAL</strong></td><td>—</td><td><strong>216</strong></td><td><strong style="color:var(--gold)">R$ 2.340,00</strong></td><td><strong>R$ 968,00</strong></td><td><strong style="color:var(--green)">R$ 1.452,00</strong></td><td>—</td></tr>
+          </tbody>
+        </table>
+
+        <div style="font-size:11px;color:var(--muted);border-top:1px solid var(--border);padding-top:16px;text-align:center">
+          Clube de Palpites · Todos os direitos reservados · Copa do Mundo FIFA 2026
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"><span class="icon">✅</span><span id="toast-msg"></span></div>
+
+<!-- ── SCRIPTS ───────────────────────────────────────────── -->
+<script>
+// ── Dados mock ──────────────────────────────────────────────
+const SELECOES = [
+  {f:'🇧🇷',n:'Brasil',g:'C',p:38},{f:'🇦🇷',n:'Argentina',g:'J',p:31},{f:'🇫🇷',n:'França',g:'I',p:22},
+  {f:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',n:'Inglaterra',g:'L',p:18},{f:'🇵🇹',n:'Portugal',g:'K',p:15},{f:'🇩🇪',n:'Alemanha',g:'E',p:12},
+  {f:'🇪🇸',n:'Espanha',g:'H',p:10},{f:'🇺🇾',n:'Uruguai',g:'H',p:7},{f:'🇳🇱',n:'Holanda',g:'F',p:6},{f:'🇧🇪',n:'Bélgica',g:'G',p:5},
+  {f:'🇨🇦',n:'Canadá',g:'B',p:4},{f:'🇲🇦',n:'Marrocos',g:'C',p:3},{f:'🏴󠁧󠁢󠁳󠁣󠁴󠁿',n:'Escócia',g:'C',p:3},{f:'🇭🇹',n:'Haiti',g:'C',p:2},
+  {f:'🇲🇽',n:'México',g:'A',p:2},{f:'🇿🇦',n:'África do Sul',g:'A',p:2},{f:'🇰🇷',n:'Coreia do Sul',g:'A',p:1},{f:'🇨🇿',n:'Rep. Tcheca',g:'A',p:1},
+  {f:'🇧🇦',n:'Bósnia',g:'B',p:1},{f:'🇶🇦',n:'Qatar',g:'B',p:1},{f:'🇨🇭',n:'Suíça',g:'B',p:1},
+  {f:'🇺🇸',n:'EUA',g:'D',p:1},{f:'🇵🇾',n:'Paraguai',g:'D',p:1},{f:'🇦🇺',n:'Austrália',g:'D',p:1},{f:'🇹🇷',n:'Turquia',g:'D',p:1},
+  {f:'🇨🇼',n:'Curaçao',g:'E',p:1},{f:'🇨🇮',n:'Costa do Marfim',g:'E',p:1},{f:'🇪🇨',n:'Equador',g:'E',p:1},
+  {f:'🇯🇵',n:'Japão',g:'F',p:1},{f:'🇸🇪',n:'Suécia',g:'F',p:1},{f:'🇹🇳',n:'Tunísia',g:'F',p:1},
+  {f:'🇪🇬',n:'Egito',g:'G',p:0},{f:'🇮🇷',n:'Irã',g:'G',p:0},{f:'🇳🇿',n:'Nova Zelândia',g:'G',p:0},
+  {f:'🇨🇻',n:'Cabo Verde',g:'H',p:0},{f:'🇸🇦',n:'Arábia Saudita',g:'H',p:0},
+  {f:'🇸🇳',n:'Senegal',g:'I',p:1},{f:'🇮🇶',n:'Iraque',g:'I',p:0},{f:'🇳🇴',n:'Noruega',g:'I',p:1},
+  {f:'🇩🇿',n:'Argélia',g:'J',p:0},{f:'🇦🇹',n:'Áustria',g:'J',p:0},{f:'🇯🇴',n:'Jordânia',g:'J',p:0},
+  {f:'🇨🇩',n:'RD Congo',g:'K',p:0},{f:'🇺🇿',n:'Uzbequistão',g:'K',p:0},{f:'🇨🇴',n:'Colômbia',g:'K',p:1},
+  {f:'🇭🇷',n:'Croácia',g:'L',p:0},{f:'🇬🇭',n:'Gana',g:'L',p:0},{f:'🇵🇦',n:'Panamá',g:'L',p:0},
+];
+
+const MEMBROS_MOCK = Array.from({length:20},(_, i)=>{
+  const nomes = ['João Silva','Maria Souza','Pedro Lima','Ana Paula','Carlos Rosa','Fernanda Nunes','Lucas Pereira','Bruna Costa','Rafael Alves','Tatiane Gomes','Marcos Santos','Juliana Melo','André Dias','Patricia Ramos','Bruno Leite','Camila Freitas','Diego Cunha','Larissa Pinto','Felipe Araújo','Natalia Vieira'];
+  const apelidos = ['Joãozinho','Mariazinha','Pedrão','Aninha','Carlão','Fer','Lu','Bru','Rafa','Tati','Marquinhos','Ju','Andrezão','Pat','Bruninho','Cami','Dieguinho','Lari','Fê','Nati'];
+  const f1 = Math.floor(Math.random()*6)+1, f2 = Math.random()>.4?Math.floor(Math.random()*4):0;
+  return {cdp:'CDP'+(i+1), nome:nomes[i]||'Membro '+i, apelido:apelidos[i]||'apelido'+i, tel:'(48) 999'+String(i).padStart(2,'0')+'-000'+i, f1, f2, total:(f1*10+f2*15), data:'0'+Math.min(9,6+Math.floor(i/7))+'/06/2026'};
+});
+
+// ── Tema Chart.js ──────────────────────────────────────────
+Chart.defaults.color = '#7a93ad';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+Chart.defaults.font.family = 'Inter';
+
+// ── Paleta ──────────────────────────────────────────────────
+const C = {gold:'#F0A500', green:'#1db954', blue:'#4a9eff', red:'#e05252', muted:'rgba(122,147,173,0.5)'};
+
+// ── Gráfico linha — arrecadação ─────────────────────────────
+const diasArr = ['06/06','07/06','08/06','09/06','10/06','11/06','12/06'];
+const arrDados = [120,80,160,200,140,240,320];
+let chartLinha;
+function buildChartLinha(dados) {
+  if (chartLinha) chartLinha.destroy();
+  chartLinha = new Chart(document.getElementById('chartLinha'), {
+    type: 'line',
+    data: {
+      labels: diasArr.slice(0, dados.length),
+      datasets: [{
+        label: 'Arrecadação (R$)',
+        data: dados,
+        borderColor: C.gold,
+        backgroundColor: 'rgba(240,165,0,0.08)',
+        pointBackgroundColor: C.gold,
+        pointRadius: 4,
+        tension: 0.35,
+        fill: true,
+        borderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { ticks: { callback: v => 'R$'+v }, grid: { color: 'rgba(255,255,255,0.05)' } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+}
+buildChartLinha(arrDados);
+
+// ── Gráfico donut ────────────────────────────────────────────
+new Chart(document.getElementById('chartDonuts'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Lucro clube (40%)', 'Prêmios 1ª fase', 'Prêmios 2ª fase'],
+    datasets: [{ data: [936, 984, 468], backgroundColor: ['rgba(122,147,173,0.4)', C.green, '#3dbc70'], borderWidth: 0, hoverOffset: 8 }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom', labels: { padding: 14, font: { size: 12 } } },
+      tooltip: { callbacks: { label: c => ' R$ '+c.parsed.toLocaleString('pt-BR') } }
+    },
+    cutout: '62%'
+  }
+});
+
+// ── Gráfico barras — membros por dia ─────────────────────────
+new Chart(document.getElementById('chartBars'), {
+  type: 'bar',
+  data: {
+    labels: diasArr,
+    datasets: [{ label: 'Novos membros', data: [8,5,12,15,9,18,20], backgroundColor: 'rgba(74,158,255,0.6)', borderColor: C.blue, borderWidth: 1, borderRadius: 4 }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' } }, x: { grid: { display: false } } }
+  }
+});
+
+// ── Toggle período ────────────────────────────────────────────
+function togglePeriodo(btn, p) {
+  document.querySelectorAll('#sec-dashboard .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const sets = { '7d': [120,80,160,200,140,240,320], '15d': [80,100,120,90,200,180,160,240,220,280,300,260,320,380,400], '30d': Array.from({length:20},(_,i)=>100+i*18+Math.random()*40|0) };
+  buildChartLinha(sets[p] || arrDados);
+}
+
+// ── Gráficos acumulados (arrecadação) ────────────────────────
+function acumData(arr) { let s=0; return arr.map(v=>(s+=v)); }
+new Chart(document.getElementById('chartAcum1'), {
+  type:'line', data:{ labels:diasArr, datasets:[{label:'Acumulado 1ª fase', data:acumData([120,80,160,200,140,240,320]), borderColor:C.gold, backgroundColor:'rgba(240,165,0,0.07)', fill:true, tension:.3, borderWidth:2, pointRadius:3}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>'R$'+v}},x:{grid:{display:false}}}}
+});
+new Chart(document.getElementById('chartAcum2'), {
+  type:'line', data:{ labels:['01/07','02/07','03/07','04/07','05/07','06/07','07/07'], datasets:[{label:'Acumulado 2ª fase', data:acumData([60,90,120,75,150,135,150]), borderColor:C.green, backgroundColor:'rgba(29,185,84,0.07)', fill:true, tension:.3, borderWidth:2, pointRadius:3}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>'R$'+v}},x:{grid:{display:false}}}}
+});
+
+// ── Tabela arrecadação diária ─────────────────────────────────
+(function buildTblArr(){
+  const dados = [
+    {dt:'06/06',fase:'1ª',p:22,v:220,acum:220,nm:8},{dt:'07/06',fase:'1ª',p:15,v:150,acum:370,nm:5},
+    {dt:'08/06',fase:'1ª',p:28,v:280,acum:650,nm:12},{dt:'09/06',fase:'1ª',p:32,v:320,acum:970,nm:15},
+    {dt:'10/06',fase:'1ª',p:18,v:180,acum:1150,nm:9},{dt:'11/06',fase:'1ª',p:30,v:300,acum:1450,nm:18},
+    {dt:'12/06',fase:'1ª',p:19,v:190,acum:1640,nm:20},{dt:'01/07',fase:'2ª',p:10,v:150,acum:1790,nm:3},
+  ];
+  document.getElementById('tbody-arr').innerHTML = dados.map(d=>`
+    <tr><td>${d.dt}</td><td><span class="badge ${d.fase==='1ª'?'badge-gold':'badge-green'}">${d.fase} Fase</span></td>
+    <td>${d.p}</td><td>R$ ${d.v.toLocaleString('pt-BR')},00</td>
+    <td style="color:var(--gold)">R$ ${d.acum.toLocaleString('pt-BR')},00</td><td>+${d.nm}</td></tr>`).join('');
+})();
+
+// ── Gráfico top seleções ──────────────────────────────────────
+const top10 = SELECOES.slice(0,10);
+new Chart(document.getElementById('chartTopSel'), {
+  type:'bar',
+  data:{labels:top10.map(s=>s.f+' '+s.n), datasets:[{label:'Palpites', data:top10.map(s=>s.p), backgroundColor:top10.map((_,i)=>`hsl(${40+i*14},80%,50%)`), borderRadius:5, borderSkipped:false}]},
+  options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(255,255,255,0.04)'}},y:{grid:{display:false}}}}
+});
+
+// ── Gráfico confederações ─────────────────────────────────────
+new Chart(document.getElementById('chartConf'), {
+  type:'pie',
+  data:{labels:['UEFA','CONMEBOL','CAF','AFC','CONCACAF','OFC'],datasets:[{data:[38,14,9,8,8,2],backgroundColor:['rgba(240,165,0,0.7)','rgba(29,185,84,0.7)','rgba(74,158,255,0.7)','rgba(224,82,82,0.7)','rgba(160,100,240,0.7)','rgba(122,147,173,0.5)'],borderWidth:0,hoverOffset:8}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11},padding:10}}}}
+});
+
+// ── Tabela seleções ───────────────────────────────────────────
+(function buildTblSel(){
+  const sorted = [...SELECOES].sort((a,b)=>b.p-a.p);
+  const total = sorted.reduce((s,x)=>s+x.p,0)||1;
+  document.getElementById('tbody-selecoes').innerHTML = sorted.map((s,i)=>`
+    <tr>
+      <td style="color:var(--muted);font-weight:600">${i+1}</td>
+      <td><span style="font-size:18px">${s.f}</span> ${s.n}</td>
+      <td><span class="badge badge-muted">Grupo ${s.g}</span></td>
+      <td>${s.p}</td>
+      <td>R$ ${(s.p*10).toLocaleString('pt-BR')},00</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="prog-bar" style="flex:1"><div class="prog-fill" style="width:${(s.p/total*100).toFixed(0)}%;background:var(--gold)"></div></div>
+          ${(s.p/total*100).toFixed(1)}%
+        </div>
+      </td>
+    </tr>`).join('');
+})();
+
+// ── Tabela membros ────────────────────────────────────────────
+let membrosFilter = 'todos', membrosSearch = '';
+function buildTblMembros() {
+  let dados = MEMBROS_MOCK;
+  if (membrosFilter==='1fase')  dados = dados.filter(m=>m.f1>0 && m.f2===0);
+  if (membrosFilter==='2fase')  dados = dados.filter(m=>m.f2>0 && m.f1===0);
+  if (membrosFilter==='ambas')  dados = dados.filter(m=>m.f1>0 && m.f2>0);
+  if (membrosSearch) dados = dados.filter(m=>m.nome.toLowerCase().includes(membrosSearch)||m.apelido.toLowerCase().includes(membrosSearch)||m.cdp.toLowerCase().includes(membrosSearch));
+  document.getElementById('tbody-membros').innerHTML = dados.map(m=>`
+    <tr>
+      <td><span class="badge badge-gold">${m.cdp}</span></td>
+      <td><div style="font-weight:500">${m.nome}</div><div style="font-size:11px;color:var(--muted)">${m.apelido}</div></td>
+      <td style="color:var(--muted)">${m.tel}</td>
+      <td>${m.f1 ? `<span class="badge badge-gold">${m.f1}</span>` : '<span class="badge badge-muted">—</span>'}</td>
+      <td>${m.f2 ? `<span class="badge badge-green">${m.f2}</span>` : '<span class="badge badge-muted">—</span>'}</td>
+      <td style="color:var(--gold);font-weight:600">R$ ${m.total.toFixed(2)}</td>
+      <td style="color:var(--muted)">${m.data}</td>
+    </tr>`).join('');
+  document.getElementById('membros-count').textContent = dados.length + ' membros';
+}
+function filtroMembros(f,btn){
+  membrosFilter=f;
+  document.querySelectorAll('#sec-membros .filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  buildTblMembros();
+}
+function filtrarMembros(){membrosSearch=document.getElementById('busca-membro').value.toLowerCase();buildTblMembros();}
+buildTblMembros();
+
+// ── Apuração ──────────────────────────────────────────────────
+let pickedF1=null, pickedF2c=null, pickedF2v=null;
+
+function buildListaApuracao(elId, varName) {
+  const query = document.getElementById('busca-'+varName)?.value.toLowerCase()||'';
+  const el = document.getElementById(elId);
+  const filtered = SELECOES.filter(s=>!query||s.n.toLowerCase().includes(query));
+  el.innerHTML = filtered.map((s,i)=>{
+    const realIdx = SELECOES.indexOf(s);
+    const picked = varName==='f1'?pickedF1===realIdx:varName==='f2c'?pickedF2c===realIdx:pickedF2v===realIdx;
+    return `<div class="sel-pick ${picked?'picked':''}" onclick="pickSel('${varName}',${realIdx})">
+      <span style="font-size:18px">${s.f}</span><span>${s.n}</span><span class="chk">✓</span>
+    </div>`;
+  }).join('');
+}
+function pickSel(v,i){
+  if(v==='f1') pickedF1=i;
+  else if(v==='f2c') pickedF2c=i;
+  else pickedF2v=i;
+  buildListaApuracao('lista-sel-'+v, v);
+}
+function filtrarSelApuracao(v){ buildListaApuracao('lista-sel-'+v, v); }
+
+function apurar(fase) {
+  if (fase==='f1' && pickedF1===null) { showToast('⚠️ Selecione a seleção campeã primeiro!'); return; }
+  if (fase==='f2' && (pickedF2c===null||pickedF2v===null)) { showToast('⚠️ Selecione campeã e vice!'); return; }
+  if (fase==='f2' && pickedF2c===pickedF2v) { showToast('⚠️ Campeã e vice não podem ser iguais!'); return; }
+  const acert = Math.floor(Math.random()*8)+1;
+  const premio = fase==='f1' ? (984/acert).toFixed(2) : (468/acert).toFixed(2);
+  document.getElementById('ap-acert-'+fase).textContent = acert;
+  document.getElementById('ap-premio-'+fase).textContent = 'R$ '+Number(premio).toLocaleString('pt-BR');
+  document.getElementById('ok-'+fase).classList.add('show');
+  showToast('✅ Campanha apurada! '+acert+' acertador(es) · R$ '+Number(premio).toLocaleString('pt-BR')+' cada.');
+}
+
+// ── Exportar CSV ──────────────────────────────────────────────
+function exportCSV(tipo='geral') {
+  let csv, filename;
+  if (tipo==='membros') {
+    csv = 'CDP,Nome,Apelido,Telefone,Palpites1a,Palpites2a,TotalPago,Cadastro\n'
+      + MEMBROS_MOCK.map(m=>`${m.cdp},${m.nome},${m.apelido},${m.tel},${m.f1},${m.f2},${m.total.toFixed(2)},${m.data}`).join('\n');
+    filename = 'membros-clube-palpite.csv';
+  } else {
+    csv = 'Campanha,Periodo,Palpites,Arrecadado,LucroClube40,FundoPremios60\n'
+      + '1a Fase - Campea,06/06 a 30/06/2026,164,1640.00,656.00,984.00\n'
+      + '2a Fase - Campea+Vice,01/07 a 19/07/2026,52,780.00,312.00,468.00\n'
+      + 'TOTAL,,216,2340.00,968.00,1452.00';
+    filename = 'relatorio-clube-palpite.csv';
+  }
+  const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=filename; a.click();
+  URL.revokeObjectURL(url);
+  showToast('✅ CSV exportado com sucesso!');
+}
+
+// ── Exportar PDF (via print) ──────────────────────────────────
+function exportPDF() {
+  document.getElementById('rel-data').textContent = 'Gerado em: '+new Date().toLocaleString('pt-BR');
+  showSec('relatorio');
+  setTimeout(()=>{
+    window.print();
+    showToast('📄 Relatório enviado para impressão/PDF!');
+  }, 400);
+}
+
+// ── Toast ─────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3500);
+}
+
+// ── Navegação ─────────────────────────────────────────────────
+function showSec(id, navEl) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  const el = document.getElementById('sec-'+id);
+  if (el) el.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if (navEl) navEl.classList.add('active');
+  else document.querySelectorAll('.nav-item').forEach(n=>{ if(n.textContent.trim().toLowerCase().includes(id.substring(0,4))) n.classList.add('active'); });
+  if (id==='apurar') { buildListaApuracao('lista-sel-f1','f1'); buildListaApuracao('lista-sel-f2c','f2c'); buildListaApuracao('lista-sel-f2v','f2v'); }
+}
+
+// ── Simula atualização ao vivo ────────────────────────────────
+setInterval(()=>{
+  const delta = Math.floor(Math.random()*30)*10;
+  if (delta && Math.random()>.7) {
+    const v = document.getElementById('kpi-total');
+    if (v) {
+      const cur = parseInt(v.textContent.replace(/\D/g,''));
+      v.textContent = 'R$ '+(cur+delta).toLocaleString('pt-BR');
+    }
+  }
+}, 8000);
+
+// Relatório: data atual
+document.getElementById('rel-data').textContent = 'Gerado em: '+new Date().toLocaleString('pt-BR');
+</script>
+</body>
+</html>

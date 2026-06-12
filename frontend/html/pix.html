@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pagar com PIX · Clube de Palpites</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --night:  #07101d;
+  --navy:   #0e1e32;
+  --navy2:  #152840;
+  --gold:   #F0A500;
+  --green:  #1db954;
+  --pix:    #32BCAD; /* cor oficial do PIX */
+  --muted:  #7a93ad;
+  --border: rgba(255,255,255,0.07);
+  --r:      12px;
+  --r-lg:   18px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--night);color:#dce8f5;min-height:100vh;display:flex;flex-direction:column}
+.navbar{background:var(--navy);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:0 24px;height:56px}
+.logo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px}
+.logo span{color:var(--gold)}
+.main{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:40px 24px;gap:24px;flex-wrap:wrap}
+
+/* ── Card PIX ──────────────────────────────────────────── */
+.pix-card{background:var(--navy);border:1px solid var(--border);border-radius:var(--r-lg);padding:32px;width:100%;max-width:420px;box-shadow:0 8px 40px rgba(0,0,0,0.5)}
+.pix-header{text-align:center;margin-bottom:28px}
+.pix-logo{width:56px;height:56px;background:rgba(50,188,173,0.12);border:1.5px solid rgba(50,188,173,0.3);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px}
+.pix-logo svg{width:32px;height:32px}
+.pix-title{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:700}
+.pix-sub{font-size:13px;color:var(--muted);margin-top:4px}
+
+/* ── Valor ────────────────────────────────────────────── */
+.valor-box{background:var(--navy2);border-radius:var(--r);padding:16px 20px;text-align:center;margin-bottom:20px}
+.valor-label{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.valor-num{font-family:'Barlow Condensed',sans-serif;font-size:44px;font-weight:800;color:var(--pix);line-height:1.1;margin-top:4px}
+.valor-det{font-size:12px;color:var(--muted);margin-top:4px}
+
+/* ── QR Code ─────────────────────────────────────────── */
+.qr-wrap{background:#fff;border-radius:var(--r);padding:16px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;position:relative;min-height:220px}
+.qr-wrap img{width:188px;height:188px;display:block}
+.qr-overlay{position:absolute;inset:0;background:rgba(7,16,29,0.85);border-radius:var(--r);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+.qr-overlay .icon{font-size:36px}
+.qr-overlay p{font-size:13px;font-weight:600;text-align:center;padding:0 16px}
+
+/* ── Copia e cola ────────────────────────────────────── */
+.copia-row{display:flex;gap:8px;margin-bottom:20px}
+.copia-input{flex:1;background:var(--navy2);border:1px solid var(--border);border-radius:var(--r);color:var(--muted);font-size:12px;padding:10px 12px;font-family:'Inter',sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:default}
+.btn-copiar{background:rgba(50,188,173,0.15);border:1px solid rgba(50,188,173,0.35);color:var(--pix);font-size:13px;font-weight:600;padding:10px 16px;border-radius:var(--r);cursor:pointer;white-space:nowrap;transition:background .15s;font-family:'Inter',sans-serif}
+.btn-copiar:hover{background:rgba(50,188,173,0.25)}
+.btn-copiar.copiado{background:rgba(29,185,84,0.15);border-color:rgba(29,185,84,0.35);color:var(--green)}
+
+/* ── Timer ───────────────────────────────────────────── */
+.timer-row{display:flex;align-items:center;justify-content:space-between;background:var(--navy2);border-radius:var(--r);padding:12px 16px;margin-bottom:20px}
+.timer-label{font-size:12px;color:var(--muted)}
+.timer-val{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:var(--gold)}
+.timer-val.urgente{color:#ff8c42;animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* ── Status ──────────────────────────────────────────── */
+.status-bar{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:var(--r);margin-bottom:20px;font-size:13px;font-weight:500}
+.status-bar.pendente{background:rgba(240,165,0,.1);border:1px solid rgba(240,165,0,.25);color:var(--gold)}
+.status-bar.aprovado{background:rgba(29,185,84,.12);border:1px solid rgba(29,185,84,.3);color:var(--green)}
+.status-bar.expirado{background:rgba(224,82,82,.1);border:1px solid rgba(224,82,82,.25);color:#e05252}
+.status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.pendente .status-dot{background:var(--gold);animation:pulse 1.5s infinite}
+.aprovado .status-dot{background:var(--green)}
+.expirado .status-dot{background:#e05252}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}
+
+/* ── Sucesso ─────────────────────────────────────────── */
+.success-screen{display:none;text-align:center;padding:20px 0}
+.success-icon{font-size:64px;line-height:1;margin-bottom:16px;animation:pop .4s ease}
+@keyframes pop{0%{transform:scale(0)}80%{transform:scale(1.15)}100%{transform:scale(1)}}
+.success-title{font-family:'Barlow Condensed',sans-serif;font-size:30px;font-weight:800;color:var(--green)}
+.success-sub{font-size:14px;color:var(--muted);margin-top:6px;line-height:1.6}
+.success-detail{background:rgba(29,185,84,.08);border:1px solid rgba(29,185,84,.2);border-radius:var(--r);padding:14px 16px;margin:20px 0;text-align:left}
+.success-detail .sd-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0}
+.success-detail .sd-row .key{color:var(--muted)}
+.success-detail .sd-row .val{font-weight:600}
+
+/* ── Botões ──────────────────────────────────────────── */
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;border:none;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;border-radius:var(--r);transition:all .18s;width:100%;padding:13px;font-size:14px}
+.btn-green{background:var(--green);color:#fff}
+.btn-green:hover{filter:brightness(1.1)}
+.btn-ghost{background:var(--navy2);color:var(--muted);border:1px solid var(--border)}
+.btn-ghost:hover{color:#dce8f5}
+
+/* ── Resumo lateral ──────────────────────────────────── */
+.resumo-card{background:var(--navy);border:1px solid var(--border);border-radius:var(--r-lg);padding:24px;width:100%;max-width:280px;height:fit-content;position:sticky;top:24px}
+.resumo-title{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;margin-bottom:16px}
+.resumo-row{display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
+.resumo-row:last-of-type{border-bottom:none}
+.resumo-row .rk{color:var(--muted)}
+.resumo-row .rv{font-weight:500;text-align:right}
+.total-block{background:var(--navy2);border-radius:var(--r);padding:12px 14px;margin-top:14px;display:flex;justify-content:space-between;align-items:center}
+.total-block .tl{font-size:12px;color:var(--muted)}
+.total-block .tv{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:800;color:var(--pix)}
+
+/* ── Steps ───────────────────────────────────────────── */
+.steps{display:flex;flex-direction:column;gap:10px;margin-top:20px}
+.step-item{display:flex;align-items:flex-start;gap:10px;font-size:12px;color:var(--muted)}
+.step-num{width:20px;height:20px;border-radius:50%;background:rgba(50,188,173,.15);border:1px solid rgba(50,188,173,.3);color:var(--pix);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <svg width="28" height="28" viewBox="0 0 36 36"><circle cx="18" cy="18" r="17" stroke="#F0A500" stroke-width="1.5" fill="none"/><circle cx="18" cy="18" r="12" fill="#1A7A3C" opacity=".35"/><text x="18" y="22.5" text-anchor="middle" font-size="12" font-weight="800" fill="#F0A500" font-family="sans-serif">CP</text></svg>
+  <span class="logo">Clube <span>Palpite</span></span>
+</nav>
+
+<div class="main">
+
+  <!-- ── CARD PIX ───────────────────────────────────────── -->
+  <div class="pix-card">
+
+    <!-- Header -->
+    <div class="pix-header">
+      <div class="pix-logo">
+        <!-- Logo oficial PIX -->
+        <svg viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M391.39 319.41c-21.98 0-42.64-8.56-58.18-24.09l-77.2-77.2c-5.37-5.37-14.63-5.37-20 0l-77.5 77.5c-15.54 15.54-36.2 24.09-58.18 24.09h-15.2l97.87 97.87c32.12 32.12 84.22 32.12 116.34 0l97.87-97.87h-5.82z" fill="#32BCAD"/>
+          <path d="M120.33 192.59c21.98 0 42.64 8.56 58.18 24.09l77.5 77.5c5.37 5.37 14.63 5.37 20 0l77.2-77.2c15.54-15.54 36.2-24.09 58.18-24.09h5.82L319.34 94.02c-32.12-32.12-84.22-32.12-116.34 0L105.13 192.59h15.2z" fill="#32BCAD"/>
+          <path d="M463.08 203.34l-49.34-49.34c-1.08.4-2.22.64-3.43.64h-19c-15.54 0-30.76 6.25-41.82 17.31l-77.2 77.2c-8.1 8.1-18.84 12.56-30.29 12.56-11.45 0-22.19-4.46-30.29-12.56l-77.5-77.5c-11.06-11.06-26.28-17.31-41.82-17.31H76.69c-1.21 0-2.35-.24-3.43-.64l-49.34 49.34c-32.12 32.12-32.12 84.22 0 116.34l49.34 49.34c1.08-.4 2.22-.64 3.43-.64h16.7c15.54 0 30.76-6.25 41.82-17.31l77.5-77.5c8.1-8.1 18.84-12.56 30.29-12.56 11.45 0 22.19 4.46 30.29 12.56l77.2 77.2c11.06 11.06 26.28 17.31 41.82 17.31h19c1.21 0 2.35.24 3.43.64l49.34-49.34c32.12-32.12 32.12-84.22 0-116.34z" fill="#32BCAD"/>
+        </svg>
+      </div>
+      <div class="pix-title">Pague com PIX</div>
+      <div class="pix-sub">QR Code válido por <strong>30 minutos</strong></div>
+    </div>
+
+    <!-- Valor -->
+    <div class="valor-box">
+      <div class="valor-label">Valor total</div>
+      <div class="valor-num" id="valor-total">R$ 30,00</div>
+      <div class="valor-det" id="valor-det">3 palpites · 1ª Fase · CDP15</div>
+    </div>
+
+    <!-- Status -->
+    <div class="status-bar pendente" id="status-bar">
+      <div class="status-dot"></div>
+      <span id="status-txt">Aguardando pagamento PIX…</span>
+    </div>
+
+    <!-- QR Code -->
+    <div class="qr-wrap" id="qr-wrap">
+      <!-- QR Code real vem via API: <img src="data:image/png;base64,..." /> -->
+      <!-- Abaixo é o fallback visual para demonstração -->
+      <svg width="188" height="188" viewBox="0 0 188 188" id="qr-svg">
+        <rect width="188" height="188" fill="white"/>
+        <!-- Padrão QR Code simulado -->
+        <g fill="#07101d">
+          <rect x="8" y="8" width="52" height="52" rx="4"/><rect x="14" y="14" width="40" height="40" rx="2" fill="white"/><rect x="20" y="20" width="28" height="28" rx="1"/>
+          <rect x="128" y="8" width="52" height="52" rx="4"/><rect x="134" y="14" width="40" height="40" rx="2" fill="white"/><rect x="140" y="20" width="28" height="28" rx="1"/>
+          <rect x="8" y="128" width="52" height="52" rx="4"/><rect x="14" y="134" width="40" height="40" rx="2" fill="white"/><rect x="20" y="140" width="28" height="28" rx="1"/>
+          <!-- Módulos centrais simulados -->
+          <rect x="72" y="8" width="8" height="8"/><rect x="84" y="8" width="8" height="8"/><rect x="96" y="8" width="8" height="8"/><rect x="108" y="8" width="8" height="8"/>
+          <rect x="72" y="20" width="8" height="8"/><rect x="96" y="20" width="8" height="8"/><rect x="108" y="20" width="8" height="8"/>
+          <rect x="72" y="32" width="8" height="8"/><rect x="84" y="32" width="8" height="8"/><rect x="108" y="32" width="8" height="8"/>
+          <rect x="8" y="72" width="8" height="8"/><rect x="20" y="72" width="8" height="8"/><rect x="44" y="72" width="8" height="8"/><rect x="56" y="72" width="8" height="8"/>
+          <rect x="72" y="72" width="8" height="8"/><rect x="84" y="72" width="8" height="8"/><rect x="96" y="72" width="8" height="8"/>
+          <rect x="108" y="72" width="8" height="8"/><rect x="120" y="72" width="8" height="8"/><rect x="144" y="72" width="8" height="8"/><rect x="168" y="72" width="8" height="8"/>
+          <rect x="8" y="84" width="8" height="8"/><rect x="32" y="84" width="8" height="8"/><rect x="72" y="84" width="8" height="8"/><rect x="96" y="84" width="8" height="8"/>
+          <rect x="120" y="84" width="8" height="8"/><rect x="144" y="84" width="8" height="8"/><rect x="156" y="84" width="8" height="8"/><rect x="168" y="84" width="8" height="8"/>
+          <rect x="20" y="96" width="8" height="8"/><rect x="44" y="96" width="8" height="8"/><rect x="72" y="96" width="8" height="8"/><rect x="84" y="96" width="8" height="8"/>
+          <rect x="108" y="96" width="8" height="8"/><rect x="132" y="96" width="8" height="8"/><rect x="156" y="96" width="8" height="8"/>
+          <rect x="8" y="108" width="8" height="8"/><rect x="32" y="108" width="8" height="8"/><rect x="56" y="108" width="8" height="8"/><rect x="84" y="108" width="8" height="8"/>
+          <rect x="108" y="108" width="8" height="8"/><rect x="120" y="108" width="8" height="8"/><rect x="144" y="108" width="8" height="8"/><rect x="168" y="108" width="8" height="8"/>
+          <rect x="72" y="128" width="8" height="8"/><rect x="96" y="128" width="8" height="8"/><rect x="108" y="128" width="8" height="8"/><rect x="132" y="128" width="8" height="8"/>
+          <rect x="156" y="128" width="8" height="8"/><rect x="168" y="128" width="8" height="8"/>
+          <rect x="72" y="140" width="8" height="8"/><rect x="84" y="140" width="8" height="8"/><rect x="108" y="140" width="8" height="8"/><rect x="132" y="140" width="8" height="8"/>
+          <rect x="72" y="152" width="8" height="8"/><rect x="96" y="152" width="8" height="8"/><rect x="120" y="152" width="8" height="8"/><rect x="144" y="152" width="8" height="8"/><rect x="168" y="152" width="8" height="8"/>
+          <rect x="72" y="164" width="8" height="8"/><rect x="84" y="164" width="8" height="8"/><rect x="108" y="164" width="8" height="8"/><rect x="132" y="164" width="8" height="8"/><rect x="156" y="164" width="8" height="8"/>
+        </g>
+        <!-- Ícone PIX no centro -->
+        <rect x="82" y="82" width="24" height="24" rx="3" fill="#32BCAD"/>
+        <text x="94" y="98" text-anchor="middle" font-size="13" font-weight="800" fill="white" font-family="sans-serif">P</text>
+      </svg>
+    </div>
+
+    <!-- Copia e cola -->
+    <div class="copia-row">
+      <div class="copia-input" id="pix-codigo" title="Código PIX copia e cola">
+        00020126580014BR.GOV.BCB.PIX0136a1b2c3d4-e5f6-7890-abcd-ef1234567890520400005303986540530.005802BR5920Clube de Palpites6009SAO PAULO62070503***6304ABCD
+      </div>
+      <button class="btn-copiar" id="btn-copiar" onclick="copiarPix()">
+        📋 Copiar
+      </button>
+    </div>
+
+    <!-- Timer -->
+    <div class="timer-row">
+      <span class="timer-label">⏱ Expira em</span>
+      <span class="timer-val" id="timer">29:59</span>
+    </div>
+
+    <!-- Botão cancelar -->
+    <button class="btn btn-ghost" onclick="cancelar()" id="btn-cancelar">
+      Cancelar e voltar
+    </button>
+
+    <!-- Tela de sucesso (oculta inicialmente) -->
+    <div class="success-screen" id="success-screen">
+      <div class="success-icon">✅</div>
+      <div class="success-title">PIX Confirmado!</div>
+      <div class="success-sub">Seu palpite foi registrado com sucesso.<br>Boa sorte na Copa 2026! 🏆</div>
+      <div class="success-detail" id="success-detail">
+        <div class="sd-row"><span class="key">Palpiteiro</span><span class="val">CDP15 · Joãozinho</span></div>
+        <div class="sd-row"><span class="key">Fase</span><span class="val">1ª Fase · Seleção Campeã</span></div>
+        <div class="sd-row"><span class="key">Palpites</span><span class="val" id="suc-palpites">3 seleções</span></div>
+        <div class="sd-row"><span class="key">Valor pago</span><span class="val" id="suc-valor" style="color:var(--pix)">R$ 30,00</span></div>
+        <div class="sd-row"><span class="key">Pago em</span><span class="val" id="suc-hora">—</span></div>
+      </div>
+      <button class="btn btn-green" onclick="window.location.href='portal.html'">
+        Ir para Meus Palpites →
+      </button>
+    </div>
+
+  </div><!-- /pix-card -->
+
+  <!-- ── RESUMO LATERAL ─────────────────────────────────── -->
+  <div class="resumo-card">
+    <div class="resumo-title">📋 Resumo do pedido</div>
+    <div class="resumo-row"><span class="rk">Palpiteiro</span><span class="rv">Joãozinho<br><small style="color:var(--muted)">CDP15</small></span></div>
+    <div class="resumo-row"><span class="rk">Fase</span><span class="rv">1ª Fase</span></div>
+    <div class="resumo-row"><span class="rk">Seleções apostadas</span><span class="rv">🇧🇷 Brasil<br>🇦🇷 Argentina<br>🇫🇷 França</span></div>
+    <div class="resumo-row"><span class="rk">Valor unitário</span><span class="rv">R$ 10,00</span></div>
+    <div class="resumo-row"><span class="rk">Quantidade</span><span class="rv">3 palpites</span></div>
+    <div class="total-block">
+      <span class="tl">Total</span>
+      <span class="tv">R$ 30,00</span>
+    </div>
+
+    <div class="steps">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:4px">Como pagar</div>
+      <div class="step-item"><div class="step-num">1</div><span>Abra o app do seu banco</span></div>
+      <div class="step-item"><div class="step-num">2</div><span>Vá em <strong>PIX</strong> → Pagar → QR Code</span></div>
+      <div class="step-item"><div class="step-num">3</div><span>Escaneie o QR Code ou use <strong>Copia e Cola</strong></span></div>
+      <div class="step-item"><div class="step-num">4</div><span>Confirme o valor de <strong>R$ 30,00</strong> e autorize</span></div>
+      <div class="step-item"><div class="step-num">5</div><span>Pronto! Palpite confirmado automaticamente 🏆</span></div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+// ── Config ────────────────────────────────────────────────────
+const POLLING_INTERVAL_MS = 4000;   // verifica status a cada 4s
+const EXPIRACAO_SEGUNDOS  = 30 * 60; // 30 minutos
+
+let tempoRestante = EXPIRACAO_SEGUNDOS;
+let pollingTimer  = null;
+let countdownTimer = null;
+let pagamentoId   = null; // vem da API ao criar o pagamento
+let statusAtual   = 'PENDENTE';
+
+// ── Simulação de dados (em produção vem da API) ───────────────
+// Na integração real, estes dados viriam do body da resposta de
+// POST /api/pagamentos/iniciar
+const dadosPagamento = {
+  pagamentoId: 42,
+  valor:       'R$ 30,00',
+  descricao:   '3 palpites · 1ª Fase · CDP15',
+  pix: {
+    copiaECola: '00020126580014BR.GOV.BCB.PIX0136a1b2c3d4-e5f6-7890-abcd-ef1234567890520400005303986540530.005802BR5920Clube de Palpites6009SAO PAULO62070503***6304ABCD',
+    qrCodeBase64: null, // se viesse da API: 'data:image/png;base64,...'
+  }
+};
+
+// ── Inicializa tela ───────────────────────────────────────────
+document.getElementById('valor-total').textContent = dadosPagamento.valor;
+document.getElementById('valor-det').textContent   = dadosPagamento.descricao;
+document.getElementById('pix-codigo').textContent  = dadosPagamento.pix.copiaECola;
+pagamentoId = dadosPagamento.pagamentoId;
+
+// Se vier QR Code real em base64, substitui o SVG
+if (dadosPagamento.pix.qrCodeBase64) {
+  document.getElementById('qr-wrap').innerHTML =
+    `<img src="data:image/png;base64,${dadosPagamento.pix.qrCodeBase64}" alt="QR Code PIX" />`;
+}
+
+// ── Countdown timer ───────────────────────────────────────────
+function formatarTempo(s) {
+  const m = Math.floor(s / 60);
+  const seg = s % 60;
+  return `${String(m).padStart(2,'0')}:${String(seg).padStart(2,'0')}`;
+}
+
+countdownTimer = setInterval(() => {
+  tempoRestante--;
+  const el = document.getElementById('timer');
+  el.textContent = formatarTempo(tempoRestante);
+  if (tempoRestante <= 120) el.classList.add('urgente');
+  if (tempoRestante <= 0) {
+    clearInterval(countdownTimer);
+    clearInterval(pollingTimer);
+    expirar();
+  }
+}, 1000);
+
+document.getElementById('timer').textContent = formatarTempo(tempoRestante);
+
+// ── Polling de status ─────────────────────────────────────────
+// Em produção chama: GET /api/pagamentos/{id}/status
+async function verificarStatus() {
+  if (statusAtual !== 'PENDENTE') return;
+  try {
+    // Substituir por fetch real em produção:
+    // const r = await fetch(`/api/pagamentos/${pagamentoId}/status`, {
+    //   headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    // });
+    // const data = await r.json();
+    // if (data.pago) aprovado();
+    // else if (data.status === 'EXPIRADO') expirar();
+
+    // Simulação: aprova após 12s para demonstração
+    if (tempoRestante < EXPIRACAO_SEGUNDOS - 12) {
+      aprovado();
+    }
+  } catch (err) {
+    console.error('Erro ao verificar status:', err);
+  }
+}
+
+pollingTimer = setInterval(verificarStatus, POLLING_INTERVAL_MS);
+
+// ── Ações ─────────────────────────────────────────────────────
+function aprovado() {
+  statusAtual = 'APROVADO';
+  clearInterval(countdownTimer);
+  clearInterval(pollingTimer);
+
+  // Atualiza status bar
+  const sb = document.getElementById('status-bar');
+  sb.className = 'status-bar aprovado';
+  document.getElementById('status-txt').textContent = '✅ Pagamento confirmado pelo banco!';
+
+  // Mostra tela de sucesso
+  document.getElementById('suc-hora').textContent = new Date().toLocaleTimeString('pt-BR');
+  document.getElementById('suc-valor').textContent = dadosPagamento.valor;
+
+  setTimeout(() => {
+    // Esconde elementos de pagamento
+    document.querySelector('.qr-wrap').style.display  = 'none';
+    document.querySelector('.copia-row').style.display = 'none';
+    document.querySelector('.timer-row').style.display = 'none';
+    document.getElementById('btn-cancelar').style.display = 'none';
+    document.querySelector('.pix-sub').style.display  = 'none';
+    document.getElementById('status-bar').style.display = 'none';
+    // Mostra tela de sucesso
+    document.getElementById('success-screen').style.display = 'block';
+  }, 800);
+}
+
+function expirar() {
+  if (statusAtual === 'APROVADO') return;
+  statusAtual = 'EXPIRADO';
+  clearInterval(countdownTimer);
+  clearInterval(pollingTimer);
+
+  // Overlay no QR Code
+  document.getElementById('qr-wrap').innerHTML = `
+    <div class="qr-overlay">
+      <span class="icon">⏰</span>
+      <p>QR Code expirado.<br>Gere um novo para continuar.</p>
+    </div>`;
+
+  const sb = document.getElementById('status-bar');
+  sb.className = 'status-bar expirado';
+  document.getElementById('status-txt').textContent = '⏰ PIX expirado. Gere uma nova cobrança.';
+  document.getElementById('btn-copiar').disabled = true;
+  document.getElementById('btn-copiar').textContent = 'Expirado';
+}
+
+function copiarPix() {
+  const codigo = document.getElementById('pix-codigo').textContent.trim();
+  navigator.clipboard.writeText(codigo).then(() => {
+    const btn = document.getElementById('btn-copiar');
+    btn.textContent = '✅ Copiado!';
+    btn.classList.add('copiado');
+    setTimeout(() => { btn.textContent = '📋 Copiar'; btn.classList.remove('copiado'); }, 2500);
+  });
+}
+
+function cancelar() {
+  if (confirm('Cancelar pagamento? Os palpites serão removidos.')) {
+    clearInterval(countdownTimer);
+    clearInterval(pollingTimer);
+    window.location.href = 'portal.html';
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestão de Usuários · Admin · Clube de Palpites</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --night:#07101d;--navy:#0e1e32;--navy2:#152840;--navy3:#1b3353;
+  --gold:#F0A500;--green:#1db954;--blue:#4a9eff;--red:#e05252;
+  --muted:#7a93ad;--border:rgba(255,255,255,0.07);--r:10px;--r-lg:16px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--night);color:#dce8f5;min-height:100vh;display:grid;grid-template-rows:56px 1fr}
+.topbar{background:var(--navy);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;padding:0 24px;height:56px;position:sticky;top:0;z-index:50}
+.logo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px}
+.logo span{color:var(--gold)}
+.badge-adm{font-size:10px;font-weight:700;background:rgba(240,165,0,.12);border:1px solid rgba(240,165,0,.3);color:var(--gold);padding:3px 9px;border-radius:20px}
+.btn-sm{background:var(--navy2);border:1px solid var(--border);color:var(--muted);font-size:12px;padding:6px 13px;border-radius:var(--r);cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.btn-sm:hover{color:#dce8f5}
+.btn-primary{background:var(--gold);color:var(--night);border:none;font-weight:700}
+.btn-primary:hover{background:var(--gold2,#c98a00)}
+.btn-danger{background:rgba(224,82,82,.15);border:1px solid rgba(224,82,82,.3);color:var(--red)}
+.btn-danger:hover{background:rgba(224,82,82,.25)}
+.btn-success{background:rgba(29,185,84,.15);border:1px solid rgba(29,185,84,.3);color:var(--green)}
+
+/* ── Layout ── */
+.page{max-width:1000px;margin:0 auto;padding:28px 24px 60px}
+.page-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+.page-title{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700}
+.page-sub{font-size:13px;color:var(--muted);margin-top:3px}
+
+/* ── Filtros / busca ── */
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.search-input{background:var(--navy2);border:1px solid var(--border);color:#dce8f5;font-size:13px;padding:9px 13px;border-radius:var(--r);outline:none;font-family:'Inter',sans-serif;width:260px}
+.search-input:focus{border-color:var(--gold)}
+.search-input::placeholder{color:var(--muted)}
+.filter-pill{background:var(--navy2);border:1px solid var(--border);color:var(--muted);font-size:11px;font-weight:600;padding:6px 14px;border-radius:20px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.filter-pill.active,.filter-pill:hover{background:rgba(240,165,0,.1);border-color:rgba(240,165,0,.3);color:var(--gold)}
+
+/* ── Tabela ── */
+.card{background:var(--navy);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-bottom:16px}
+.card-hdr{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.card-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);padding:10px 14px;border-bottom:1px solid var(--border)}
+td{padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(255,255,255,.02)}
+.badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px}
+.badge-ativo{background:rgba(29,185,84,.15);color:var(--green);border:1px solid rgba(29,185,84,.3)}
+.badge-bloq{background:rgba(224,82,82,.12);color:var(--red);border:1px solid rgba(224,82,82,.3)}
+.badge-cdp{background:rgba(240,165,0,.12);color:var(--gold);border:1px solid rgba(240,165,0,.3)}
+.acoes{display:flex;gap:5px}
+
+/* ── Modal ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(7,16,29,.85);backdrop-filter:blur(4px);z-index:200;display:flex;align-items:center;justify-content:center;padding:24px}
+.modal{background:var(--navy);border:1px solid rgba(240,165,0,.2);border-radius:var(--r-lg);padding:28px;width:100%;max-width:440px;box-shadow:0 8px 40px rgba(0,0,0,.6)}
+.modal-title{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;margin-bottom:16px}
+.form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.form-group label{font-size:12px;font-weight:500;color:var(--muted)}
+.form-group input,.form-group select{background:var(--navy2);border:1px solid var(--border);border-radius:var(--r);color:#dce8f5;font-size:13px;padding:10px 12px;outline:none;font-family:'Inter',sans-serif;transition:border-color .15s}
+.form-group input:focus,.form-group select:focus{border-color:var(--gold)}
+.form-group input::placeholder{color:var(--muted)}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+
+/* ── Confirm danger ── */
+.danger-box{background:rgba(224,82,82,.08);border:1px solid rgba(224,82,82,.25);border-radius:var(--r);padding:12px 14px;margin:12px 0;font-size:13px;color:var(--red)}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:24px;right:24px;z-index:999;background:var(--navy);border:1px solid rgba(29,185,84,.4);border-radius:var(--r-lg);padding:12px 18px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(0,0,0,.5);transform:translateY(60px);opacity:0;transition:all .3s}
+.toast.show{transform:translateY(0);opacity:1}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <svg width="26" height="26" viewBox="0 0 36 36"><circle cx="18" cy="18" r="17" stroke="#F0A500" stroke-width="1.5" fill="none"/><circle cx="18" cy="18" r="12" fill="#1A7A3C" opacity=".35"/><text x="18" y="22.5" text-anchor="middle" font-size="12" font-weight="800" fill="#F0A500" font-family="sans-serif">CP</text></svg>
+  <span class="logo">Clube <span>Palpite</span></span>
+  <span class="badge-adm">🔐 Admin</span>
+  <button class="btn-sm" onclick="location.href='admin.html'" style="margin-left:auto">← Painel</button>
+</header>
+
+<div class="page">
+  <div class="page-hdr">
+    <div>
+      <div class="page-title">👥 Gestão de Membros</div>
+      <div class="page-sub" id="contagem">87 membros cadastrados</div>
+    </div>
+    <button class="btn-sm btn-primary" onclick="abrirModalNovo()">+ Novo membro</button>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <input class="search-input" type="text" id="busca" placeholder="🔍 Nome, apelido, CDP ou telefone…" oninput="filtrar()">
+    <button class="filter-pill active" onclick="setFiltro('todos',this)">Todos</button>
+    <button class="filter-pill" onclick="setFiltro('ativo',this)">Ativos</button>
+    <button class="filter-pill" onclick="setFiltro('bloqueado',this)">Bloqueados</button>
+    <button class="filter-pill" onclick="setFiltro('1fase',this)">1ª Fase</button>
+    <button class="filter-pill" onclick="setFiltro('2fase',this)">2ª Fase</button>
+  </div>
+
+  <!-- Tabela -->
+  <div class="card">
+    <div class="card-hdr">
+      <span class="card-title">Lista de membros</span>
+      <button class="btn-sm" onclick="exportarCSV()">⬇ Exportar CSV</button>
+    </div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr>
+          <th>CDP</th><th>Nome / Apelido</th><th>Telefone</th>
+          <th>Palpites</th><th>Total pago</th><th>Status</th>
+          <th>Cadastro</th><th>Ações</th>
+        </tr></thead>
+        <tbody id="membros-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL EDITAR / NOVO ── -->
+<div class="modal-overlay" id="modal-editar" style="display:none">
+  <div class="modal">
+    <div class="modal-title" id="modal-titulo">Editar membro</div>
+    <div class="form-group"><label>Nome completo</label><input type="text" id="ed-nome" placeholder="Nome completo"></div>
+    <div class="form-group"><label>Apelido</label><input type="text" id="ed-apelido" placeholder="Apelido"></div>
+    <div class="form-group"><label>Telefone</label><input type="tel" id="ed-tel" placeholder="(48) 99999-0000"></div>
+    <div class="form-group"><label>Código CDP</label><input type="text" id="ed-cdp" placeholder="CDP1" disabled style="opacity:.5"></div>
+    <div class="form-group" id="grp-status" style="display:none">
+      <label>Status</label>
+      <select id="ed-status">
+        <option value="ativo">Ativo</option>
+        <option value="bloqueado">Bloqueado</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="fecharModal('modal-editar')">Cancelar</button>
+      <button class="btn-sm btn-primary" onclick="salvarEdicao()">Salvar alterações</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL RESETAR SENHA ── -->
+<div class="modal-overlay" id="modal-senha" style="display:none">
+  <div class="modal">
+    <div class="modal-title">🔑 Resetar senha</div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px">A senha será redefinida para o padrão: <strong style="color:#dce8f5">primeironome + 123</strong></p>
+    <div class="danger-box" id="senha-preview">Nova senha: <strong id="senha-nova-val">—</strong></div>
+    <p style="font-size:12px;color:var(--muted)">O membro receberá um aviso via WhatsApp com a nova senha.</p>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="fecharModal('modal-senha')">Cancelar</button>
+      <button class="btn-sm btn-primary" onclick="confirmarResetSenha()">✔ Confirmar reset</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL BLOQUEAR ── -->
+<div class="modal-overlay" id="modal-bloquear" style="display:none">
+  <div class="modal">
+    <div class="modal-title" id="bloquear-titulo">Bloquear membro</div>
+    <div class="danger-box" id="bloquear-aviso">Esta ação impedirá o membro de fazer login e registrar novos palpites. Os palpites existentes são mantidos.</div>
+    <p style="font-size:13px;color:var(--muted);margin-top:12px">Membro: <strong id="bloquear-nome" style="color:#dce8f5">—</strong></p>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="fecharModal('modal-bloquear')">Cancelar</button>
+      <button class="btn-sm btn-danger" id="bloquear-btn-confirm" onclick="confirmarBloqueio()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="toast-msg"></span></div>
+
+<script>
+let MEMBROS = [
+  {id:1,  cdp:'CDP1',  nome:'Maria Souza',       apelido:'Mariazinha', tel:'(48) 99000-0001', f1:5,  f2:2,  total:80,  status:'ativo',     data:'06/06/2026'},
+  {id:2,  cdp:'CDP2',  nome:'Pedro Lima',         apelido:'Pedrão',     tel:'(48) 99000-0002', f1:3,  f2:0,  total:30,  status:'ativo',     data:'06/06/2026'},
+  {id:3,  cdp:'CDP3',  nome:'Ana Paula Ferreira', apelido:'Aninha',     tel:'(48) 99000-0003', f1:8,  f2:1,  total:95,  status:'ativo',     data:'07/06/2026'},
+  {id:4,  cdp:'CDP4',  nome:'Carlos Rosa',        apelido:'Carlão',     tel:'(48) 99000-0004', f1:4,  f2:4,  total:100, status:'bloqueado', data:'07/06/2026'},
+  {id:5,  cdp:'CDP5',  nome:'Fernanda Nunes',     apelido:'Fer',        tel:'(48) 99000-0005', f1:6,  f2:0,  total:60,  status:'ativo',     data:'08/06/2026'},
+  {id:15, cdp:'CDP15', nome:'João da Silva',      apelido:'Joãozinho',  tel:'(48) 99999-0000', f1:3,  f2:1,  total:45,  status:'ativo',     data:'06/06/2026'},
+];
+
+let filtroAtual = 'todos';
+let buscaAtual  = '';
+let membroSel   = null;
+let modoModal   = 'editar'; // 'editar' | 'novo'
+
+function getMembros() {
+  let lista = MEMBROS;
+  if (filtroAtual === 'ativo')     lista = lista.filter(m => m.status === 'ativo');
+  if (filtroAtual === 'bloqueado') lista = lista.filter(m => m.status === 'bloqueado');
+  if (filtroAtual === '1fase')     lista = lista.filter(m => m.f1 > 0);
+  if (filtroAtual === '2fase')     lista = lista.filter(m => m.f2 > 0);
+  if (buscaAtual) {
+    const q = buscaAtual.toLowerCase();
+    lista = lista.filter(m =>
+      m.nome.toLowerCase().includes(q) ||
+      m.apelido.toLowerCase().includes(q) ||
+      m.cdp.toLowerCase().includes(q) ||
+      m.tel.includes(q)
+    );
+  }
+  return lista;
+}
+
+function render() {
+  const lista = getMembros();
+  document.getElementById('contagem').textContent = lista.length + ' de ' + MEMBROS.length + ' membros';
+
+  document.getElementById('membros-tbody').innerHTML = lista.map(m => `
+    <tr>
+      <td><span class="badge badge-cdp">${m.cdp}</span></td>
+      <td>
+        <div style="font-weight:500">${m.nome}</div>
+        <div style="font-size:11px;color:var(--muted)">${m.apelido}</div>
+      </td>
+      <td style="color:var(--muted)">${m.tel}</td>
+      <td style="text-align:center">
+        <span style="color:var(--gold)">${m.f1}</span><span style="color:var(--muted);font-size:11px"> F1</span>
+        <span style="color:var(--green);margin-left:6px">${m.f2}</span><span style="color:var(--muted);font-size:11px"> F2</span>
+      </td>
+      <td style="font-weight:500">R$ ${m.total.toFixed(2)}</td>
+      <td><span class="badge ${m.status === 'ativo' ? 'badge-ativo' : 'badge-bloq'}">${m.status}</span></td>
+      <td style="color:var(--muted)">${m.data}</td>
+      <td>
+        <div class="acoes">
+          <button class="btn-sm" onclick="abrirEditar(${m.id})" title="Editar dados">✏️</button>
+          <button class="btn-sm" onclick="abrirResetSenha(${m.id})" title="Resetar senha">🔑</button>
+          <button class="btn-sm ${m.status === 'ativo' ? 'btn-danger' : 'btn-success'}"
+            onclick="abrirBloqueio(${m.id})" title="${m.status === 'ativo' ? 'Bloquear' : 'Desbloquear'}">
+            ${m.status === 'ativo' ? '🚫' : '✅'}
+          </button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function setFiltro(f, btn) {
+  filtroAtual = f;
+  document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+function filtrar() { buscaAtual = document.getElementById('busca').value; render(); }
+
+// ── Editar ──
+function abrirEditar(id) {
+  const m = MEMBROS.find(x => x.id === id);
+  membroSel = m; modoModal = 'editar';
+  document.getElementById('modal-titulo').textContent = 'Editar membro · ' + m.cdp;
+  document.getElementById('ed-nome').value    = m.nome;
+  document.getElementById('ed-apelido').value = m.apelido;
+  document.getElementById('ed-tel').value     = m.tel;
+  document.getElementById('ed-cdp').value     = m.cdp;
+  document.getElementById('grp-status').style.display = 'flex';
+  document.getElementById('ed-status').value  = m.status;
+  document.getElementById('modal-editar').style.display = 'flex';
+}
+function abrirModalNovo() {
+  modoModal = 'novo'; membroSel = null;
+  document.getElementById('modal-titulo').textContent = 'Novo membro';
+  document.getElementById('ed-nome').value = '';
+  document.getElementById('ed-apelido').value = '';
+  document.getElementById('ed-tel').value = '';
+  document.getElementById('ed-cdp').value = 'CDP' + (MEMBROS.length + 1) + ' (gerado automaticamente)';
+  document.getElementById('grp-status').style.display = 'none';
+  document.getElementById('modal-editar').style.display = 'flex';
+}
+function salvarEdicao() {
+  const nome    = document.getElementById('ed-nome').value.trim();
+  const apelido = document.getElementById('ed-apelido').value.trim();
+  const tel     = document.getElementById('ed-tel').value.trim();
+  if (!nome || !apelido || !tel) { toast('⚠️ Preencha todos os campos.'); return; }
+  if (modoModal === 'editar' && membroSel) {
+    const m = MEMBROS.find(x => x.id === membroSel.id);
+    m.nome = nome; m.apelido = apelido; m.tel = tel;
+    m.status = document.getElementById('ed-status').value;
+    toast('✅ Dados de ' + m.cdp + ' atualizados!');
+  } else {
+    const novoId = Math.max(...MEMBROS.map(m=>m.id)) + 1;
+    MEMBROS.push({id:novoId, cdp:'CDP'+novoId, nome, apelido, tel, f1:0, f2:0, total:0, status:'ativo', data: new Date().toLocaleDateString('pt-BR')});
+    toast('✅ Membro CDP' + novoId + ' criado!');
+  }
+  fecharModal('modal-editar');
+  render();
+}
+
+// ── Resetar senha ──
+function abrirResetSenha(id) {
+  const m = MEMBROS.find(x => x.id === id);
+  membroSel = m;
+  const primeiroNome = m.nome.normalize('NFD').replace(/[\u0300-\u036f]/g,'').split(' ')[0].toLowerCase();
+  const novaSenha = primeiroNome + '123';
+  document.getElementById('senha-nova-val').textContent = novaSenha;
+  document.getElementById('modal-senha').style.display = 'flex';
+}
+function confirmarResetSenha() {
+  toast('🔑 Senha de ' + membroSel.cdp + ' resetada! WhatsApp enviado.');
+  fecharModal('modal-senha');
+}
+
+// ── Bloquear / desbloquear ──
+function abrirBloqueio(id) {
+  const m = MEMBROS.find(x => x.id === id);
+  membroSel = m;
+  const bloqueando = m.status === 'ativo';
+  document.getElementById('bloquear-titulo').textContent = bloqueando ? '🚫 Bloquear membro' : '✅ Desbloquear membro';
+  document.getElementById('bloquear-aviso').textContent  = bloqueando
+    ? 'Esta ação impedirá o membro de fazer login e registrar novos palpites. Os palpites existentes são mantidos.'
+    : 'O membro voltará a ter acesso completo ao sistema.';
+  document.getElementById('bloquear-nome').textContent = m.nome + ' (' + m.cdp + ')';
+  const btn = document.getElementById('bloquear-btn-confirm');
+  btn.textContent = bloqueando ? '🚫 Confirmar bloqueio' : '✅ Confirmar desbloqueio';
+  btn.className = 'btn-sm ' + (bloqueando ? 'btn-danger' : 'btn-success');
+  document.getElementById('modal-bloquear').style.display = 'flex';
+}
+function confirmarBloqueio() {
+  const m = MEMBROS.find(x => x.id === membroSel.id);
+  const era = m.status;
+  m.status = m.status === 'ativo' ? 'bloqueado' : 'ativo';
+  toast((m.status === 'bloqueado' ? '🚫 ' : '✅ ') + m.cdp + ' ' + (m.status === 'bloqueado' ? 'bloqueado' : 'desbloqueado') + '!');
+  fecharModal('modal-bloquear');
+  render();
+}
+
+function fecharModal(id) { document.getElementById(id).style.display = 'none'; }
+
+// ── Export CSV ──
+function exportarCSV() {
+  const dados = getMembros();
+  const csv = 'CDP,Nome,Apelido,Telefone,Palpites1a,Palpites2a,TotalPago,Status,Cadastro\n'
+    + dados.map(m => `${m.cdp},"${m.nome}","${m.apelido}",${m.tel},${m.f1},${m.f2},${m.total.toFixed(2)},${m.status},${m.data}`).join('\n');
+  const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'membros-clube-palpite.csv'; a.click();
+  toast('✅ CSV exportado!');
+}
+
+// ── Toast ──
+function toast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// Fechar modal ao clicar fora
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.style.display = 'none'; });
+});
+
+render();
+</script>
+</body>
+</html>

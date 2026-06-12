@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ranking ao Vivo · Copa 2026 · Clube de Palpites</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --night:#07101d;--navy:#0e1e32;--navy2:#152840;--navy3:#1b3353;
+  --gold:#F0A500;--gold2:#c98a00;--green:#1db954;--blue:#4a9eff;
+  --muted:#7a93ad;--border:rgba(255,255,255,0.07);--r:10px;--r-lg:16px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:15px;scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--night);color:#dce8f5;min-height:100vh}
+
+/* ── Navbar ── */
+.navbar{background:var(--navy);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;padding:0 24px;height:56px;position:sticky;top:0;z-index:50}
+.logo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px}
+.logo span{color:var(--gold)}
+.live-wrap{display:flex;align-items:center;gap:6px;margin-left:auto}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}
+.live-txt{font-size:12px;font-weight:600;color:var(--green)}
+.btn-entrar{background:var(--gold);color:var(--night);font-size:12px;font-weight:700;padding:7px 16px;border-radius:var(--r);border:none;cursor:pointer;font-family:'Inter',sans-serif}
+.btn-entrar:hover{background:var(--gold2)}
+
+/* ── Hero ── */
+.hero{text-align:center;padding:48px 24px 36px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(-55deg,transparent,transparent 48px,rgba(26,122,60,.05) 48px,rgba(26,122,60,.05) 50px);pointer-events:none}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(240,165,0,.1);border:1px solid rgba(240,165,0,.25);color:var(--gold);font-size:11px;font-weight:600;padding:4px 14px;border-radius:20px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:16px}
+.hero-title{font-family:'Barlow Condensed',sans-serif;font-size:clamp(40px,7vw,72px);font-weight:800;line-height:1;letter-spacing:-.01em}
+.hero-title span{color:var(--gold)}
+.hero-sub{font-size:14px;color:var(--muted);margin-top:10px}
+.atualizado{font-size:12px;color:var(--muted);margin-top:6px}
+.atualizado strong{color:var(--green)}
+
+/* ── Tabs fases ── */
+.tabs-wrap{display:flex;justify-content:center;gap:8px;padding:0 24px 24px}
+.fase-tab{padding:8px 22px;border-radius:20px;border:1px solid var(--border);background:var(--navy);color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+.fase-tab.active{background:rgba(240,165,0,.12);border-color:rgba(240,165,0,.35);color:var(--gold)}
+
+/* ── Stats rápidos ── */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;max-width:900px;margin:0 auto 32px;padding:0 24px}
+.stat-box{background:var(--navy);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px 18px;text-align:center}
+.stat-box .sl{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.stat-box .sv{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;margin-top:4px;line-height:1}
+.stat-box .ss{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* ── Tabela ranking ── */
+.ranking-wrap{max-width:900px;margin:0 auto;padding:0 24px 60px}
+.ranking-card{background:var(--navy);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden}
+.ranking-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.ranking-title{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700}
+.search-box{background:var(--navy2);border:1px solid var(--border);color:#dce8f5;font-size:12px;padding:7px 12px;border-radius:var(--r);outline:none;font-family:'Inter',sans-serif;width:200px}
+.search-box::placeholder{color:var(--muted)}
+
+/* ── Linha do ranking ── */
+.rank-row{display:grid;grid-template-columns:52px 1fr 80px 90px 90px;align-items:center;padding:13px 20px;border-bottom:1px solid var(--border);transition:background .15s;gap:8px}
+.rank-row:last-child{border-bottom:none}
+.rank-row:hover{background:rgba(255,255,255,.025)}
+.rank-row.me{background:rgba(240,165,0,.06);border-left:3px solid var(--gold)}
+.rank-num{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;text-align:center}
+.rank-num.gold-num{color:var(--gold)}
+.rank-num.silver-num{color:#b0bec5}
+.rank-num.bronze-num{color:#cd7f32}
+.medal{font-size:20px;text-align:center}
+.rank-nome{display:flex;align-items:center;gap:8px}
+.rank-avatar{width:32px;height:32px;border-radius:50%;background:var(--navy2);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--muted);flex-shrink:0;border:1px solid var(--border)}
+.rank-info .nome{font-weight:500;font-size:14px}
+.rank-info .cdp{font-size:11px;color:var(--muted);margin-top:1px}
+.rank-col{text-align:center;font-size:13px}
+.rank-col .val{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700}
+.rank-col .lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+
+/* ── Pódio top 3 ── */
+.podio{display:flex;align-items:flex-end;justify-content:center;gap:12px;padding:0 24px 32px;max-width:900px;margin:0 auto}
+.podio-item{flex:1;max-width:220px;text-align:center}
+.podio-card{border-radius:var(--r-lg) var(--r-lg) 0 0;padding:20px 12px 16px;border:1px solid var(--border);border-bottom:none;position:relative}
+.podio-1{background:linear-gradient(180deg,rgba(240,165,0,.15) 0%,var(--navy) 100%);border-color:rgba(240,165,0,.3)}
+.podio-2{background:linear-gradient(180deg,rgba(176,190,197,.1) 0%,var(--navy) 100%)}
+.podio-3{background:linear-gradient(180deg,rgba(205,127,50,.1) 0%,var(--navy) 100%)}
+.podio-pos{font-size:28px;line-height:1;margin-bottom:6px}
+.podio-nome{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.podio-cdp{font-size:11px;color:var(--muted);margin-top:2px}
+.podio-acertos{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;color:var(--gold);line-height:1;margin-top:8px}
+.podio-base{background:var(--navy2);border:1px solid var(--border);border-top:none;padding:6px;text-align:center;font-size:11px;color:var(--muted)}
+.podio-item.primeiro .podio-card{padding-top:28px}
+
+/* ── Seleções mais apostadas ── */
+.sel-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;padding:16px 20px}
+.sel-item{background:var(--navy2);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;display:flex;align-items:center;gap:8px;font-size:13px}
+.sel-item .flag{font-size:20px}
+.sel-item .snome{flex:1;font-weight:500}
+.sel-item .spct{font-size:11px;color:var(--gold);font-weight:600}
+.prog{height:3px;background:var(--navy3);border-radius:2px;margin-top:4px;overflow:hidden}
+.prog-fill{height:100%;border-radius:2px;background:var(--gold)}
+
+/* ── Empty state ── */
+.empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <svg width="26" height="26" viewBox="0 0 36 36"><circle cx="18" cy="18" r="17" stroke="#F0A500" stroke-width="1.5" fill="none"/><circle cx="18" cy="18" r="12" fill="#1A7A3C" opacity=".35"/><text x="18" y="22.5" text-anchor="middle" font-size="12" font-weight="800" fill="#F0A500" font-family="sans-serif">CP</text></svg>
+  <span class="logo">Clube <span>Palpite</span></span>
+  <div class="live-wrap">
+    <div class="live-dot"></div>
+    <span class="live-txt">Ao vivo</span>
+  </div>
+  <button class="btn-entrar" onclick="location.href='login.html'">Participar →</button>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">⚽ Copa do Mundo 2026</div>
+  <h1 class="hero-title">RANKING<br><span>AO VIVO</span></h1>
+  <p class="hero-sub">Acompanhe quem está na frente na corrida pelo prêmio</p>
+  <p class="atualizado" id="atualizado">Atualizado <strong id="ultima-att">agora</strong></p>
+</div>
+
+<!-- TABS FASE -->
+<div class="tabs-wrap">
+  <button class="fase-tab active" id="tab-f1" onclick="setFase(1)">1ª Fase · Seleção Campeã</button>
+  <button class="fase-tab" id="tab-f2" onclick="setFase(2)">2ª Fase · Campeã + Vice</button>
+  <button class="fase-tab" id="tab-geral" onclick="setFase(0)">Geral (ambas)</button>
+</div>
+
+<!-- STATS -->
+<div class="stats-row">
+  <div class="stat-box"><div class="sl">Palpiteiros</div><div class="sv" id="st-membros">87</div><div class="ss">participantes</div></div>
+  <div class="stat-box"><div class="sl">Palpites registrados</div><div class="sv" id="st-palpites">216</div><div class="ss">confirmados e pagos</div></div>
+  <div class="stat-box"><div class="sl">Fundo de prêmios</div><div class="sv" style="color:var(--green)" id="st-fundo">R$ 1.404</div><div class="ss">60% da arrecadação</div></div>
+  <div class="stat-box"><div class="sl">Fase atual</div><div class="sv" style="color:var(--gold)" id="st-fase">1ª</div><div class="ss" id="st-fase-sub">até 30/06/2026</div></div>
+</div>
+
+<!-- PÓDIO TOP 3 -->
+<div class="podio" id="podio"></div>
+
+<!-- RANKING COMPLETO -->
+<div class="ranking-wrap">
+  <div class="ranking-card">
+    <div class="ranking-header">
+      <span class="ranking-title" id="ranking-title">🏆 Ranking · 1ª Fase</span>
+      <input class="search-box" type="text" placeholder="🔍 Buscar palpiteiro…" oninput="filtrarRanking(this.value)">
+    </div>
+    <div id="ranking-lista"></div>
+  </div>
+
+  <!-- Seleções mais apostadas -->
+  <div class="ranking-card" style="margin-top:16px">
+    <div class="ranking-header">
+      <span class="ranking-title">⚽ Seleções mais apostadas</span>
+    </div>
+    <div class="sel-grid" id="sel-grid"></div>
+  </div>
+</div>
+
+<script>
+// ── Dados mock (em produção, busca de GET /api/palpites/ranking) ──
+const RANKING_DATA = {
+  1: [ // 1ª fase
+    {pos:1, apelido:'Mariazinha', cdp:'CDP1',  acertos:0, palpites:5,  investido:50},
+    {pos:2, apelido:'Pedrão',     cdp:'CDP2',  acertos:0, palpites:3,  investido:30},
+    {pos:3, apelido:'Joãozinho',  cdp:'CDP15', acertos:0, palpites:3,  investido:30},
+    {pos:4, apelido:'Aninha',     cdp:'CDP3',  acertos:0, palpites:8,  investido:80},
+    {pos:5, apelido:'Carlão',     cdp:'CDP4',  acertos:0, palpites:4,  investido:40},
+    {pos:6, apelido:'Fernanda',   cdp:'CDP5',  acertos:0, palpites:6,  investido:60},
+    {pos:7, apelido:'Lukinha',    cdp:'CDP6',  acertos:0, palpites:2,  investido:20},
+    {pos:8, apelido:'Bruna',      cdp:'CDP7',  acertos:0, palpites:7,  investido:70},
+    {pos:9, apelido:'Rafa',       cdp:'CDP8',  acertos:0, palpites:1,  investido:10},
+    {pos:10,apelido:'Tati',       cdp:'CDP9',  acertos:0, palpites:4,  investido:40},
+  ],
+  2: [
+    {pos:1, apelido:'Carlão',     cdp:'CDP4',  acertos:0, palpites:4, investido:60},
+    {pos:2, apelido:'Joãozinho',  cdp:'CDP15', acertos:0, palpites:1, investido:15},
+    {pos:3, apelido:'Mariazinha', cdp:'CDP1',  acertos:0, palpites:2, investido:30},
+  ],
+  0: [
+    {pos:1, apelido:'Mariazinha', cdp:'CDP1',  acertos:0, palpites:7,  investido:80},
+    {pos:2, apelido:'Aninha',     cdp:'CDP3',  acertos:0, palpites:9,  investido:110},
+    {pos:3, apelido:'Carlão',     cdp:'CDP4',  acertos:0, palpites:8,  investido:100},
+    {pos:4, apelido:'Joãozinho',  cdp:'CDP15', acertos:0, palpites:4,  investido:45},
+    {pos:5, apelido:'Fernanda',   cdp:'CDP5',  acertos:0, palpites:6,  investido:60},
+  ]
+};
+
+const SELECOES_TOP = [
+  {f:'🇧🇷',n:'Brasil',   p:38},{f:'🇦🇷',n:'Argentina', p:31},{f:'🇫🇷',n:'França',    p:22},
+  {f:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',n:'Inglaterra',p:18},{f:'🇵🇹',n:'Portugal',  p:15},{f:'🇩🇪',n:'Alemanha',  p:12},
+  {f:'🇪🇸',n:'Espanha',  p:10},{f:'🇺🇾',n:'Uruguai',   p:7}, {f:'🇳🇱',n:'Holanda',   p:6},
+  {f:'🇧🇪',n:'Bélgica',  p:5}, {f:'🇨🇦',n:'Canadá',    p:4}, {f:'🇲🇦',n:'Marrocos',  p:3},
+];
+
+let faseSel = 1;
+let rankingFiltrado = [];
+
+function setFase(f) {
+  faseSel = f;
+  document.querySelectorAll('.fase-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(f === 1 ? 'tab-f1' : f === 2 ? 'tab-f2' : 'tab-geral').classList.add('active');
+  const labels = {1:'1ª Fase · Seleção Campeã', 2:'2ª Fase · Campeã + Vice', 0:'Ranking Geral'};
+  document.getElementById('ranking-title').textContent = '🏆 ' + labels[f];
+  renderRanking();
+  renderPodio();
+}
+
+function initiais(nome) {
+  return nome.slice(0,2).toUpperCase();
+}
+
+function renderPodio() {
+  const dados = RANKING_DATA[faseSel].slice(0,3);
+  const ordem = dados.length >= 3 ? [dados[1], dados[0], dados[2]] : dados;
+  const alturas = ['200px', '240px', '180px'];
+  const classes = ['podio-2','podio-1','podio-3'];
+  const pos     = ['🥈','🥇','🥉'];
+  const el = document.getElementById('podio');
+
+  el.innerHTML = ordem.map((p, i) => {
+    const realPos = p ? p.pos : '-';
+    const label = faseSel === 1 ? `${p?.palpites || 0} palpites` : `${p?.palpites || 0} duplas`;
+    return p ? `
+      <div class="podio-item ${i===1?'primeiro':''}">
+        <div class="podio-card ${classes[i]}" style="min-height:${alturas[i]}">
+          <div class="podio-pos">${pos[i]}</div>
+          <div class="podio-nome">${p.apelido}</div>
+          <div class="podio-cdp">${p.cdp}</div>
+          <div class="podio-acertos">${label}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px">R$ ${p.investido.toFixed(2)}</div>
+        </div>
+        <div class="podio-base">#${realPos}</div>
+      </div>` : '';
+  }).join('');
+}
+
+function renderRanking(filtro = '') {
+  const dados = RANKING_DATA[faseSel];
+  rankingFiltrado = filtro
+    ? dados.filter(p => p.apelido.toLowerCase().includes(filtro.toLowerCase()) || p.cdp.toLowerCase().includes(filtro.toLowerCase()))
+    : dados;
+
+  const colLabel = faseSel === 1
+    ? ['Palpites', 'Investido']
+    : ['Duplas', 'Investido'];
+
+  const cabecalho = `
+    <div class="rank-row" style="opacity:.5;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;padding:8px 20px;border-bottom:1px solid var(--border)">
+      <div style="text-align:center">#</div>
+      <div>Palpiteiro</div>
+      <div style="text-align:center">${colLabel[0]}</div>
+      <div style="text-align:center">${colLabel[1]}</div>
+      <div style="text-align:center">Acertos</div>
+    </div>`;
+
+  if (!rankingFiltrado.length) {
+    document.getElementById('ranking-lista').innerHTML = cabecalho + '<div class="empty">Nenhum palpiteiro encontrado.</div>';
+    return;
+  }
+
+  const linhas = rankingFiltrado.map(p => {
+    const numClass = p.pos === 1 ? 'gold-num' : p.pos === 2 ? 'silver-num' : p.pos === 3 ? 'bronze-num' : '';
+    const acertosDisplay = p.acertos > 0 ? `<span style="color:var(--green);font-weight:700">${p.acertos} ✓</span>` : '<span style="color:var(--muted)">—</span>';
+    return `
+      <div class="rank-row">
+        <div class="rank-num ${numClass}">${p.pos <= 3 ? ['🥇','🥈','🥉'][p.pos-1] : p.pos}</div>
+        <div class="rank-nome">
+          <div class="rank-avatar">${initiais(p.apelido)}</div>
+          <div class="rank-info">
+            <div class="nome">${p.apelido}</div>
+            <div class="cdp">${p.cdp}</div>
+          </div>
+        </div>
+        <div class="rank-col"><div class="val">${p.palpites}</div></div>
+        <div class="rank-col"><div class="val" style="font-size:14px">R$${p.investido}</div></div>
+        <div class="rank-col">${acertosDisplay}</div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('ranking-lista').innerHTML = cabecalho + linhas;
+}
+
+function filtrarRanking(v) { renderRanking(v); }
+
+function renderSelecoes() {
+  const total = SELECOES_TOP.reduce((s,x) => s+x.p, 0);
+  document.getElementById('sel-grid').innerHTML = SELECOES_TOP.map(s => `
+    <div class="sel-item">
+      <span class="flag">${s.f}</span>
+      <div style="flex:1">
+        <div class="snome">${s.n}</div>
+        <div class="prog"><div class="prog-fill" style="width:${(s.p/SELECOES_TOP[0].p*100).toFixed(0)}%"></div></div>
+      </div>
+      <span class="spct">${s.p}</span>
+    </div>`).join('');
+}
+
+// Atualização ao vivo (em produção: fetch à API a cada 30s)
+function atualizarHora() {
+  document.getElementById('ultima-att').textContent = new Date().toLocaleTimeString('pt-BR');
+}
+setInterval(atualizarHora, 30000);
+
+// Init
+renderPodio();
+renderRanking();
+renderSelecoes();
+</script>
+</body>
+</html>

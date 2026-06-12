@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clube de Palpites · Copa do Mundo 2026</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* ── Hero ─────────────────────────────────────────────── */
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 80px 0 64px;
+      text-align: center;
+    }
+    /* Linhas de campo em diagonal — signature desta tela */
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        repeating-linear-gradient(
+          -55deg,
+          transparent,
+          transparent 48px,
+          rgba(26,122,60,0.06) 48px,
+          rgba(26,122,60,0.06) 50px
+        );
+      pointer-events: none;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(240,165,0,0.1);
+      border: 1px solid rgba(240,165,0,0.25);
+      border-radius: 20px;
+      padding: 6px 16px;
+      font-size: 12px; font-weight: 600;
+      color: var(--gold);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+    .hero-title {
+      font-size: clamp(52px, 8vw, 88px);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+    .hero-title .line2 { color: var(--gold); }
+    .hero-sub {
+      max-width: 520px; margin: 20px auto 0;
+      font-size: 17px; color: var(--muted); line-height: 1.6;
+    }
+    .hero-cta { display: flex; gap: 12px; justify-content: center; margin-top: 36px; }
+    .hero-stats {
+      display: flex; gap: 40px; justify-content: center;
+      margin-top: 56px;
+      padding-top: 40px;
+      border-top: 1px solid var(--border2);
+    }
+    .hero-stat .num {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 40px; font-weight: 800; color: var(--gold);
+      line-height: 1;
+    }
+    .hero-stat .desc { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    /* ── Fases section ────────────────────────────────────── */
+    .section { padding: 64px 0; }
+    .section-label {
+      font-size: 11px; font-weight: 600; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--gold); margin-bottom: 8px;
+    }
+    .section-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 36px; }
+    .section-sub { color: var(--muted); font-size: 15px; margin-top: 8px; line-height: 1.6; }
+
+    .fase-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 32px; }
+    .fase-card {
+      background: var(--navy);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+    .fase-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+    }
+    .fase-card.fase1::before { background: linear-gradient(90deg, #1A7A3C, #3dbc70); }
+    .fase-card.fase2::before { background: linear-gradient(90deg, var(--gold), #ffca5c); }
+    .fase-num {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+    .fase1 .fase-num { color: #3dbc70; }
+    .fase2 .fase-num { color: var(--gold); }
+    .fase-title { font-family: 'Barlow Condensed', sans-serif; font-size: 24px; font-weight: 700; margin-top: 6px; }
+    .fase-period { font-size: 13px; color: var(--muted); margin-top: 4px; }
+    .fase-price {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 38px; font-weight: 800; margin-top: 20px;
+      line-height: 1;
+    }
+    .fase-price span { font-size: 16px; font-weight: 500; color: var(--muted); }
+    .fase-desc { font-size: 14px; color: var(--muted); line-height: 1.6; margin-top: 12px; }
+    .fase-rule {
+      display: flex; align-items: flex-start; gap: 8px;
+      font-size: 13px; color: var(--muted); margin-top: 10px;
+    }
+    .fase-rule::before { content: '→'; color: var(--gold); flex-shrink: 0; font-weight: 700; }
+
+    /* ── Como funciona ────────────────────────────────────── */
+    .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 40px; }
+    .step { text-align: center; }
+    .step-num {
+      width: 44px; height: 44px;
+      background: rgba(240,165,0,0.1);
+      border: 1px solid rgba(240,165,0,0.25);
+      border-radius: 50%;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 20px; font-weight: 700; color: var(--gold);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 14px;
+    }
+    .step-title { font-weight: 600; font-size: 15px; }
+    .step-desc { font-size: 13px; color: var(--muted); margin-top: 6px; line-height: 1.6; }
+
+    /* ── Rateio ───────────────────────────────────────────── */
+    .rateio-bar {
+      height: 52px;
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      margin-top: 24px;
+    }
+    .rateio-clube {
+      width: 40%; background: var(--navy2);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 18px; font-weight: 700; color: var(--muted);
+      border-right: 2px solid var(--night);
+    }
+    .rateio-premio {
+      flex: 1; background: linear-gradient(90deg, #1A7A3C, #239150);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 18px; font-weight: 700; color: #fff;
+    }
+
+    /* ── Footer ───────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border2);
+      padding: 32px 0;
+      text-align: center;
+      font-size: 13px; color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="logo">
+    <svg class="logo-icon" viewBox="0 0 36 36" fill="none">
+      <circle cx="18" cy="18" r="17" stroke="#F0A500" stroke-width="1.5"/>
+      <path d="M18 6c6.627 0 12 5.373 12 12s-5.373 12-12 12S6 24.627 6 18 11.373 6 18 6z" fill="#1A7A3C" opacity=".4"/>
+      <text x="18" y="22.5" text-anchor="middle" font-size="13" font-weight="800" fill="#F0A500" font-family="sans-serif">CP</text>
+    </svg>
+    <span class="logo-text">Clube <span>Palpite</span></span>
+  </div>
+  <div class="nav-links">
+    <a href="#" class="active">Início</a>
+    <a href="#fases">Fases</a>
+    <a href="#como-funciona">Como funciona</a>
+  </div>
+  <div class="nav-right">
+    <span class="badge-fase">🏆 Copa 2026</span>
+    <a href="login.html" class="btn btn-secondary btn-sm">Entrar</a>
+    <a href="cadastro.html" class="btn btn-primary btn-sm">Quero participar</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-eyebrow">
+      ⚽ Copa do Mundo · 11 Jun – 19 Jul 2026
+    </div>
+    <h1 class="hero-title display">
+      <span class="line1">SEJA O MAIOR</span><br>
+      <span class="line2">PALPITEIRO</span><br>
+      <span class="line1">DA COPA</span>
+    </h1>
+    <p class="hero-sub">
+      Aposte nas seleções campeãs, concorra a prêmios em dinheiro
+      e dispute com amigos em duas fases emocionantes.
+    </p>
+    <div class="hero-cta">
+      <a href="cadastro.html" class="btn btn-primary btn-lg">Participar agora</a>
+      <a href="#fases" class="btn btn-secondary btn-lg">Ver as fases</a>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="num">48</div>
+        <div class="desc">Seleções na Copa</div>
+      </div>
+      <div class="hero-stat">
+        <div class="num">2</div>
+        <div class="desc">Fases de palpite</div>
+      </div>
+      <div class="hero-stat">
+        <div class="num">60%</div>
+        <div class="desc">Da arrecadação em prêmios</div>
+      </div>
+      <div class="hero-stat">
+        <div class="num">∞</div>
+        <div class="desc">Palpites por membro</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FASES -->
+<section class="section" id="fases">
+  <div class="container">
+    <p class="section-label">Campanha Copa 2026</p>
+    <h2 class="section-title">Duas fases, dois prêmios</h2>
+    <p class="section-sub">Participe de uma ou das duas fases. Cada palpite é independente.</p>
+
+    <div class="fase-cards">
+      <!-- Fase 1 -->
+      <div class="fase-card fase1">
+        <div class="fase-num">1ª Fase</div>
+        <div class="fase-title">Seleção Campeã</div>
+        <div class="fase-period">06 de junho → 30 de junho de 2026</div>
+        <div class="fase-price">R$ 10 <span>por palpite</span></div>
+        <div class="fase-desc">
+          Escolha qual seleção vai ganhar a Copa. Pode apostar em quantas quiser.
+        </div>
+        <div class="fase-rule">Cada seleção escolhida = 1 palpite separado</div>
+        <div class="fase-rule">Palpites ilimitados por membro</div>
+        <div class="fase-rule">Prêmio rateado entre os acertadores</div>
+        <a href="cadastro.html" class="btn btn-green btn-full mt-24">Participar da 1ª fase</a>
+      </div>
+
+      <!-- Fase 2 -->
+      <div class="fase-card fase2">
+        <div class="fase-num">2ª Fase</div>
+        <div class="fase-title">Campeã + Vice-Campeã</div>
+        <div class="fase-period">01 de julho → 19 de julho de 2026</div>
+        <div class="fase-price text-gold">R$ 15 <span>por dupla</span></div>
+        <div class="fase-desc">
+          Acerte a dupla exata: quem vai ser Campeã e quem vai ser Vice. A ordem importa!
+        </div>
+        <div class="fase-rule">Cada combinação Campeã+Vice = 1 palpite</div>
+        <div class="fase-rule">Brasil+Argentina ≠ Argentina+Brasil</div>
+        <div class="fase-rule">Prêmio rateado entre os acertadores</div>
+        <a href="cadastro.html" class="btn btn-primary btn-full mt-24">Participar da 2ª fase</a>
+      </div>
+    </div>
+
+    <!-- Rateio -->
+    <div class="card mt-32">
+      <p class="label-sm">Distribuição dos prêmios</p>
+      <div class="rateio-bar">
+        <div class="rateio-clube">40% · Clube</div>
+        <div class="rateio-premio">60% · Rateado entre os acertadores 🏆</div>
+      </div>
+      <p class="text-muted mt-12" style="font-size:13px">
+        Quanto mais palpiteiros participarem, maior o prêmio de cada acertador. O valor é dividido igualmente entre todos que acertarem.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- COMO FUNCIONA -->
+<section class="section" id="como-funciona" style="background:var(--navy); border-top:1px solid var(--border2); border-bottom:1px solid var(--border2);">
+  <div class="container">
+    <p class="section-label">Simples assim</p>
+    <h2 class="section-title">Como funciona</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-title">Cadastre-se grátis</div>
+        <div class="step-desc">Informe seu nome, apelido e telefone. Seu código CDP é gerado automaticamente.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-title">Escolha suas seleções</div>
+        <div class="step-desc">Aposte em quantas seleções quiser. Cada escolha é um palpite registrado.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-title">Pague seus palpites</div>
+        <div class="step-desc">R$ 10 na 1ª fase e R$ 15 na 2ª fase. Pagamento rápido e seguro.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-title">Torça e ganhe</div>
+        <div class="step-desc">Se acertar, você recebe 60% da arrecadação dividida entre todos os acertadores.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="section" style="text-align:center">
+  <div class="container">
+    <h2 class="display" style="font-size:52px">Pronto para apostar?</h2>
+    <p class="text-muted mt-8" style="font-size:16px">Cadastro gratuito. Palpite a partir de R$ 10.</p>
+    <div class="hero-cta">
+      <a href="cadastro.html" class="btn btn-primary btn-lg">Criar minha conta</a>
+      <a href="login.html" class="btn btn-secondary btn-lg">Já sou membro</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>Clube de Palpites · Copa do Mundo FIFA 2026 · Todos os direitos reservados</p>
+    <p class="mt-4" style="font-size:12px">Todos os esportes, todas as paixões, um só clube.</p>
+  </div>
+</footer>
+
+</body>
+</html>
