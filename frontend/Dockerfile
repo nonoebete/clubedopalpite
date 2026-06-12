@@ -11,6 +11,3 @@ COPY nginx.conf /etc/nginx/conf.d/app.conf
 COPY html/ /usr/share/nginx/html/
 
 EXPOSE 80
-
-HEALTHCHECK --interval=30s --timeout=5s \
-  CMD wget --no-verbose --tries=1 --spider http://localhost/health || exit 1
