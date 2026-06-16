@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -38,7 +39,7 @@ body{font-family:'Inter',sans-serif;background:var(--night);color:#dce8f5;min-he
 .link-box{background:var(--navy2);border:1px solid rgba(240,165,0,.25);border-radius:var(--r-lg);padding:20px 22px;margin-bottom:16px;position:relative;overflow:hidden}
 .link-box::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 40% at 100% 0%,rgba(240,165,0,.06),transparent);pointer-events:none}
 .link-label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--gold);margin-bottom:8px}
-.link-row{display:flex;align-items:center;gap:8px;background:var(--night);border:1px solid var(--border);border-radius:var(--r);padding:10px 14px}
+.link-row{display:flex;align-items:center;gap:8px;background:var(--night);border:1px solid var(--border);border-radius:var(--r);padding:10px 14px;flex-wrap:wrap}
 .link-url{flex:1;font-size:13px;color:#dce8f5;font-family:'Inter',sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .btn-copy{background:rgba(240,165,0,.12);border:1px solid rgba(240,165,0,.3);color:var(--gold);font-size:12px;font-weight:600;padding:7px 14px;border-radius:8px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;white-space:nowrap}
 .btn-copy:hover{background:rgba(240,165,0,.22)}
@@ -134,6 +135,7 @@ tbody tr:hover td{background:rgba(255,255,255,.02)}
     <div class="link-row">
       <span class="link-url" id="link-url">clubepalpite.com.br/login.html?ref=CDP15</span>
       <button class="btn-copy" onclick="copiarLink()">📋 Copiar link</button>
+      <button class="btn-copy" onclick="abrirQrCode()">📱 QR Code</button>
     </div>
     <div style="font-size:11px;color:var(--muted);margin-top:8px">
       Compartilhe via WhatsApp, Instagram ou onde quiser. Cada novo membro que se cadastrar pelo seu link gera comissões para você.
@@ -141,18 +143,37 @@ tbody tr:hover td{background:rgba(255,255,255,.02)}
     <div class="link-stats">
       <div class="ls-item"><div class="lsv" id="ls-cliques">34</div><div class="lsl">Cliques no link</div></div>
       <div class="ls-item"><div class="lsv" id="ls-conv">7</div><div class="lsl">Conversões (20,6%)</div></div>
-      <div class="ls-item"><div class="lsv">R$ 5,00</div><div class="lsl">Bônus por cadastro</div></div>
       <div class="ls-item"><div class="lsv">10%</div><div class="lsl">De cada palpite deles</div></div>
+      <div class="ls-item"><div class="lsv">R$ 100</div><div class="lsl">A cada 100 palpites pagos</div></div>
+    </div>
+  </div>
+
+  <!-- Modal QR Code -->
+  <div id="qr-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;align-items:center;justify-content:center">
+    <div style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--r-lg);padding:28px;max-width:340px;width:90%;text-align:center;position:relative">
+      <button onclick="fecharQrCode()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1">✕</button>
+      <img src="/img/logo-clube.jpg" alt="Clube de Palpites" style="height:48px;width:auto;object-fit:contain;display:block;margin:0 auto 10px">
+      <h3 style="margin-bottom:4px">📱 Seu QR Code de indicação</h3>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:16px">
+        Peça para a pessoa escanear com a câmera do celular — ela será direcionada direto para o cadastro, já com sua indicação aplicada.
+      </p>
+      <div style="background:#fff;border-radius:12px;padding:16px;display:inline-block">
+        <img id="qr-img" src="" alt="QR Code de indicação" style="width:240px;height:240px;display:block">
+      </div>
+      <div style="display:flex;gap:8px;margin-top:16px">
+        <button class="btn-copy" style="flex:1" onclick="copiarLink()">📋 Copiar link</button>
+        <a id="qr-download" href="" download="qrcode-indicacao.png" class="btn-copy" style="flex:1;text-decoration:none;display:inline-flex;align-items:center;justify-content:center">⬇️ Baixar PNG</a>
+      </div>
     </div>
   </div>
 
   <!-- Como funciona -->
   <div class="regras">
     <div class="regra">
-      <div class="regra-icon">👤</div>
-      <div class="regra-titulo">Bônus de cadastro</div>
-      <div class="regra-desc">Quando alguém se cadastra usando seu link, você recebe imediatamente no saldo.</div>
-      <div class="regra-val">R$ 5,00 <span style="font-size:13px;font-weight:400;color:var(--muted)">por membro</span></div>
+      <div class="regra-icon">🏆</div>
+      <div class="regra-titulo">Bônus por marco</div>
+      <div class="regra-desc">A cada 100 palpites pagos por um mesmo indicado, você ganha um bônus extra — e se repete a cada novo marco (100, 200, 300...).</div>
+      <div class="regra-val">R$ 100 <span style="font-size:13px;font-weight:400;color:var(--muted)">a cada 100 palpites</span></div>
     </div>
     <div class="regra">
       <div class="regra-icon">⚽</div>
@@ -182,7 +203,7 @@ tbody tr:hover td{background:rgba(255,255,255,.02)}
     </div>
     <div style="overflow-x:auto">
       <table>
-        <thead><tr><th>CDP</th><th>Apelido</th><th>Membro desde</th><th>Palpites</th><th>Comissão gerada</th></tr></thead>
+        <thead><tr><th>CDP</th><th>Apelido</th><th>Membro desde</th><th>Palpites pagos</th><th>Progresso p/ bônus</th><th>Comissão gerada</th></tr></thead>
         <tbody id="indicados-tbody"></tbody>
       </table>
     </div>
@@ -238,35 +259,37 @@ const SALDO = 28.50;
 const APP_URL = 'clubepalpite.com.br';
 let tabAtual = 'pix';
 
+const PALPITES_POR_MARCO = 100;
 const INDICADOS = [
-  {cdp:'CDP22',ap:'Bruninha',desde:'01/06/2026',palpites:8, com:'R$ 8,00'},
-  {cdp:'CDP23',ap:'Zezinho', desde:'02/06/2026',palpites:5, com:'R$ 5,00'},
-  {cdp:'CDP31',ap:'Maricota',desde:'03/06/2026',palpites:12,com:'R$ 12,00'},
-  {cdp:'CDP38',ap:'Toninho', desde:'04/06/2026',palpites:4, com:'R$ 4,00'},
-  {cdp:'CDP45',ap:'Lulinha', desde:'05/06/2026',palpites:3, com:'R$ 3,00'},
-  {cdp:'CDP52',ap:'Fernão',  desde:'07/06/2026',palpites:6, com:'R$ 6,00'},
-  {cdp:'CDP61',ap:'Dani',    desde:'09/06/2026',palpites:0, com:'R$ 0,00'},
+  {cdp:'CDP22',ap:'Bruninha',desde:'01/06/2026',palpites:108, com:'R$ 108,00'},
+  {cdp:'CDP23',ap:'Zezinho', desde:'02/06/2026',palpites:92,  com:'R$ 92,00'},
+  {cdp:'CDP31',ap:'Maricota',desde:'03/06/2026',palpites:212, com:'R$ 212,00'},
+  {cdp:'CDP38',ap:'Toninho', desde:'04/06/2026',palpites:45,  com:'R$ 45,00'},
+  {cdp:'CDP45',ap:'Lulinha', desde:'05/06/2026',palpites:31,  com:'R$ 31,00'},
+  {cdp:'CDP52',ap:'Fernão',  desde:'07/06/2026',palpites:67,  com:'R$ 67,00'},
+  {cdp:'CDP61',ap:'Dani',    desde:'09/06/2026',palpites:0,   com:'R$ 0,00'},
 ];
 
 const EXTRATO = [
-  {tipo:'COMISSAO_PALPITE',  desc:'10% sobre palpite de Bruninha (R$ 10,00)', val:+1.00, data:'10/06/2026 14:32'},
-  {tipo:'COMISSAO_PALPITE',  desc:'10% sobre palpite de Maricota (R$ 15,00)', val:+1.50, data:'10/06/2026 11:20'},
-  {tipo:'BONUS_CADASTRO',    desc:'Bônus por indicar Dani (CDP61)',            val:+5.00, data:'09/06/2026 09:10'},
-  {tipo:'COMISSAO_PALPITE',  desc:'10% sobre palpite de Fernão (R$ 10,00)',   val:+1.00, data:'08/06/2026 17:45'},
-  {tipo:'RESGATE_PIX',       desc:'Resgate PIX — chave: (48) 99999-0000',     val:-14.50,data:'07/06/2026 10:05'},
-  {tipo:'BONUS_CADASTRO',    desc:'Bônus por indicar Fernão (CDP52)',          val:+5.00, data:'07/06/2026 08:30'},
-  {tipo:'COMISSAO_PALPITE',  desc:'10% sobre palpite de Lulinha (R$ 10,00)',  val:+1.00, data:'06/06/2026 20:15'},
-  {tipo:'BONUS_CADASTRO',    desc:'Bônus por indicar Lulinha (CDP45)',         val:+5.00, data:'05/06/2026 16:00'},
-  {tipo:'COMISSAO_PALPITE',  desc:'10% sobre palpite de Toninho (R$ 10,00)',  val:+1.00, data:'04/06/2026 13:30'},
-  {tipo:'BONUS_CADASTRO',    desc:'Bônus por indicar Toninho (CDP38)',         val:+5.00, data:'04/06/2026 09:00'},
+  {tipo:'COMISSAO_PALPITE',     desc:'10% sobre palpite de Bruninha (R$ 10,00)', val:+1.00,  data:'10/06/2026 14:32'},
+  {tipo:'BONUS_MARCO_PALPITES', desc:'Bônus por 108º palpite pago de Bruninha (marco de 100)', val:+100.00, data:'10/06/2026 14:32'},
+  {tipo:'COMISSAO_PALPITE',     desc:'10% sobre palpite de Maricota (R$ 15,00)', val:+1.50,  data:'10/06/2026 11:20'},
+  {tipo:'COMISSAO_PALPITE',     desc:'10% sobre palpite de Dani (R$ 10,00)',     val:+1.00,  data:'09/06/2026 09:10'},
+  {tipo:'COMISSAO_PALPITE',     desc:'10% sobre palpite de Fernão (R$ 10,00)',   val:+1.00,  data:'08/06/2026 17:45'},
+  {tipo:'RESGATE_PIX',          desc:'Resgate PIX — chave: (48) 99999-0000',     val:-114.50,data:'07/06/2026 10:05'},
+  {tipo:'COMISSAO_PALPITE',     desc:'10% sobre palpite de Fernão (R$ 10,00)',   val:+1.00,  data:'07/06/2026 08:30'},
+  {tipo:'COMISSAO_PALPITE',     desc:'10% sobre palpite de Lulinha (R$ 10,00)',  val:+1.00,  data:'06/06/2026 20:15'},
+  {tipo:'COMISSAO_PALPITE',     desc:'10% sobre palpite de Maricota (R$ 10,00)', val:+1.00,  data:'05/06/2026 16:00'},
+  {tipo:'BONUS_MARCO_PALPITES', desc:'Bônus por 200º palpite pago de Maricota (marco de 100)', val:+100.00, data:'05/06/2026 16:00'},
+  {tipo:'COMISSAO_PALPITE',     desc:'10% sobre palpite de Toninho (R$ 10,00)',  val:+1.00,  data:'04/06/2026 13:30'},
 ];
 
 const ICON_MAP = {
-  BONUS_CADASTRO:   {ic:'👤',cls:'ic-bonus'},
-  COMISSAO_PALPITE: {ic:'⚽',cls:'ic-com'},
-  RESGATE_PIX:      {ic:'💸',cls:'ic-res'},
-  USO_PALPITE:      {ic:'🎯',cls:'ic-uso'},
-  ESTORNO:          {ic:'↩️',cls:'ic-est'},
+  BONUS_MARCO_PALPITES: {ic:'🏆',cls:'ic-bonus'},
+  COMISSAO_PALPITE:     {ic:'⚽',cls:'ic-com'},
+  RESGATE_PIX:          {ic:'💸',cls:'ic-res'},
+  USO_PALPITE:          {ic:'🎯',cls:'ic-uso'},
+  ESTORNO:              {ic:'↩️',cls:'ic-est'},
 };
 
 // ── Inicia ──────────────────────────────────────────────────────
@@ -277,14 +300,29 @@ renderExtrato(EXTRATO);
 
 function renderIndicados(lista) {
   document.getElementById('ind-count').textContent = lista.length + ' membros';
-  document.getElementById('indicados-tbody').innerHTML = lista.map(i => `
+  document.getElementById('indicados-tbody').innerHTML = lista.map(i => {
+    const restante = PALPITES_POR_MARCO - (i.palpites % PALPITES_POR_MARCO);
+    const faltam = restante === PALPITES_POR_MARCO ? 0 : restante;
+    const pct = Math.round(((PALPITES_POR_MARCO - faltam) / PALPITES_POR_MARCO) * 100);
+    const marcos = Math.floor(i.palpites / PALPITES_POR_MARCO);
+    const progressoHtml = faltam === 0 && i.palpites === 0
+      ? '<span style="color:var(--muted);font-size:11px">—</span>'
+      : `<div style="display:flex;flex-direction:column;gap:3px;min-width:110px">
+          <div style="height:6px;background:var(--navy);border-radius:4px;overflow:hidden">
+            <div style="height:100%;width:${pct}%;background:var(--gold)"></div>
+          </div>
+          <span style="font-size:10px;color:var(--muted)">${marcos > 0 ? `🏆 ${marcos}x R$100 · ` : ''}faltam ${faltam} p/ próximo</span>
+        </div>`;
+    return `
     <tr>
       <td><span class="badge bg-warn">${i.cdp}</span></td>
       <td style="font-weight:500">${i.ap}</td>
       <td style="color:var(--muted)">${i.desde}</td>
       <td style="text-align:center">${i.palpites}</td>
+      <td>${progressoHtml}</td>
       <td style="color:var(--green);font-weight:500">${i.com}</td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 }
 
 function renderExtrato(lista) {
@@ -320,6 +358,28 @@ function copiarLink() {
   const url = `https://${APP_URL}/login.html?ref=${CDP}`;
   navigator.clipboard?.writeText(url).catch(()=>{});
   toast('✅ Link copiado! Compartilhe com seus amigos.');
+}
+
+// ── QR Code de indicação ─────────────────────────────────────
+function abrirQrCode() {
+  const img = document.getElementById('qr-img');
+  const dl  = document.getElementById('qr-download');
+  const src = `/api/indicacao/qrcode?token=${encodeURIComponent(localStorage.getItem('token') || '')}`;
+
+  img.src = src;
+  dl.href = src;
+
+  // Fallback: se o endpoint não responder (ex: demo sem backend), gera um placeholder visual
+  img.onerror = () => {
+    img.onerror = null;
+    img.src = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&color=0b2545&data=${encodeURIComponent(`https://${APP_URL}/login.html?ref=${CDP}`)}`;
+  };
+
+  document.getElementById('qr-modal').style.display = 'flex';
+}
+
+function fecharQrCode() {
+  document.getElementById('qr-modal').style.display = 'none';
 }
 
 function compartilharWpp() {
