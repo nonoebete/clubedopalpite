@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 datasource db {
   provider = "postgresql"
@@ -18,6 +19,7 @@ model Usuario {
   bloqueado    Boolean   @default(false)
   criadoEm     DateTime  @default(now()) @map("criado_em")
   palpites           PalpiteCampanha[]
+  palpitesPartida    PalpitePartida[]
   pagamentos         Pagamento[]
   indicacoesFeitas   Indicacao[]     @relation("Indicador")
   indicacaoRecebida  Indicacao?      @relation("Indicado")
@@ -38,6 +40,7 @@ model Campanha {
   ativa        Boolean      @default(true)
   palpites     PalpiteCampanha[]
   pagamentos   Pagamento[]
+  partidas     Partida[]
   @@map("campanhas")
 }
 model Selecao {
@@ -48,6 +51,8 @@ model Selecao {
   bandeiraCss String @map("bandeira_css")
   palpitesCampea PalpiteCampanha[] @relation("CampeaRelation")
   palpitesVice   PalpiteCampanha[] @relation("ViceRelation")
+  partidasCasa     Partida[] @relation("PartidaCasa")
+  partidasFora     Partida[] @relation("PartidaFora")
   @@map("selecoes")
 }
 model PalpiteCampanha {
@@ -87,6 +92,40 @@ model Pagamento {
   @@map("pagamentos")
 }
 
+// ── Partidas da 1ª Fase — Campanha de Palpite por Resultado ─────
+model Partida {
+  id            Int       @id @default(autoincrement())
+  campanhaId    Int       @map("campanha_id")
+  selecaoCasaId Int       @map("selecao_casa_id")
+  selecaoForaId Int       @map("selecao_fora_id")
+  dataHora      DateTime  @map("data_hora")
+  grupo         String    @db.Char(1)
+  resultado     ResultadoPartida? // preenchido pelo admin após o jogo
+  encerrada     Boolean   @default(false)
+  campanha    Campanha @relation(fields: [campanhaId], references: [id])
+  selecaoCasa Selecao  @relation("PartidaCasa", fields: [selecaoCasaId], references: [id])
+  selecaoFora Selecao  @relation("PartidaFora", fields: [selecaoForaId], references: [id])
+  palpites    PalpitePartida[]
+  @@map("partidas")
+}
+
+// ── Palpite de resultado (vitória casa / fora / empate) ─────────
+model PalpitePartida {
+  id                  Int               @id @default(autoincrement())
+  usuarioId           Int               @map("usuario_id")
+  partidaId           Int               @map("partida_id")
+  palpiteResultado    ResultadoPartida  @map("palpite_resultado")
+  valorPago           Decimal           @map("valor_pago") @db.Decimal(10,2)
+  pagamentoConfirmado Boolean           @default(false) @map("pagamento_confirmado")
+  acertou             Boolean?
+  pontos              Int               @default(0)
+  criadoEm            DateTime          @default(now()) @map("criado_em")
+  usuario Usuario @relation(fields: [usuarioId], references: [id])
+  partida Partida @relation(fields: [partidaId], references: [id])
+  @@unique([usuarioId, partidaId], name: "usuario_partida_unico")
+  @@map("palpites_partida")
+}
+
 enum Perfil {
   ADMIN
   PALPITEIRO
@@ -106,6 +145,7 @@ enum StatusPagamento {
   REJEITADO
 }
 
+// ── Configuração global de indicações ─────────────────────────
 model ConfigIndicacao {
   id               Int     @id @default(1)
   percentPalpite   Decimal @default(10.00) @map("percent_palpite")    @db.Decimal(5,2)
@@ -115,16 +155,19 @@ model ConfigIndicacao {
   @@map("config_indicacao")
 }
 
+// ── Indicação (quem indicou quem) ──────────────────────────────
 model Indicacao {
   id            Int      @id @default(autoincrement())
   indicadorId   Int      @map("indicador_id")
   indicadoId    Int      @unique @map("indicado_id")
+  palpitesPagos Int      @default(0) @map("palpites_pagos") // contador para bônus de marco (cada 100)
   criadoEm      DateTime @default(now()) @map("criado_em")
   indicador     Usuario  @relation("Indicador", fields: [indicadorId], references: [id])
   indicado      Usuario  @relation("Indicado",  fields: [indicadoId],  references: [id])
   @@map("indicacoes")
 }
 
+// ── Conta corrente do clube (saldo de indicações) ──────────────
 model ContaCorrente {
   id          Int      @id @default(autoincrement())
   usuarioId   Int      @unique @map("usuario_id")
@@ -136,6 +179,7 @@ model ContaCorrente {
   @@map("conta_corrente")
 }
 
+// ── Movimentos da conta corrente ───────────────────────────────
 model MovimentoConta {
   id          Int            @id @default(autoincrement())
   contaId     Int            @map("conta_id")
@@ -148,6 +192,7 @@ model MovimentoConta {
   @@map("movimentos_conta")
 }
 
+// ── Solicitações de resgate ────────────────────────────────────
 model Resgate {
   id          Int            @id @default(autoincrement())
   usuarioId   Int            @map("usuario_id")
@@ -163,6 +208,7 @@ model Resgate {
 
 enum TipoMovimento {
   BONUS_CADASTRO
+  BONUS_MARCO_PALPITES
   COMISSAO_PALPITE
   RESGATE_PIX
   USO_PALPITE
@@ -180,3 +226,10 @@ enum StatusResgate {
   PAGO
   REJEITADO
 }
+
+enum ResultadoPartida {
+  CASA
+  FORA
+  EMPATE
+}
+
