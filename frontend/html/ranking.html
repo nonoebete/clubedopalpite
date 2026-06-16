@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -88,7 +89,7 @@ body{font-family:'Inter',sans-serif;background:var(--night);color:#dce8f5;min-he
 .podio-base{background:var(--navy2);border:1px solid var(--border);border-top:none;padding:6px;text-align:center;font-size:11px;color:var(--muted)}
 .podio-item.primeiro .podio-card{padding-top:28px}
 
-/* ── Seleções mais apostadas ── */
+/* ── Seleções mais palpitadas ── */
 .sel-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;padding:16px 20px}
 .sel-item{background:var(--navy2);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;display:flex;align-items:center;gap:8px;font-size:13px}
 .sel-item .flag{font-size:20px}
@@ -125,6 +126,7 @@ body{font-family:'Inter',sans-serif;background:var(--night);color:#dce8f5;min-he
 <div class="tabs-wrap">
   <button class="fase-tab active" id="tab-f1" onclick="setFase(1)">1ª Fase · Seleção Campeã</button>
   <button class="fase-tab" id="tab-f2" onclick="setFase(2)">2ª Fase · Campeã + Vice</button>
+  <button class="fase-tab" id="tab-f3" onclick="setFase(3)">Palpite por Resultado</button>
   <button class="fase-tab" id="tab-geral" onclick="setFase(0)">Geral (ambas)</button>
 </div>
 
@@ -133,7 +135,7 @@ body{font-family:'Inter',sans-serif;background:var(--night);color:#dce8f5;min-he
   <div class="stat-box"><div class="sl">Palpiteiros</div><div class="sv" id="st-membros">87</div><div class="ss">participantes</div></div>
   <div class="stat-box"><div class="sl">Palpites registrados</div><div class="sv" id="st-palpites">216</div><div class="ss">confirmados e pagos</div></div>
   <div class="stat-box"><div class="sl">Fundo de prêmios</div><div class="sv" style="color:var(--green)" id="st-fundo">R$ 1.404</div><div class="ss">60% da arrecadação</div></div>
-  <div class="stat-box"><div class="sl">Fase atual</div><div class="sv" style="color:var(--gold)" id="st-fase">1ª</div><div class="ss" id="st-fase-sub">até 30/06/2026</div></div>
+  <div class="stat-box"><div class="sl">Fase atual</div><div class="sv" style="color:var(--gold)" id="st-fase">1ª</div><div class="ss" id="st-fase-sub">até 04/07/2026</div></div>
 </div>
 
 <!-- PÓDIO TOP 3 -->
@@ -149,10 +151,10 @@ body{font-family:'Inter',sans-serif;background:var(--night);color:#dce8f5;min-he
     <div id="ranking-lista"></div>
   </div>
 
-  <!-- Seleções mais apostadas -->
+  <!-- Seleções mais palpitadas -->
   <div class="ranking-card" style="margin-top:16px">
     <div class="ranking-header">
-      <span class="ranking-title">⚽ Seleções mais apostadas</span>
+      <span class="ranking-title">⚽ Seleções mais palpitadas</span>
     </div>
     <div class="sel-grid" id="sel-grid"></div>
   </div>
@@ -184,6 +186,13 @@ const RANKING_DATA = {
     {pos:3, apelido:'Carlão',     cdp:'CDP4',  acertos:0, palpites:8,  investido:100},
     {pos:4, apelido:'Joãozinho',  cdp:'CDP15', acertos:0, palpites:4,  investido:45},
     {pos:5, apelido:'Fernanda',   cdp:'CDP5',  acertos:0, palpites:6,  investido:60},
+  ],
+  3: [ // Palpite por Resultado — pontuação acumulada (3 pts/acerto)
+    {pos:1, apelido:'Aninha',     cdp:'CDP3',  pontos:18, palpites:6, investido:60},
+    {pos:2, apelido:'Carlão',     cdp:'CDP4',  pontos:15, palpites:6, investido:60},
+    {pos:3, apelido:'Mariazinha', cdp:'CDP1',  pontos:12, palpites:5, investido:50},
+    {pos:4, apelido:'Joãozinho',  cdp:'CDP15', pontos:9,  palpites:4, investido:40},
+    {pos:5, apelido:'Fernanda',   cdp:'CDP5',  pontos:6,  palpites:3, investido:30},
   ]
 };
 
@@ -200,8 +209,8 @@ let rankingFiltrado = [];
 function setFase(f) {
   faseSel = f;
   document.querySelectorAll('.fase-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById(f === 1 ? 'tab-f1' : f === 2 ? 'tab-f2' : 'tab-geral').classList.add('active');
-  const labels = {1:'1ª Fase · Seleção Campeã', 2:'2ª Fase · Campeã + Vice', 0:'Ranking Geral'};
+  document.getElementById(f === 1 ? 'tab-f1' : f === 2 ? 'tab-f2' : f === 3 ? 'tab-f3' : 'tab-geral').classList.add('active');
+  const labels = {1:'1ª Fase · Seleção Campeã', 2:'2ª Fase · Campeã + Vice', 3:'Palpite por Resultado', 0:'Ranking Geral'};
   document.getElementById('ranking-title').textContent = '🏆 ' + labels[f];
   renderRanking();
   renderPodio();
@@ -221,7 +230,7 @@ function renderPodio() {
 
   el.innerHTML = ordem.map((p, i) => {
     const realPos = p ? p.pos : '-';
-    const label = faseSel === 1 ? `${p?.palpites || 0} palpites` : `${p?.palpites || 0} duplas`;
+    const label = faseSel === 1 ? `${p?.palpites || 0} palpites` : faseSel === 3 ? `${p?.pontos || 0} pontos` : `${p?.palpites || 0} duplas`;
     return p ? `
       <div class="podio-item ${i===1?'primeiro':''}">
         <div class="podio-card ${classes[i]}" style="min-height:${alturas[i]}">
@@ -244,6 +253,8 @@ function renderRanking(filtro = '') {
 
   const colLabel = faseSel === 1
     ? ['Palpites', 'Investido']
+    : faseSel === 3
+    ? ['Palpites', 'Pontos']
     : ['Duplas', 'Investido'];
 
   const cabecalho = `
@@ -252,7 +263,7 @@ function renderRanking(filtro = '') {
       <div>Palpiteiro</div>
       <div style="text-align:center">${colLabel[0]}</div>
       <div style="text-align:center">${colLabel[1]}</div>
-      <div style="text-align:center">Acertos</div>
+      <div style="text-align:center">${faseSel === 3 ? 'Investido' : 'Acertos'}</div>
     </div>`;
 
   if (!rankingFiltrado.length) {
@@ -263,6 +274,12 @@ function renderRanking(filtro = '') {
   const linhas = rankingFiltrado.map(p => {
     const numClass = p.pos === 1 ? 'gold-num' : p.pos === 2 ? 'silver-num' : p.pos === 3 ? 'bronze-num' : '';
     const acertosDisplay = p.acertos > 0 ? `<span style="color:var(--green);font-weight:700">${p.acertos} ✓</span>` : '<span style="color:var(--muted)">—</span>';
+    const col2 = faseSel === 3
+      ? `<div class="rank-col"><div class="val" style="color:var(--gold);font-weight:700">${p.pontos} pts</div></div>`
+      : `<div class="rank-col"><div class="val" style="font-size:14px">R$${p.investido}</div></div>`;
+    const col3 = faseSel === 3
+      ? `<div class="rank-col"><div class="val" style="font-size:14px">R$${p.investido}</div></div>`
+      : `<div class="rank-col">${acertosDisplay}</div>`;
     return `
       <div class="rank-row">
         <div class="rank-num ${numClass}">${p.pos <= 3 ? ['🥇','🥈','🥉'][p.pos-1] : p.pos}</div>
@@ -274,8 +291,8 @@ function renderRanking(filtro = '') {
           </div>
         </div>
         <div class="rank-col"><div class="val">${p.palpites}</div></div>
-        <div class="rank-col"><div class="val" style="font-size:14px">R$${p.investido}</div></div>
-        <div class="rank-col">${acertosDisplay}</div>
+        ${col2}
+        ${col3}
       </div>`;
   }).join('');
 
