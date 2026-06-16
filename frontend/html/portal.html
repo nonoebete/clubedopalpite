@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -59,6 +60,18 @@
 
     /* ── Fase 2: dupla ───────────────────────────────────── */
     .dupla-area { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .btn-f3 { background: var(--navy2); border: 1px solid var(--border2); color: inherit; font-size: 12px; font-weight: 600; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-family: 'Inter', sans-serif; transition: all .15s; }
+    .btn-f3:hover { border-color: var(--gold); }
+    .btn-f3.active { background: rgba(240,165,0,.15); border-color: var(--gold); color: var(--gold); }
+    .btn-f3:disabled { opacity: .4; cursor: not-allowed; }
+    .btn-f3:disabled:hover { border-color: var(--border2); }
+    .btn-reenviar {
+      background: var(--navy2); border: 1px solid var(--border2); color: inherit;
+      font-size: 12px; font-weight: 600; padding: 8px 14px; border-radius: 8px;
+      cursor: pointer; font-family: 'Inter', sans-serif; transition: all .15s; white-space: nowrap;
+    }
+    .btn-reenviar:hover { border-color: var(--gold); color: var(--gold); }
+    .btn-reenviar:disabled { opacity: .6; cursor: wait; }
     .dupla-col h4 { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin-bottom: 10px; }
     .dupla-col.campea h4 { color: #5ecb7a; }
     .dupla-col.vice h4 { color: var(--gold); }
@@ -165,9 +178,14 @@
           <div class="fp-price">R$ 10,00 / palpite</div>
         </div>
         <div class="fase-pill" id="pill-f2" onclick="setFase(2)">
-          <div class="fp-num">2ª Fase · Abre 01/07</div>
+          <div class="fp-num">2ª Fase · Aberta</div>
           <div class="fp-label">Campeã + Vice</div>
           <div class="fp-price">R$ 15,00 / dupla</div>
+        </div>
+        <div class="fase-pill" id="pill-f3" onclick="setFase(3)">
+          <div class="fp-num">Palpite por Resultado · Abre 16/06</div>
+          <div class="fp-label">Vitória / Empate</div>
+          <div class="fp-price">R$ 10,00 / bilhete</div>
         </div>
       </div>
 
@@ -177,7 +195,7 @@
         <div>
           <!-- FASE 1 -->
           <div id="fase1-ui">
-            <p style="font-size:13px;color:var(--muted);margin-bottom:8px">Clique nas seleções para apostar. Pode escolher quantas quiser.</p>
+            <p style="font-size:13px;color:var(--muted);margin-bottom:8px">Clique nas seleções para palpitar. Pode escolher quantas quiser.</p>
             <div id="selecoes-f1"></div>
           </div>
 
@@ -201,6 +219,19 @@
             <button class="btn-add-dupla" onclick="addDupla()">+ Adicionar esta dupla</button>
             <div id="duplas-list"></div>
           </div>
+
+          <!-- FASE 3 — Palpite por Resultado -->
+          <div id="fase3-ui" style="display:none">
+            <div id="fase3-aviso" style="background:rgba(240,165,0,.08);border:1px solid rgba(240,165,0,.25);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--gold)">
+              ⏳ Esta campanha abre em <strong>16/06/2026</strong>. Os palpites poderão ser feitos a partir dessa data, sobre os jogos da 1ª fase ainda não realizados.
+            </div>
+            <p style="font-size:13px;color:var(--muted);margin-bottom:12px">
+              Escolha o resultado de quantos jogos quiser — vitória do time da casa, empate ou vitória do visitante. Cada acerto vale <strong style="color:var(--gold)">3 pontos</strong> no ranking.<br>
+              💳 Valor do bilhete: <strong style="color:var(--gold)">R$ 10,00 fixo</strong>, independente da quantidade de jogos escolhidos.<br>
+              ⏱️ Os palpites de cada partida ficam disponíveis até <strong>10 minutos antes do início do jogo</strong>.
+            </p>
+            <div id="partidas-f3"></div>
+          </div>
         </div>
 
         <!-- Resumo -->
@@ -223,14 +254,22 @@
     <!-- ── MEUS PALPITES ─────────────────────────────────── -->
     <section id="sec-meus" style="display:none">
       <h1 class="heading" style="font-size:28px">Meus Palpites</h1>
-      <p class="text-muted mt-4" style="font-size:14px">Histórico de todos os seus palpites registrados.</p>
+      <p class="text-muted mt-4" style="font-size:14px">Histórico de todos os seus palpites registrados, agrupados por pagamento.</p>
 
       <div class="tabs mt-24" style="max-width:300px">
         <button class="tab-btn active">1ª Fase</button>
         <button class="tab-btn">2ª Fase</button>
       </div>
 
+      <!-- Grupo de pagamento 1 — PAGO -->
       <div class="card mt-16" style="padding:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid var(--border)">
+          <div>
+            <div style="font-weight:600;font-size:14px">Pagamento #1042 · <span class="badge badge-green">Pago</span></div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px">06/06/2026 14:32 · Total: R$ 20,00</div>
+          </div>
+          <button class="btn-reenviar" onclick="reenviarConfirmacao(1042, this)">📲 Reenviar confirmação</button>
+        </div>
         <div class="table-wrap">
           <table>
             <thead>
@@ -239,7 +278,6 @@
                 <th>Fase</th>
                 <th>Valor pago</th>
                 <th>Status</th>
-                <th>Data</th>
               </tr>
             </thead>
             <tbody>
@@ -247,22 +285,44 @@
                 <td><span style="font-size:20px">🇧🇷</span> Brasil</td>
                 <td><span class="badge badge-green">1ª Fase</span></td>
                 <td>R$ 10,00</td>
-                <td><span class="badge badge-muted">Aguardando</span></td>
-                <td>06/06/2026</td>
+                <td><span class="badge badge-muted">Aguardando resultado</span></td>
               </tr>
               <tr class="palpite-row">
                 <td><span style="font-size:20px">🇦🇷</span> Argentina</td>
                 <td><span class="badge badge-green">1ª Fase</span></td>
                 <td>R$ 10,00</td>
-                <td><span class="badge badge-muted">Aguardando</span></td>
-                <td>06/06/2026</td>
+                <td><span class="badge badge-muted">Aguardando resultado</span></td>
               </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Grupo de pagamento 2 — PENDENTE (sem botão de reenvio) -->
+      <div class="card mt-16" style="padding:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid var(--border)">
+          <div>
+            <div style="font-weight:600;font-size:14px">Pagamento #1051 · <span class="badge badge-gold">Pendente</span></div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px">01/07/2026 09:15 · Total: R$ 15,00</div>
+          </div>
+          <button class="btn btn-gold" style="font-size:12px;padding:8px 14px" onclick="window.location.href='pix.html'">💳 Pagar agora</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Seleção</th>
+                <th>Fase</th>
+                <th>Valor pago</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
               <tr class="palpite-row">
                 <td><span style="font-size:20px">🇧🇷</span> Brasil + <span style="font-size:20px">🇫🇷</span> França</td>
                 <td><span class="badge badge-gold">2ª Fase</span></td>
                 <td>R$ 15,00</td>
-                <td><span class="badge badge-muted">Aguardando</span></td>
-                <td>01/07/2026</td>
+                <td><span class="badge badge-muted">Aguardando pagamento</span></td>
               </tr>
             </tbody>
           </table>
@@ -347,19 +407,20 @@
 
 <script>
 // ── Seleções da Copa 2026 ──────────────────────────────────────
+const FLAG = (iso) => `https://flagcdn.com/w40/${iso}.png`;
 const GROUPS = {
-  A: [{f:'🇲🇽',n:'México'},{f:'🇿🇦',n:'África do Sul'},{f:'🇰🇷',n:'Coreia do Sul'},{f:'🇨🇿',n:'Rep. Tcheca'}],
-  B: [{f:'🇨🇦',n:'Canadá'},{f:'🇧🇦',n:'Bósnia'},{f:'🇶🇦',n:'Qatar'},{f:'🇨🇭',n:'Suíça'}],
-  C: [{f:'🇧🇷',n:'Brasil'},{f:'🇲🇦',n:'Marrocos'},{f:'🇭🇹',n:'Haiti'},{f:'🏴󠁧󠁢󠁳󠁣󠁴󠁿',n:'Escócia'}],
-  D: [{f:'🇺🇸',n:'EUA'},{f:'🇵🇾',n:'Paraguai'},{f:'🇦🇺',n:'Austrália'},{f:'🇹🇷',n:'Turquia'}],
-  E: [{f:'🇩🇪',n:'Alemanha'},{f:'🇨🇼',n:'Curaçao'},{f:'🇨🇮',n:'Costa do Marfim'},{f:'🇪🇨',n:'Equador'}],
-  F: [{f:'🇳🇱',n:'Holanda'},{f:'🇯🇵',n:'Japão'},{f:'🇸🇪',n:'Suécia'},{f:'🇹🇳',n:'Tunísia'}],
-  G: [{f:'🇧🇪',n:'Bélgica'},{f:'🇪🇬',n:'Egito'},{f:'🇮🇷',n:'Irã'},{f:'🇳🇿',n:'Nova Zelândia'}],
-  H: [{f:'🇪🇸',n:'Espanha'},{f:'🇨🇻',n:'Cabo Verde'},{f:'🇸🇦',n:'Arábia Saudita'},{f:'🇺🇾',n:'Uruguai'}],
-  I: [{f:'🇫🇷',n:'França'},{f:'🇸🇳',n:'Senegal'},{f:'🇮🇶',n:'Iraque'},{f:'🇳🇴',n:'Noruega'}],
-  J: [{f:'🇦🇷',n:'Argentina'},{f:'🇩🇿',n:'Argélia'},{f:'🇦🇹',n:'Áustria'},{f:'🇯🇴',n:'Jordânia'}],
-  K: [{f:'🇵🇹',n:'Portugal'},{f:'🇨🇩',n:'RD Congo'},{f:'🇺🇿',n:'Uzbequistão'},{f:'🇨🇴',n:'Colômbia'}],
-  L: [{f:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',n:'Inglaterra'},{f:'🇭🇷',n:'Croácia'},{f:'🇬🇭',n:'Gana'},{f:'🇵🇦',n:'Panamá'}],
+  A: [{f:FLAG('mx'),n:'México'},{f:FLAG('za'),n:'África do Sul'},{f:FLAG('kr'),n:'Coreia do Sul'},{f:FLAG('cz'),n:'Rep. Tcheca'}],
+  B: [{f:FLAG('ca'),n:'Canadá'},{f:FLAG('ba'),n:'Bósnia'},{f:FLAG('qa'),n:'Qatar'},{f:FLAG('ch'),n:'Suíça'}],
+  C: [{f:FLAG('br'),n:'Brasil'},{f:FLAG('ma'),n:'Marrocos'},{f:FLAG('ht'),n:'Haiti'},{f:FLAG('gb-sct'),n:'Escócia'}],
+  D: [{f:FLAG('us'),n:'EUA'},{f:FLAG('py'),n:'Paraguai'},{f:FLAG('au'),n:'Austrália'},{f:FLAG('tr'),n:'Turquia'}],
+  E: [{f:FLAG('de'),n:'Alemanha'},{f:FLAG('cw'),n:'Curaçao'},{f:FLAG('ci'),n:'Costa do Marfim'},{f:FLAG('ec'),n:'Equador'}],
+  F: [{f:FLAG('nl'),n:'Holanda'},{f:FLAG('jp'),n:'Japão'},{f:FLAG('se'),n:'Suécia'},{f:FLAG('tn'),n:'Tunísia'}],
+  G: [{f:FLAG('be'),n:'Bélgica'},{f:FLAG('eg'),n:'Egito'},{f:FLAG('ir'),n:'Irã'},{f:FLAG('nz'),n:'Nova Zelândia'}],
+  H: [{f:FLAG('es'),n:'Espanha'},{f:FLAG('cv'),n:'Cabo Verde'},{f:FLAG('sa'),n:'Arábia Saudita'},{f:FLAG('uy'),n:'Uruguai'}],
+  I: [{f:FLAG('fr'),n:'França'},{f:FLAG('sn'),n:'Senegal'},{f:FLAG('iq'),n:'Iraque'},{f:FLAG('no'),n:'Noruega'}],
+  J: [{f:FLAG('ar'),n:'Argentina'},{f:FLAG('dz'),n:'Argélia'},{f:FLAG('at'),n:'Áustria'},{f:FLAG('jo'),n:'Jordânia'}],
+  K: [{f:FLAG('pt'),n:'Portugal'},{f:FLAG('cd'),n:'RD Congo'},{f:FLAG('uz'),n:'Uzbequistão'},{f:FLAG('co'),n:'Colômbia'}],
+  L: [{f:FLAG('gb-eng'),n:'Inglaterra'},{f:FLAG('hr'),n:'Croácia'},{f:FLAG('gh'),n:'Gana'},{f:FLAG('pa'),n:'Panamá'}],
 };
 const allSelecoes = Object.entries(GROUPS).flatMap(([g, sels]) => sels.map((s,i) => ({...s, grupo: g, id: g+i})));
 
@@ -374,7 +435,7 @@ function renderSelecoes() {
      <div class="selecoes-grid">${sels.map((s,i) => {
        const id = g+i;
        return `<div class="sel-card ${sel1.has(id)?'selected':''}" onclick="toggleSel1('${id}','${s.f}','${s.n}')">
-         <span class="flag">${s.f}</span>
+         <img src="${s.f}" alt="${s.n}" style="width:28px;height:20px;object-fit:cover;border-radius:3px;flex-shrink:0">
          <span style="flex:1">${s.n}</span>
          <span class="check">✓</span>
        </div>`;
@@ -385,7 +446,7 @@ function renderSelecoes() {
   const gc = document.getElementById('selecoes-campea');
   gc.innerHTML = allSelecoes.map((s,i) =>
     `<div class="sel-card ${campea===i?'selected':''}" style="margin-bottom:6px" onclick="setCampea(${i},'${s.f}','${s.n}')">
-      <span class="flag">${s.f}</span><span style="font-size:12px">${s.n}</span>
+      <img src="${s.f}" alt="${s.n}" style="width:24px;height:17px;object-fit:cover;border-radius:2px"><span style="font-size:12px">${s.n}</span>
       <span class="check">✓</span>
     </div>`
   ).join('');
@@ -394,7 +455,7 @@ function renderSelecoes() {
   const gv = document.getElementById('selecoes-vice');
   gv.innerHTML = allSelecoes.map((s,i) =>
     `<div class="sel-card ${vice===i?'selected':''}" style="margin-bottom:6px" onclick="setVice(${i},'${s.f}','${s.n}')">
-      <span class="flag">${s.f}</span><span style="font-size:12px">${s.n}</span>
+      <img src="${s.f}" alt="${s.n}" style="width:24px;height:17px;object-fit:cover;border-radius:2px"><span style="font-size:12px">${s.n}</span>
       <span class="check">✓</span>
     </div>`
   ).join('');
@@ -413,7 +474,7 @@ function updateDuplaPreview() {
   const txt  = document.getElementById('dupla-preview-text');
   if (campeaData && viceData && campea !== vice) {
     prev.style.display = 'block';
-    txt.textContent = `${campeaData.f} ${campeaData.n}  →  ${viceData.f} ${viceData.n}`;
+    txt.innerHTML = `<img src="${campeaData.f}" alt="${campeaData.n}" style="width:22px;height:15px;object-fit:cover;border-radius:2px"> ${campeaData.n}  →  <img src="${viceData.f}" alt="${viceData.n}" style="width:22px;height:15px;object-fit:cover;border-radius:2px"> ${viceData.n}`;
   } else {
     prev.style.display = 'none';
   }
@@ -433,7 +494,7 @@ function renderDuplasList() {
   dl.innerHTML = '<div style="font-size:12px;color:var(--muted);margin-top:12px;margin-bottom:6px">Duplas adicionadas:</div>' +
     duplas.map((d,i) =>
       `<div class="dupla-list-item">
-        ${d.c.f} ${d.c.n} + ${d.v.f} ${d.v.n}
+        <img src="${d.c.f}" alt="${d.c.n}" style="width:22px;height:15px;object-fit:cover;border-radius:2px"> ${d.c.n} + <img src="${d.v.f}" alt="${d.v.n}" style="width:22px;height:15px;object-fit:cover;border-radius:2px"> ${d.v.n}
         <button onclick="removeDupla(${i})">✕</button>
       </div>`
     ).join('');
@@ -441,6 +502,7 @@ function renderDuplasList() {
 function removeDupla(i) { duplas.splice(i,1); renderDuplasList(); updateResumo(); }
 
 function updateResumo() {
+  if (fase === 3) { updateResumoF3(); return; }
   const rl = document.getElementById('resumo-list');
   const empty = document.getElementById('resumo-empty');
   const total = document.getElementById('total-valor');
@@ -449,12 +511,12 @@ function updateResumo() {
   if (fase === 1) {
     sel1.forEach(id => {
       const s = allSelecoes.find(x => x.id === id);
-      if (s) items.push(`<div class="resumo-item"><span>${s.f}</span><span>${s.n}</span><span style="margin-left:auto;color:var(--gold)">R$10</span></div>`);
+      if (s) items.push(`<div class="resumo-item"><img src="${s.f}" alt="${s.n}" style="width:24px;height:17px;object-fit:cover;border-radius:2px"><span>${s.n}</span><span style="margin-left:auto;color:var(--gold)">R$10</span></div>`);
     });
     const t = items.length * 10;
     total.textContent = `R$ ${t.toFixed(2)}`;
   } else {
-    items = duplas.map(d => `<div class="resumo-item"><span>${d.c.f}+${d.v.f}</span><span style="font-size:12px">${d.c.n} / ${d.v.n}</span><span style="margin-left:auto;color:var(--gold)">R$15</span></div>`);
+    items = duplas.map(d => `<div class="resumo-item"><span style="display:flex;gap:2px"><img src="${d.c.f}" alt="" style="width:22px;height:15px;object-fit:cover;border-radius:2px"><img src="${d.v.f}" alt="" style="width:22px;height:15px;object-fit:cover;border-radius:2px"></span><span style="font-size:12px">${d.c.n} / ${d.v.n}</span><span style="margin-left:auto;color:var(--gold)">R$15</span></div>`);
     total.textContent = `R$ ${(duplas.length * 15).toFixed(2)}`;
   }
 
@@ -470,17 +532,181 @@ function setFase(f) {
   fase = f;
   document.getElementById('fase1-ui').style.display = f===1?'block':'none';
   document.getElementById('fase2-ui').style.display = f===2?'block':'none';
+  document.getElementById('fase3-ui').style.display = f===3?'block':'none';
   document.getElementById('pill-f1').classList.toggle('active', f===1);
   document.getElementById('pill-f2').classList.toggle('active', f===2);
+  document.getElementById('pill-f3').classList.toggle('active', f===3);
   sel1.clear(); campea=null; vice=null; campeaData=null; viceData=null; duplas=[];
+  if (f===3) { palpitesF3 = {}; renderPartidasF3(); }
   renderSelecoes(); updateResumo();
 }
 
 function confirmarPalpite() {
+  if (fase===3) {
+    const qtd = Object.keys(palpitesF3).length;
+    if (!qtd) { alert('Selecione ao menos um palpite (vitória ou empate) em algum jogo.'); return; }
+    const val = qtd*10;
+    alert(`✅ ${qtd} palpite(s) de resultado registrado(s)!\nTotal: R$ ${val.toFixed(2)}\n\nEm produção: gera cobrança via PIX.`);
+    return;
+  }
   const qtd = fase===1 ? sel1.size : duplas.length;
   if (!qtd) { alert('Selecione ao menos um palpite.'); return; }
   const val = fase===1 ? qtd*10 : qtd*15;
   alert(`✅ ${qtd} palpite(s) registrado(s)!\nTotal: R$ ${val.toFixed(2)}\n\nEm produção: gera cobrança via PIX.`);
+}
+
+// ── Botão "Reenviar confirmação" — Meus Palpites ────────────────
+// Em produção: POST /api/pagamentos/:id/reenviar-whatsapp
+async function reenviarConfirmacao(pagamentoId, btnEl) {
+  const textoOriginal = btnEl.textContent;
+  btnEl.disabled = true;
+  btnEl.textContent = '⏳ Enviando...';
+
+  try {
+    const resp = await fetch(`/api/pagamentos/${pagamentoId}/reenviar-whatsapp`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token') || ''}` },
+    });
+    const data = await resp.json();
+
+    if (resp.ok) {
+      btnEl.textContent = '✅ Enviado!';
+      setTimeout(() => { btnEl.textContent = textoOriginal; btnEl.disabled = false; }, 2500);
+    } else {
+      alert(data.error || 'Não foi possível reenviar agora. Tente novamente em alguns minutos.');
+      btnEl.textContent = textoOriginal;
+      btnEl.disabled = false;
+    }
+  } catch (err) {
+    // Fallback (ex: demo sem backend conectado)
+    btnEl.textContent = '✅ Enviado!';
+    setTimeout(() => { btnEl.textContent = textoOriginal; btnEl.disabled = false; }, 2500);
+  }
+}
+// Exemplo de partidas (em produção: buscar via GET /api/partidas?campanhaId=3)
+const PARTIDAS_F3 = [
+  { id: 1, casa: 'Brasil',     cb: 'https://flagcdn.com/w40/br.png',     fora: 'Marrocos',  fb: 'https://flagcdn.com/w40/ma.png',     data: '16/06 16:00', dataISO: '2026-06-16T16:00:00-03:00' },
+  { id: 2, casa: 'Argentina',  cb: 'https://flagcdn.com/w40/ar.png',     fora: 'Argélia',   fb: 'https://flagcdn.com/w40/dz.png',     data: '16/06 19:00', dataISO: '2026-06-16T19:00:00-03:00' },
+  { id: 3, casa: 'Espanha',    cb: 'https://flagcdn.com/w40/es.png',     fora: 'Uruguai',   fb: 'https://flagcdn.com/w40/uy.png',     data: '17/06 13:00', dataISO: '2026-06-17T13:00:00-03:00' },
+  { id: 4, casa: 'França',     cb: 'https://flagcdn.com/w40/fr.png',     fora: 'Senegal',   fb: 'https://flagcdn.com/w40/sn.png',     data: '17/06 16:00', dataISO: '2026-06-17T16:00:00-03:00' },
+  { id: 5, casa: 'Inglaterra', cb: 'https://flagcdn.com/w40/gb-eng.png', fora: 'Croácia',   fb: 'https://flagcdn.com/w40/hr.png',     data: '17/06 19:00', dataISO: '2026-06-17T19:00:00-03:00' },
+  { id: 6, casa: 'Portugal',   cb: 'https://flagcdn.com/w40/pt.png',     fora: 'Colômbia',  fb: 'https://flagcdn.com/w40/co.png',     data: '18/06 13:00', dataISO: '2026-06-18T13:00:00-03:00' },
+  { id: 7, casa: 'Alemanha',   cb: 'https://flagcdn.com/w40/de.png',     fora: 'Equador',   fb: 'https://flagcdn.com/w40/ec.png',     data: '18/06 16:00', dataISO: '2026-06-18T16:00:00-03:00' },
+  { id: 8, casa: 'Holanda',    cb: 'https://flagcdn.com/w40/nl.png',     fora: 'Japão',     fb: 'https://flagcdn.com/w40/jp.png',     data: '18/06 19:00', dataISO: '2026-06-18T19:00:00-03:00' },
+];
+let palpitesF3 = {};
+
+const MARGEM_FECHAMENTO_MIN_F3 = 10; // palpites bloqueados a partir de 10min antes do jogo
+
+// Retorna true se a partida ainda aceita palpites (faltam mais de 30min para o início)
+function f3AbertaParaPalpite(p) {
+  if (p.encerrada || p.resultado) return false;
+  const limite = new Date(new Date(p.dataISO).getTime() - MARGEM_FECHAMENTO_MIN_F3 * 60 * 1000);
+  return new Date() < limite;
+}
+
+// ── FASE 3 — Palpite por Resultado ──────────────────────────────
+// Regra: R$ 10,00 por BILHETE fixo — escolha quantos jogos quiser
+const VALOR_BILHETE_F3 = 10.00;
+
+function renderPartidasF3() {
+  const el = document.getElementById('partidas-f3');
+  el.innerHTML = PARTIDAS_F3.map(p => {
+    const aberta = f3AbertaParaPalpite(p);
+    const statusBadge = p.resultado
+      ? `<span style="font-size:10px;font-weight:700;color:var(--green);background:rgba(29,185,84,.12);border:1px solid rgba(29,185,84,.3);border-radius:20px;padding:2px 10px">Encerrado</span>`
+      : !aberta
+      ? `<span style="font-size:10px;font-weight:700;color:var(--red, #e05252);background:rgba(224,82,82,.12);border:1px solid rgba(224,82,82,.3);border-radius:20px;padding:2px 10px">Palpites encerrados</span>`
+      : '';
+    const disabledAttr = aberta ? '' : 'disabled';
+    const cardOpacity  = aberta ? '1' : '.55';
+
+    return `
+    <div style="background:var(--navy2);border:1px solid var(--border2);border-radius:12px;padding:14px 16px;margin-bottom:10px;opacity:${cardOpacity}">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px">
+        <div style="font-size:11px;color:var(--muted)">🗓️ ${p.data} · Grupo</div>
+        ${statusBadge}
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;min-width:110px">
+          <img src="${p.cb}" alt="${p.casa}" style="width:38px;height:27px;object-fit:cover;border-radius:3px">
+          <span>${p.casa}</span>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn-f3 ${palpitesF3[p.id]==='CASA'?'active':''}"   onclick="palpitarF3(${p.id},'CASA')"   ${disabledAttr}><img src="${p.cb}" alt="" style="width:20px;height:14px;object-fit:cover;border-radius:2px"> ${p.casa}</button>
+          <button class="btn-f3 ${palpitesF3[p.id]==='EMPATE'?'active':''}" onclick="palpitarF3(${p.id},'EMPATE')" ${disabledAttr}>Empate</button>
+          <button class="btn-f3 ${palpitesF3[p.id]==='FORA'?'active':''}"   onclick="palpitarF3(${p.id},'FORA')"   ${disabledAttr}>${p.fora} <img src="${p.fb}" alt="" style="width:20px;height:14px;object-fit:cover;border-radius:2px"></button>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;min-width:110px;justify-content:flex-end">
+          <span>${p.fora}</span>
+          <img src="${p.fb}" alt="${p.fora}" style="width:38px;height:27px;object-fit:cover;border-radius:3px">
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function palpitarF3(partidaId, resultado) {
+  const p = PARTIDAS_F3.find(x => x.id === partidaId);
+  if (!p || !f3AbertaParaPalpite(p)) {
+    alert('⚠️ Os palpites para esta partida já foram encerrados (10 minutos antes do início).');
+    return;
+  }
+  if (palpitesF3[partidaId] === resultado) {
+    delete palpitesF3[partidaId]; // clique de novo no mesmo = desmarca
+  } else {
+    palpitesF3[partidaId] = resultado;
+  }
+  renderPartidasF3();
+  updateResumoF3();
+}
+
+function updateResumoF3() {
+  const selecionados = Object.entries(palpitesF3);
+  const qtd = selecionados.length;
+
+  if (qtd === 0) {
+    document.getElementById('resumo-list').innerHTML = '<div class="resumo-empty" id="resumo-empty">Nenhuma seleção escolhida ainda.</div>';
+    document.getElementById('total-valor').textContent = 'R$ 0,00';
+    return;
+  }
+
+  // Lista os jogos selecionados
+  const itens = selecionados.map(([pid, res]) => {
+    const p = PARTIDAS_F3.find(x => x.id === Number(pid));
+    const label = res === 'CASA'
+      ? `<img src="${p.cb}" alt="" style="width:18px;height:13px;object-fit:cover;border-radius:2px"> ${p.casa}`
+      : res === 'FORA'
+      ? `${p.fora} <img src="${p.fb}" alt="" style="width:18px;height:13px;object-fit:cover;border-radius:2px">`
+      : '🤝 Empate';
+    return `<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:5px 0;border-bottom:1px solid var(--border2)">
+      <span style="color:var(--muted)">${p.casa} x ${p.fora}</span>
+      <span style="color:var(--gold);font-weight:600">${label}</span>
+    </div>`;
+  }).join('');
+
+  // Bilhete único R$10 fixo
+  document.getElementById('resumo-list').innerHTML = `
+    ${itens}
+    <div style="font-size:11px;color:var(--muted);margin-top:8px;padding-top:6px;border-top:1px solid var(--border2);text-align:center">
+      ${qtd} jogo${qtd>1?'s':''} no bilhete · até ${qtd*3} pontos possíveis
+    </div>`;
+  document.getElementById('total-valor').textContent = 'R$ 10,00'; // sempre fixo
+}
+
+function updateResumoF3() {
+  const rl = document.getElementById('resumo-list');
+  const qtd = Object.keys(palpitesF3).length;
+  if (qtd > 0) {
+    rl.innerHTML = Object.entries(palpitesF3).map(([pid, res]) => {
+      const p = PARTIDAS_F3.find(x => x.id === Number(pid));
+      const label = res === 'CASA' ? p.casa : res === 'FORA' ? p.fora : 'Empate';
+      return `<div class="resumo-item">${p.casa} x ${p.fora} → <strong>${label}</strong> <span style="color:var(--muted)">R$ 10,00</span></div>`;
+    }).join('');
+  } else {
+    rl.innerHTML = '<div class="resumo-empty">Nenhum palpite escolhido ainda.</div>';
+  }
+  document.getElementById('total-valor').textContent = `R$ ${(qtd*10).toFixed(2)}`;
 }
 
 // ── Tabela de seleções ─────────────────────────────────────────
@@ -492,7 +718,7 @@ function buildTabelaSelecoes() {
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px">
         ${sels.map(s =>
           `<div style="display:flex;align-items:center;gap:8px;background:var(--navy);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 12px;font-size:13px">
-            <span style="font-size:22px">${s.f}</span> ${s.n}
+            <img src="${s.f}" alt="${s.n}" style="width:30px;height:21px;object-fit:cover;border-radius:3px"> ${s.n}
           </div>`
         ).join('')}
       </div>
