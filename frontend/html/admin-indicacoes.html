@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -41,6 +42,8 @@ td{padding:10px 14px;border-bottom:1px solid var(--border);color:#dce8f5}
 tr:last-child td{border-bottom:none}
 tbody tr:hover td{background:rgba(255,255,255,.02)}
 .badge{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px}
+.btn-copy{background:rgba(240,165,0,.12);border:1px solid rgba(240,165,0,.3);color:var(--gold);font-size:12px;font-weight:600;padding:7px 14px;border-radius:8px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;white-space:nowrap}
+.btn-copy:hover{background:rgba(240,165,0,.22)}
 .bg-ok{background:rgba(29,185,84,.15);color:var(--green);border:1px solid rgba(29,185,84,.3)}
 .bg-warn{background:rgba(240,165,0,.12);color:var(--gold);border:1px solid rgba(240,165,0,.3)}
 .bg-blue{background:rgba(74,158,255,.12);color:var(--blue);border:1px solid rgba(74,158,255,.3)}
@@ -109,7 +112,7 @@ tbody tr:hover td{background:rgba(255,255,255,.02)}
         <span style="font-size:11px;color:var(--muted)">23 membros com indicações</span>
       </div>
       <div style="overflow-x:auto">
-        <table><thead><tr><th>CDP</th><th>Apelido</th><th>Telefone</th><th>Indicados</th><th>Total ganho</th><th>Saldo</th></tr></thead>
+        <table><thead><tr><th>CDP</th><th>Apelido</th><th>Telefone</th><th>Indicados</th><th>Total ganho</th><th>Saldo</th><th>QR</th></tr></thead>
         <tbody id="ind-tbody"></tbody></table>
       </div>
     </div>
@@ -140,20 +143,25 @@ tbody tr:hover td{background:rgba(255,255,255,.02)}
         <div class="toggle on" id="toggle-ativo" onclick="toggleAtivo()"></div>
       </div>
       <div class="fg">
-        <label>Bônus por cadastro (R$)</label>
-        <input type="number" id="cfg-bonus" value="5.00" min="0" step="0.50">
-        <div class="hint">Creditado ao indicador quando alguém se cadastra pelo link</div>
-      </div>
-      <div class="fg">
         <label>Comissão por palpite (%)</label>
         <input type="number" id="cfg-pct" value="10.00" min="0" max="50" step="0.5">
         <div class="hint">% do valor de cada palpite pago pelo indicado (ex: 10% de R$10 = R$1,00)</div>
       </div>
+      <div class="fg">
+        <label>Palpites por marco</label>
+        <input type="number" id="cfg-marco-qtd" value="100" min="1" step="1">
+        <div class="hint">A cada esse número de palpites pagos por UM indicado, o indicador recebe o bônus abaixo (repete em 100, 200, 300...)</div>
+      </div>
+      <div class="fg">
+        <label>Valor do bônus por marco (R$)</label>
+        <input type="number" id="cfg-marco-val" value="100.00" min="0" step="1">
+        <div class="hint">Valor creditado ao indicador a cada marco atingido por um indicado individual</div>
+      </div>
       <div style="background:var(--navy2);border-radius:var(--r);padding:14px;margin-bottom:16px;font-size:12px;color:var(--muted);line-height:1.7">
-        <strong style="color:#dce8f5">Simulação:</strong> Um indicado que faz 5 palpites de R$10 gera para o indicador:<br>
-        Bônus cadastro: <strong style="color:var(--gold)" id="sim-bonus">R$ 5,00</strong> +
-        Comissões: <strong style="color:var(--green)" id="sim-com">R$ 5,00</strong> =
-        <strong style="color:var(--pix)" id="sim-total">R$ 10,00</strong>
+        <strong style="color:#dce8f5">Simulação:</strong> Um indicado que faz 100 palpites de R$10 gera para o indicador:<br>
+        Comissões (10% × 100 × R$10): <strong style="color:var(--green)" id="sim-com">R$ 100,00</strong> +
+        Bônus de marco: <strong style="color:var(--gold)" id="sim-bonus">R$ 100,00</strong> =
+        <strong style="color:var(--pix)" id="sim-total">R$ 200,00</strong>
       </div>
       <button class="btn btn-gold" style="width:100%;padding:12px;font-size:13px" onclick="salvarConfig()">Salvar configuração</button>
     </div>
@@ -161,6 +169,24 @@ tbody tr:hover td{background:rgba(255,255,255,.02)}
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- Modal QR Code (admin) -->
+<div id="qr-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--r-lg);padding:28px;max-width:340px;width:90%;text-align:center;position:relative">
+    <button onclick="fecharQrCode()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1">✕</button>
+    <img src="/img/logo-clube.jpg" alt="Clube de Palpites" style="height:48px;width:auto;object-fit:contain;display:block;margin:0 auto 10px">
+    <h3 style="margin-bottom:4px">📱 QR Code de <span id="qr-nome"></span></h3>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:16px">
+      Imprima ou exiba este QR Code para que novos indicados se cadastrem já vinculados a este indicador.
+    </p>
+    <div style="background:#fff;border-radius:12px;padding:16px;display:inline-block">
+      <img id="qr-img" src="" alt="QR Code de indicação" style="width:240px;height:240px;display:block">
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <a id="qr-download" href="" download="qrcode-indicacao.png" class="btn-copy" style="flex:1;text-decoration:none;display:inline-flex;align-items:center;justify-content:center">⬇️ Baixar PNG</a>
+    </div>
+  </div>
+</div>
 
 <script>
 const INDICADORES = [
@@ -180,6 +206,30 @@ const RESGATES_ALL = [
 let filtroRes = 'PENDENTE';
 let ativoConfig = true;
 
+// ── QR Code de indicação (admin) ────────────────────────────────
+function abrirQrCodeAdmin(codigoCdp, apelido) {
+  const img = document.getElementById('qr-img');
+  const dl  = document.getElementById('qr-download');
+  const src = `/api/indicacao/admin/qrcode/${codigoCdp}?token=${encodeURIComponent(localStorage.getItem('token') || '')}`;
+
+  document.getElementById('qr-nome').textContent = `${apelido} (${codigoCdp})`;
+  img.src = src;
+  dl.href = src;
+
+  // Fallback: se o endpoint não responder (ex: demo sem backend)
+  img.onerror = () => {
+    img.onerror = null;
+    const link = `https://${typeof APP_URL !== 'undefined' ? APP_URL : 'clubedopalpite.app.br'}/login.html?ref=${codigoCdp}`;
+    img.src = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&color=0b2545&data=${encodeURIComponent(link)}`;
+  };
+
+  document.getElementById('qr-modal').style.display = 'flex';
+}
+
+function fecharQrCode() {
+  document.getElementById('qr-modal').style.display = 'none';
+}
+
 function setSec(id, btn) {
   document.querySelectorAll('.sec').forEach(s => s.classList.remove('on'));
   document.querySelectorAll('.stab').forEach(b => b.classList.remove('on'));
@@ -198,6 +248,7 @@ function renderIndicadores() {
       <td style="text-align:center">${i.ind}</td>
       <td style="color:var(--gold)">${i.ganho}</td>
       <td style="color:var(--green)">${i.saldo}</td>
+      <td><button class="btn-copy" style="font-size:11px;padding:5px 10px" onclick="abrirQrCodeAdmin('${i.cdp}','${i.ap}')">📱 QR</button></td>
     </tr>`).join('');
 }
 
@@ -247,17 +298,20 @@ function toggleAtivo() {
 }
 
 function atualizarSim() {
-  const bonus = parseFloat(document.getElementById('cfg-bonus').value) || 0;
-  const pct   = parseFloat(document.getElementById('cfg-pct').value)   || 0;
-  const comissoes = (5 * 10 * pct) / 100;
-  const total = bonus + comissoes;
-  document.getElementById('sim-bonus').textContent = `R$ ${bonus.toFixed(2)}`;
+  const pct        = parseFloat(document.getElementById('cfg-pct').value)        || 0;
+  const marcoQtd   = parseFloat(document.getElementById('cfg-marco-qtd').value)  || 100;
+  const marcoVal   = parseFloat(document.getElementById('cfg-marco-val').value)  || 0;
+  const comissoes  = (marcoQtd * 10 * pct) / 100; // marcoQtd palpites de R$10
+  const bonus      = marcoVal; // 1 marco atingido
+  const total      = bonus + comissoes;
   document.getElementById('sim-com').textContent   = `R$ ${comissoes.toFixed(2)}`;
+  document.getElementById('sim-bonus').textContent = `R$ ${bonus.toFixed(2)}`;
   document.getElementById('sim-total').textContent  = `R$ ${total.toFixed(2)}`;
 }
 
-document.getElementById('cfg-bonus').addEventListener('input', atualizarSim);
 document.getElementById('cfg-pct').addEventListener('input', atualizarSim);
+document.getElementById('cfg-marco-qtd').addEventListener('input', atualizarSim);
+document.getElementById('cfg-marco-val').addEventListener('input', atualizarSim);
 
 function salvarConfig() {
   toast('✅ Configuração salva com sucesso!');
