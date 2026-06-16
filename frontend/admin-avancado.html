@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -86,7 +84,7 @@ button{cursor:pointer;font-family:'Inter',sans-serif}
 .page-actions{display:flex;gap:8px;flex-wrap:wrap}
 
 /* ── KPI grid ───────────────────────────────────── */
-.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:24px}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px}
 .kpi{background:var(--navy);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 20px;position:relative;overflow:hidden}
 .kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:2px}
 .kpi.gold::after{background:linear-gradient(90deg,var(--gold),#ffca5c)}
@@ -170,7 +168,7 @@ input[type=text]::placeholder{color:var(--muted)}
 <!-- ── TOPBAR ─────────────────────────────────────────── -->
 <header class="topbar">
   <div class="logo">
-    <img src="/img/logo-clube.jpg" alt="Clube de Palpites" style="height:38px;width:auto;object-fit:contain;border-radius:6px">
+    <div style="width:38px;height:38px;border-radius:50%;background:#0f2644;border:1.5px solid #F0A500;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;color:#F0A500">CDP</div>
     Clube <span>Palpite</span>
   </div>
   <span class="topbar-badge">🏆 Copa 2026</span>
@@ -223,9 +221,9 @@ input[type=text]::placeholder{color:var(--muted)}
       <div class="kpi-grid">
         <div class="kpi gold">
           <div class="kpi-label">Total arrecadado</div>
-          <div class="kpi-value" id="kpi-total">R$ 2.340</div>
-          <div class="kpi-sub">Ambas as fases</div>
-          <div class="kpi-delta up">▲ +R$480 hoje</div>
+          <div class="kpi-value" id="kpi-total">R$ 2.540</div>
+          <div class="kpi-sub">3 campanhas ativas</div>
+          <div class="kpi-delta up">▲ +R$200 hoje</div>
         </div>
         <div class="kpi green">
           <div class="kpi-label">Membros ativos</div>
@@ -234,15 +232,21 @@ input[type=text]::placeholder{color:var(--muted)}
           <div class="kpi-delta up">▲ +12 essa semana</div>
         </div>
         <div class="kpi blue">
-          <div class="kpi-label">Palpites totais</div>
+          <div class="kpi-label">Palpites 1ª e 2ª Fase</div>
           <div class="kpi-value" id="kpi-palpites">216</div>
           <div class="kpi-sub">164 fase 1 · 52 fase 2</div>
           <div class="kpi-delta up">▲ +28 hoje</div>
         </div>
+        <div class="kpi blue">
+          <div class="kpi-label">Bilhetes 3ª Fase</div>
+          <div class="kpi-value" id="kpi-bilhetes">20</div>
+          <div class="kpi-sub">R$ 10,00 / bilhete fixo</div>
+          <div class="kpi-delta up">▲ +5 hoje</div>
+        </div>
         <div class="kpi gold" style="--c:var(--green)">
           <div class="kpi-label">Fundo de prêmios</div>
-          <div class="kpi-value" style="color:var(--green)" id="kpi-fundo">R$ 1.404</div>
-          <div class="kpi-sub">60% da arrecadação</div>
+          <div class="kpi-value" style="color:var(--green)" id="kpi-fundo">R$ 1.524</div>
+          <div class="kpi-sub">60% da arrecadação total</div>
           <div class="kpi-delta up">▲ em crescimento</div>
         </div>
       </div>
@@ -292,7 +296,7 @@ input[type=text]::placeholder{color:var(--muted)}
                 <div class="rv-premio">60% · R$ 984</div>
               </div>
             </div>
-            <div>
+            <div style="margin-bottom:16px">
               <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px">
                 <span>2ª Fase · R$ 780</span><span class="badge badge-green">R$ 468 prêmios</span>
               </div>
@@ -301,9 +305,18 @@ input[type=text]::placeholder{color:var(--muted)}
                 <div class="rv-premio">60% · R$ 468</div>
               </div>
             </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px">
+                <span>3ª Fase · R$ 200 <span style="font-size:10px;color:var(--muted)">(20 bilhetes)</span></span><span class="badge badge-blue">R$ 120 prêmios</span>
+              </div>
+              <div class="rateio-visual">
+                <div class="rv-clube" style="background:rgba(74,158,255,.15);color:var(--blue)">40% · R$ 80</div>
+                <div class="rv-premio" style="background:linear-gradient(90deg,var(--blue),#8ec8ff)">60% · Top 3 acertadores</div>
+              </div>
+            </div>
             <div style="border-top:1px solid var(--border);margin-top:16px;padding-top:14px;display:flex;justify-content:space-between;align-items:center">
               <span style="font-size:13px;color:var(--muted)">Lucro total do clube</span>
-              <span style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:var(--gold)">R$ 968</span>
+              <span style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:var(--gold)">R$ 1.048</span>
             </div>
           </div>
         </div>
@@ -326,11 +339,48 @@ input[type=text]::placeholder{color:var(--muted)}
           <div class="chart-canvas-wrap" style="height:210px"><canvas id="chartAcum2"></canvas></div>
         </div>
       </div>
+
+      <!-- 3ª Fase -->
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-header">
+          <span class="card-title">3ª Fase · Palpite por Resultado</span>
+          <span class="badge badge-blue">Bilhete fixo R$ 10,00</span>
+        </div>
+        <div class="card-body">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+            <div style="background:var(--navy2);border-radius:var(--r);padding:14px;text-align:center">
+              <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Bilhetes vendidos</div>
+              <div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;color:var(--blue)" id="f3-bilhetes">20</div>
+            </div>
+            <div style="background:var(--navy2);border-radius:var(--r);padding:14px;text-align:center">
+              <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Total arrecadado</div>
+              <div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;color:var(--gold)" id="f3-total">R$ 200</div>
+            </div>
+            <div style="background:var(--navy2);border-radius:var(--r);padding:14px;text-align:center">
+              <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Lucro clube (40%)</div>
+              <div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800" id="f3-lucro">R$ 80</div>
+            </div>
+            <div style="background:var(--navy2);border-radius:var(--r);padding:14px;text-align:center">
+              <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Fundo prêmios (60%)</div>
+              <div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;color:var(--green)" id="f3-fundo">R$ 120</div>
+            </div>
+          </div>
+          <div style="background:rgba(74,158,255,.06);border:1px solid rgba(74,158,255,.2);border-radius:var(--r);padding:14px;font-size:12px;color:var(--muted)">
+            💳 Valor fixo por bilhete: <strong style="color:#dce8f5">R$ 10,00</strong> — independente da quantidade de jogos escolhidos.<br>
+            🏆 Rateio dos prêmios: <strong style="color:var(--gold)">30%</strong> para o 1º lugar · <strong style="color:var(--muted)">20%</strong> para o 2º · <strong style="color:var(--muted)">10%</strong> para o 3º
+          </div>
+          <div style="margin-top:16px">
+            <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:10px">Jogos da 3ª Fase</div>
+            <div id="tbl-f3-jogos" style="display:grid;grid-template-columns:1fr 1fr;gap:8px"></div>
+          </div>
+        </div>
+      </div>
+
       <div class="card">
-        <div class="card-header"><span class="card-title">Histórico diário</span></div>
+        <div class="card-header"><span class="card-title">Histórico diário — todas as fases</span></div>
         <div class="table-wrap">
           <table id="tbl-arrecadacao">
-            <thead><tr><th>Data</th><th>Fase</th><th>Palpites</th><th>Arrecadado</th><th>Acumulado</th><th>Novos membros</th></tr></thead>
+            <thead><tr><th>Data</th><th>Fase</th><th>Palpites/Bilhetes</th><th>Arrecadado</th><th>Acumulado</th><th>Novos membros</th></tr></thead>
             <tbody id="tbody-arr"></tbody>
           </table>
         </div>
@@ -366,9 +416,9 @@ input[type=text]::placeholder{color:var(--muted)}
     <!-- ════════════════ APURAR ════════════════ -->
     <div class="section" id="sec-apurar">
       <div class="page-header">
-        <div><div class="page-title">Apurar Resultado</div><div class="page-sub">Registre o resultado oficial e o sistema calcula o rateio automaticamente</div></div>
+        <div><div class="page-title">Apurar Resultado</div><div class="page-sub">Registre os resultados e o sistema calcula o rateio automaticamente</div></div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
         <!-- 1ª fase -->
         <div class="card">
           <div class="card-header"><span class="card-title">1ª Fase · Seleção Campeã</span><span class="badge badge-green">Aberta</span></div>
@@ -425,6 +475,46 @@ input[type=text]::placeholder{color:var(--muted)}
                 <div><div style="font-size:11px;color:var(--muted)">Prêmio / acertador</div><div class="big-num" id="ap-premio-f2">—</div></div>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3ª fase -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">3ª Fase · Palpite por Resultado — Jogos da 1ª Fase</span>
+          <span class="badge badge-blue">Bilhete R$ 10,00 · Top 3 acertadores</span>
+        </div>
+        <div class="card-body">
+          <p style="font-size:13px;color:var(--muted);margin-bottom:16px">
+            Defina o resultado real de cada jogo. O sistema calcula automaticamente quem mais acertou e distribui os prêmios: <strong style="color:var(--gold)">30%</strong> para o 1º · <strong style="color:#dce8f5">20%</strong> para o 2º · <strong style="color:#dce8f5">10%</strong> para o 3º.
+          </p>
+          <div id="f3-jogos-apuracao" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px"></div>
+          <div style="background:rgba(74,158,255,.06);border:1px solid rgba(74,158,255,.2);border-radius:var(--r);padding:14px;margin-bottom:16px">
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;text-align:center">
+              <div>
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--gold);margin-bottom:4px">🥇 1º Lugar (30%)</div>
+                <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;color:var(--gold)" id="f3-premio1">R$ 36,00</div>
+                <div style="font-size:11px;color:var(--muted)">30% de R$ 120</div>
+              </div>
+              <div>
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:4px">🥈 2º Lugar (20%)</div>
+                <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800" id="f3-premio2">R$ 24,00</div>
+                <div style="font-size:11px;color:var(--muted)">20% de R$ 120</div>
+              </div>
+              <div>
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:4px">🥉 3º Lugar (10%)</div>
+                <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800" id="f3-premio3">R$ 12,00</div>
+                <div style="font-size:11px;color:var(--muted)">10% de R$ 120</div>
+              </div>
+            </div>
+          </div>
+          <button class="btn-export btn-export-primary" style="width:100%;padding:12px;font-size:14px" onclick="apurarF3()">
+            ⚽ Apurar 3ª Fase — Palpite por Resultado
+          </button>
+          <div class="apuracao-ok" id="ok-f3" style="margin-top:12px">
+            <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--green)">Resultado registrado</p>
+            <div id="f3-ranking-resultado" style="margin-top:10px"></div>
           </div>
         </div>
       </div>
@@ -496,7 +586,8 @@ input[type=text]::placeholder{color:var(--muted)}
           <tbody>
             <tr><td><strong>1ª Fase · Seleção Campeã</strong></td><td>10/06–04/07/2026</td><td>164</td><td>R$ 1.640,00</td><td>R$ 656,00</td><td style="color:var(--green)">R$ 984,00</td><td><span class="badge badge-green">Aberta</span></td></tr>
             <tr><td><strong>2ª Fase · Campeã + Vice</strong></td><td>10/06–10/07/2026</td><td>52</td><td>R$ 780,00</td><td>R$ 312,00</td><td style="color:var(--green)">R$ 468,00</td><td><span class="badge badge-green">Aberta</span></td></tr>
-            <tr style="background:var(--navy2)"><td><strong>TOTAL</strong></td><td>—</td><td><strong>216</strong></td><td><strong style="color:var(--gold)">R$ 2.340,00</strong></td><td><strong>R$ 968,00</strong></td><td><strong style="color:var(--green)">R$ 1.452,00</strong></td><td>—</td></tr>
+            <tr><td><strong>3ª Fase · Palpite Resultado</strong></td><td>16/06–19/07/2026</td><td>20 bilhetes</td><td>R$ 200,00</td><td>R$ 80,00</td><td style="color:var(--blue)">R$ 120,00</td><td><span class="badge badge-blue">Aberta</span></td></tr>
+            <tr style="background:var(--navy2)"><td><strong>TOTAL</strong></td><td>—</td><td><strong>236</strong></td><td><strong style="color:var(--gold)">R$ 2.620,00</strong></td><td><strong>R$ 1.048,00</strong></td><td><strong style="color:var(--green)">R$ 1.572,00</strong></td><td>—</td></tr>
           </tbody>
         </table>
 
@@ -639,9 +730,10 @@ new Chart(document.getElementById('chartAcum2'), {
     {dt:'08/06',fase:'1ª',p:28,v:280,acum:650,nm:12},{dt:'09/06',fase:'1ª',p:32,v:320,acum:970,nm:15},
     {dt:'10/06',fase:'1ª',p:18,v:180,acum:1150,nm:9},{dt:'11/06',fase:'1ª',p:30,v:300,acum:1450,nm:18},
     {dt:'12/06',fase:'1ª',p:19,v:190,acum:1640,nm:20},{dt:'01/07',fase:'2ª',p:10,v:150,acum:1790,nm:3},
+    {dt:'16/06',fase:'3ª',p:8,v:80,acum:1870,nm:2},{dt:'16/06',fase:'3ª',p:5,v:50,acum:1920,nm:1},{dt:'17/06',fase:'3ª',p:7,v:70,acum:1990,nm:2},
   ];
   document.getElementById('tbody-arr').innerHTML = dados.map(d=>`
-    <tr><td>${d.dt}</td><td><span class="badge ${d.fase==='1ª'?'badge-gold':'badge-green'}">${d.fase} Fase</span></td>
+    <tr><td>${d.dt}</td><td><span class="badge ${d.fase==='1ª'?'badge-gold':d.fase==='2ª'?'badge-green':'badge-blue'}">${d.fase} Fase</span></td>
     <td>${d.p}</td><td>R$ ${d.v.toLocaleString('pt-BR')},00</td>
     <td style="color:var(--gold)">R$ ${d.acum.toLocaleString('pt-BR')},00</td><td>+${d.nm}</td></tr>`).join('');
 })();
@@ -757,7 +849,177 @@ function filtroMembros(f,btn){
 function filtrarMembros(){membrosSearch=document.getElementById('busca-membro').value.toLowerCase();buildTblMembros();}
 buildTblMembros();
 
-// ── Apuração ──────────────────────────────────────────────────
+// ── 3ª Fase — Jogos completos da Copa 2026 (16/06 a 19/07) ──
+const JOGOS_F3 = [
+  // ── Fase de Grupos (16/06 – 27/06) ──
+  {id:1,  fase:'Grupos',    casa:'Brasil',        cb:'https://flagcdn.com/w40/br.png',     fora:'Marrocos',        fb:'https://flagcdn.com/w40/ma.png',     data:'16/06', hora:'16:00'},
+  {id:2,  fase:'Grupos',    casa:'Argentina',     cb:'https://flagcdn.com/w40/ar.png',     fora:'Argélia',         fb:'https://flagcdn.com/w40/dz.png',     data:'16/06', hora:'19:00'},
+  {id:3,  fase:'Grupos',    casa:'França',        cb:'https://flagcdn.com/w40/fr.png',     fora:'Senegal',         fb:'https://flagcdn.com/w40/sn.png',     data:'16/06', hora:'22:00'},
+  {id:4,  fase:'Grupos',    casa:'Espanha',       cb:'https://flagcdn.com/w40/es.png',     fora:'Uruguai',         fb:'https://flagcdn.com/w40/uy.png',     data:'17/06', hora:'13:00'},
+  {id:5,  fase:'Grupos',    casa:'Inglaterra',    cb:'https://flagcdn.com/w40/gb-eng.png', fora:'Croácia',         fb:'https://flagcdn.com/w40/hr.png',     data:'17/06', hora:'16:00'},
+  {id:6,  fase:'Grupos',    casa:'Portugal',      cb:'https://flagcdn.com/w40/pt.png',     fora:'Colômbia',        fb:'https://flagcdn.com/w40/co.png',     data:'17/06', hora:'19:00'},
+  {id:7,  fase:'Grupos',    casa:'Alemanha',      cb:'https://flagcdn.com/w40/de.png',     fora:'Equador',         fb:'https://flagcdn.com/w40/ec.png',     data:'18/06', hora:'13:00'},
+  {id:8,  fase:'Grupos',    casa:'Holanda',       cb:'https://flagcdn.com/w40/nl.png',     fora:'Japão',           fb:'https://flagcdn.com/w40/jp.png',     data:'18/06', hora:'16:00'},
+  {id:9,  fase:'Grupos',    casa:'Bélgica',       cb:'https://flagcdn.com/w40/be.png',     fora:'Egito',           fb:'https://flagcdn.com/w40/eg.png',     data:'19/06', hora:'13:00'},
+  {id:10, fase:'Grupos',    casa:'México',        cb:'https://flagcdn.com/w40/mx.png',     fora:'Coreia do Sul',   fb:'https://flagcdn.com/w40/kr.png',     data:'19/06', hora:'16:00'},
+  {id:11, fase:'Grupos',    casa:'EUA',           cb:'https://flagcdn.com/w40/us.png',     fora:'Paraguai',        fb:'https://flagcdn.com/w40/py.png',     data:'22/06', hora:'16:00'},
+  {id:12, fase:'Grupos',    casa:'Canadá',        cb:'https://flagcdn.com/w40/ca.png',     fora:'Qatar',           fb:'https://flagcdn.com/w40/qa.png',     data:'22/06', hora:'19:00'},
+  // ── Oitavas (Round of 32) — 28/06 a 03/07 ──
+  {id:13, fase:'Oitavas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'28/06', hora:''},
+  {id:14, fase:'Oitavas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'29/06', hora:''},
+  {id:15, fase:'Oitavas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'30/06', hora:''},
+  {id:16, fase:'Oitavas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'01/07', hora:''},
+  {id:17, fase:'Oitavas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'02/07', hora:''},
+  {id:18, fase:'Oitavas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'03/07', hora:''},
+  // ── Quartas de Final — 04/07 a 07/07 ──
+  {id:19, fase:'Quartas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'04/07', hora:''},
+  {id:20, fase:'Quartas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'05/07', hora:''},
+  {id:21, fase:'Quartas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'06/07', hora:''},
+  {id:22, fase:'Quartas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'07/07', hora:''},
+  // ── Semifinais — 09/07 a 11/07 ──
+  {id:23, fase:'Semifinal', casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'09/07', hora:''},
+  {id:24, fase:'Semifinal', casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'11/07', hora:''},
+  // ── Semifinais — 14/07 a 15/07 ──
+  {id:25, fase:'Semifinal', casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'14/07', hora:''},
+  {id:26, fase:'Semifinal', casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'15/07', hora:''},
+  // ── 3º Lugar e Final ──
+  {id:27, fase:'3º Lugar',  casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'18/07', hora:''},
+  {id:28, fase:'Final',     casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'19/07', hora:''},
+];
+const resultadosF3 = {};
+
+const FASE_COR = {
+  'Grupos':   '#4a9eff',
+  'Oitavas':  '#f0a500',
+  'Quartas':  '#1db954',
+  'Semifinal':'#a855f7',
+  '3º Lugar': '#e05252',
+  'Final':    '#FFD700',
+}; // { jogoId: 'CASA'|'EMPATE'|'FORA' }
+
+function flag(src, alt, w, h) {
+  return `<img src="${src}" alt="${alt}" style="width:${w}px;height:${h}px;object-fit:cover;border-radius:2px;border:1px solid rgba(255,255,255,.1)">`;
+}
+
+function buildF3Jogos() {
+  const el = document.getElementById('f3-jogos-apuracao');
+  if (!el) return;
+
+  // Agrupa por fase
+  const fases = [...new Set(JOGOS_F3.map(j => j.fase))];
+  el.style.display = 'block';
+  el.innerHTML = fases.map(fase => {
+    const jogos = JOGOS_F3.filter(j => j.fase === fase);
+    const cor = FASE_COR[fase] || '#8095b0';
+    return `
+      <div style="margin-bottom:16px">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:${cor};margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,.07)">${fase}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          ${jogos.map(j => {
+            const r = resultadosF3[j.id];
+            const aClass = j.casa === 'A Classificar';
+            const flagC = j.cb ? `<img src="${j.cb}" alt="${j.casa}" style="width:20px;height:14px;object-fit:cover;border-radius:2px;border:1px solid rgba(255,255,255,.1)">` : '🏴';
+            const flagF = j.fb ? `<img src="${j.fb}" alt="${j.fora}" style="width:20px;height:14px;object-fit:cover;border-radius:2px;border:1px solid rgba(255,255,255,.1)">` : '🏴';
+            const btn = (res, label) => `<button onclick="setResultF3(${j.id},'${res}')" ${aClass?'disabled':''} style="background:${r===res?'rgba(240,165,0,.2)':'var(--navy)'};border:1px solid ${r===res?'var(--gold)':'var(--border)'};color:${r===res?'var(--gold)':'#dce8f5'};font-size:10px;font-weight:600;padding:3px 7px;border-radius:6px;cursor:${aClass?'not-allowed':'pointer'};font-family:inherit;opacity:${aClass?.5:1}">${label}</button>`;
+            return `<div style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--r);padding:10px">
+              <div style="font-size:10px;color:var(--muted);margin-bottom:6px">🗓 ${j.data}${j.hora?' · '+j.hora:''}</div>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:4px;flex-wrap:wrap">
+                <div style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;min-width:70px">
+                  ${flagC} <span style="color:${aClass?'var(--muted)':'#dce8f5'}">${j.casa}</span>
+                </div>
+                <div style="display:flex;gap:3px;flex-shrink:0">
+                  ${aClass ? '<span style="font-size:10px;color:var(--muted)">A definir</span>' : `${btn('CASA','1')} ${btn('EMPATE','X')} ${btn('FORA','2')}`}
+                </div>
+                <div style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;min-width:70px;justify-content:flex-end">
+                  <span style="color:${aClass?'var(--muted)':'#dce8f5'}">${j.fora}</span> ${flagF}
+                </div>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function setResultF3(id, res) {
+  resultadosF3[id] = resultadosF3[id] === res ? undefined : res;
+  if (!resultadosF3[id]) delete resultadosF3[id];
+  buildF3Jogos();
+  // Atualiza prêmios baseado no fundo
+  const bilhetes = parseInt(document.getElementById('f3-bilhetes')?.textContent || '20');
+  const fundo = bilhetes * 10 * 0.6;
+  document.getElementById('f3-premio1').textContent = 'R$ ' + (fundo * 0.30).toFixed(2).replace('.',',');
+  document.getElementById('f3-premio2').textContent = 'R$ ' + (fundo * 0.20).toFixed(2).replace('.',',');
+  document.getElementById('f3-premio3').textContent = 'R$ ' + (fundo * 0.10).toFixed(2).replace('.',',');
+}
+
+function apurarF3() {
+  const jogosDefinidos = JOGOS_F3.filter(j => j.casa !== 'A Classificar');
+  const definidos = Object.keys(resultadosF3).length;
+  if (definidos < jogosDefinidos.length) {
+    showToast(`⚠️ Defina o resultado de todos os ${jogosDefinidos.length} jogos disponíveis! (${definidos}/${jogosDefinidos.length})`);
+    return;
+  }
+  // Simula ranking de palpiteiros
+  const ranking = [
+    { cdp: 'CDP12', nome: 'Joãozinho', acertos: 6 },
+    { cdp: 'CDP35', nome: 'Mariazinha', acertos: 5 },
+    { cdp: 'CDP08', nome: 'Pedrão', acertos: 5 },
+    { cdp: 'CDP21', nome: 'Aninha', acertos: 4 },
+  ];
+  const bilhetes = parseInt(document.getElementById('f3-bilhetes')?.textContent || '20');
+  const fundo = bilhetes * 10 * 0.6;
+  const p1 = (fundo * 0.30).toFixed(2);
+  const p2 = (fundo * 0.20).toFixed(2);
+  const p3 = (fundo * 0.10).toFixed(2);
+  const premios = [p1, p2, p3];
+  const medalhas = ['🥇', '🥈', '🥉'];
+
+  document.getElementById('f3-ranking-resultado').innerHTML = ranking.slice(0,3).map((m,i) => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:18px">${medalhas[i]}</span>
+        <div>
+          <div style="font-weight:600;font-size:13px">${m.nome} <span style="font-size:11px;color:var(--muted)">${m.cdp}</span></div>
+          <div style="font-size:11px;color:var(--muted)">${m.acertos} acertos de 8 jogos</div>
+        </div>
+      </div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;color:var(--gold)">R$ ${Number(premios[i]).toLocaleString('pt-BR')}</div>
+    </div>`).join('');
+
+  document.getElementById('ok-f3').classList.add('show');
+  showToast(`✅ 3ª Fase apurada! ${definidos} resultados definidos · Fundo R$ ${fundo.toFixed(2)}`);
+}
+
+// ── Render dos jogos da 3ª fase na seção arrecadação ────────
+function buildF3JogosArrecadacao() {
+  const el = document.getElementById('tbl-f3-jogos');
+  if (!el) return;
+  const fases = [...new Set(JOGOS_F3.map(j => j.fase))];
+  el.style.gridTemplateColumns = '1fr';
+  el.innerHTML = fases.map(fase => {
+    const cor = FASE_COR[fase] || '#8095b0';
+    const jogos = JOGOS_F3.filter(j => j.fase === fase);
+    return `
+      <div style="margin-bottom:12px">
+        <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:${cor};margin-bottom:6px">${fase}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          ${jogos.map(j => {
+            const aClass = j.casa === 'A Classificar';
+            const flagC = j.cb ? `<img src="${j.cb}" alt="${j.casa}" style="width:18px;height:13px;object-fit:cover;border-radius:2px">` : '';
+            const flagF = j.fb ? `<img src="${j.fb}" alt="${j.fora}" style="width:18px;height:13px;object-fit:cover;border-radius:2px">` : '';
+            return `<div style="display:flex;align-items:center;gap:6px;background:var(--navy2);border-radius:var(--r);padding:8px 10px;font-size:11px">
+              ${flagC}<span style="font-weight:600;color:${aClass?'var(--muted)':'#dce8f5'}">${j.casa}</span>
+              <span style="color:var(--muted);margin:0 2px">x</span>
+              <span style="font-weight:600;color:${aClass?'var(--muted)':'#dce8f5'}">${j.fora}</span>${flagF}
+              <span style="margin-left:auto;color:var(--muted);font-size:10px">${j.data}</span>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+  }).join('');
+}
+
 let pickedF1=null, pickedF2c=null, pickedF2v=null;
 
 function buildListaApuracao(elId, varName) {
@@ -839,7 +1101,8 @@ function showSec(id, navEl) {
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   if (navEl) navEl.classList.add('active');
   else document.querySelectorAll('.nav-item').forEach(n=>{ if(n.textContent.trim().toLowerCase().includes(id.substring(0,4))) n.classList.add('active'); });
-  if (id==='apurar') { buildListaApuracao('lista-sel-f1','f1'); buildListaApuracao('lista-sel-f2c','f2c'); buildListaApuracao('lista-sel-f2v','f2v'); }
+  if (id==='apurar') { buildListaApuracao('lista-sel-f1','f1'); buildListaApuracao('lista-sel-f2c','f2c'); buildListaApuracao('lista-sel-f2v','f2v'); buildF3Jogos(); }
+  if (id==='arrecadacao') { buildF3JogosArrecadacao(); }
 }
 
 // ── Simula atualização ao vivo ────────────────────────────────
