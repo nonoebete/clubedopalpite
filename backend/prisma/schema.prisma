@@ -106,10 +106,11 @@ enum StatusPagamento {
 }
 
 model ConfigIndicacao {
-  id              Int     @id @default(1)
-  bonusCadastro   Decimal @default(5.00)  @map("bonus_cadastro")  @db.Decimal(10,2)
-  percentPalpite  Decimal @default(10.00) @map("percent_palpite") @db.Decimal(5,2)
-  ativo           Boolean @default(true)
+  id               Int     @id @default(1)
+  percentPalpite   Decimal @default(10.00) @map("percent_palpite")    @db.Decimal(5,2)
+  palpitesPorMarco Int     @default(100)    @map("palpites_por_marco")
+  valorBonusMarco  Decimal @default(100.00) @map("valor_bonus_marco") @db.Decimal(10,2)
+  ativo            Boolean @default(true)
   @@map("config_indicacao")
 }
 
