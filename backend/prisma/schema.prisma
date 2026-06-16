@@ -95,6 +95,7 @@ enum Perfil {
 enum TipoCampanha {
   CAMPEA
   CAMPEA_VICE
+  PALPITE_RESULTADO
 }
 
 enum StatusPagamento {
