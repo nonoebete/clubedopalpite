@@ -519,21 +519,21 @@ input[type=text]::placeholder{color:var(--muted)}
 <script>
 // ── Dados mock ──────────────────────────────────────────────
 const SELECOES = [
-  {f:'🇧🇷',n:'Brasil',g:'C',p:38},{f:'🇦🇷',n:'Argentina',g:'J',p:31},{f:'🇫🇷',n:'França',g:'I',p:22},
-  {f:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',n:'Inglaterra',g:'L',p:18},{f:'🇵🇹',n:'Portugal',g:'K',p:15},{f:'🇩🇪',n:'Alemanha',g:'E',p:12},
-  {f:'🇪🇸',n:'Espanha',g:'H',p:10},{f:'🇺🇾',n:'Uruguai',g:'H',p:7},{f:'🇳🇱',n:'Holanda',g:'F',p:6},{f:'🇧🇪',n:'Bélgica',g:'G',p:5},
-  {f:'🇨🇦',n:'Canadá',g:'B',p:4},{f:'🇲🇦',n:'Marrocos',g:'C',p:3},{f:'🏴󠁧󠁢󠁳󠁣󠁴󠁿',n:'Escócia',g:'C',p:3},{f:'🇭🇹',n:'Haiti',g:'C',p:2},
-  {f:'🇲🇽',n:'México',g:'A',p:2},{f:'🇿🇦',n:'África do Sul',g:'A',p:2},{f:'🇰🇷',n:'Coreia do Sul',g:'A',p:1},{f:'🇨🇿',n:'Rep. Tcheca',g:'A',p:1},
-  {f:'🇧🇦',n:'Bósnia',g:'B',p:1},{f:'🇶🇦',n:'Qatar',g:'B',p:1},{f:'🇨🇭',n:'Suíça',g:'B',p:1},
-  {f:'🇺🇸',n:'EUA',g:'D',p:1},{f:'🇵🇾',n:'Paraguai',g:'D',p:1},{f:'🇦🇺',n:'Austrália',g:'D',p:1},{f:'🇹🇷',n:'Turquia',g:'D',p:1},
-  {f:'🇨🇼',n:'Curaçao',g:'E',p:1},{f:'🇨🇮',n:'Costa do Marfim',g:'E',p:1},{f:'🇪🇨',n:'Equador',g:'E',p:1},
-  {f:'🇯🇵',n:'Japão',g:'F',p:1},{f:'🇸🇪',n:'Suécia',g:'F',p:1},{f:'🇹🇳',n:'Tunísia',g:'F',p:1},
-  {f:'🇪🇬',n:'Egito',g:'G',p:0},{f:'🇮🇷',n:'Irã',g:'G',p:0},{f:'🇳🇿',n:'Nova Zelândia',g:'G',p:0},
-  {f:'🇨🇻',n:'Cabo Verde',g:'H',p:0},{f:'🇸🇦',n:'Arábia Saudita',g:'H',p:0},
-  {f:'🇸🇳',n:'Senegal',g:'I',p:1},{f:'🇮🇶',n:'Iraque',g:'I',p:0},{f:'🇳🇴',n:'Noruega',g:'I',p:1},
-  {f:'🇩🇿',n:'Argélia',g:'J',p:0},{f:'🇦🇹',n:'Áustria',g:'J',p:0},{f:'🇯🇴',n:'Jordânia',g:'J',p:0},
-  {f:'🇨🇩',n:'RD Congo',g:'K',p:0},{f:'🇺🇿',n:'Uzbequistão',g:'K',p:0},{f:'🇨🇴',n:'Colômbia',g:'K',p:1},
-  {f:'🇭🇷',n:'Croácia',g:'L',p:0},{f:'🇬🇭',n:'Gana',g:'L',p:0},{f:'🇵🇦',n:'Panamá',g:'L',p:0},
+  {f:'https://flagcdn.com/w40/br.png',n:'Brasil',g:'C',p:38},{f:'https://flagcdn.com/w40/ar.png',n:'Argentina',g:'J',p:31},{f:'https://flagcdn.com/w40/fr.png',n:'França',g:'I',p:22},
+  {f:'https://flagcdn.com/w40/gb-eng.png',n:'Inglaterra',g:'L',p:18},{f:'https://flagcdn.com/w40/pt.png',n:'Portugal',g:'K',p:15},{f:'https://flagcdn.com/w40/de.png',n:'Alemanha',g:'E',p:12},
+  {f:'https://flagcdn.com/w40/es.png',n:'Espanha',g:'H',p:10},{f:'https://flagcdn.com/w40/uy.png',n:'Uruguai',g:'H',p:7},{f:'https://flagcdn.com/w40/nl.png',n:'Holanda',g:'F',p:6},{f:'https://flagcdn.com/w40/be.png',n:'Bélgica',g:'G',p:5},
+  {f:'https://flagcdn.com/w40/ca.png',n:'Canadá',g:'B',p:4},{f:'https://flagcdn.com/w40/ma.png',n:'Marrocos',g:'C',p:3},{f:'https://flagcdn.com/w40/gb-sct.png',n:'Escócia',g:'C',p:3},{f:'https://flagcdn.com/w40/ht.png',n:'Haiti',g:'C',p:2},
+  {f:'https://flagcdn.com/w40/mx.png',n:'México',g:'A',p:2},{f:'https://flagcdn.com/w40/za.png',n:'África do Sul',g:'A',p:2},{f:'https://flagcdn.com/w40/kr.png',n:'Coreia do Sul',g:'A',p:1},{f:'https://flagcdn.com/w40/cz.png',n:'Rep. Tcheca',g:'A',p:1},
+  {f:'https://flagcdn.com/w40/ba.png',n:'Bósnia',g:'B',p:1},{f:'https://flagcdn.com/w40/qa.png',n:'Qatar',g:'B',p:1},{f:'https://flagcdn.com/w40/ch.png',n:'Suíça',g:'B',p:1},
+  {f:'https://flagcdn.com/w40/us.png',n:'EUA',g:'D',p:1},{f:'https://flagcdn.com/w40/py.png',n:'Paraguai',g:'D',p:1},{f:'https://flagcdn.com/w40/au.png',n:'Austrália',g:'D',p:1},{f:'https://flagcdn.com/w40/tr.png',n:'Turquia',g:'D',p:1},
+  {f:'https://flagcdn.com/w40/cw.png',n:'Curaçao',g:'E',p:1},{f:'https://flagcdn.com/w40/ci.png',n:'Costa do Marfim',g:'E',p:1},{f:'https://flagcdn.com/w40/ec.png',n:'Equador',g:'E',p:1},
+  {f:'https://flagcdn.com/w40/jp.png',n:'Japão',g:'F',p:1},{f:'https://flagcdn.com/w40/se.png',n:'Suécia',g:'F',p:1},{f:'https://flagcdn.com/w40/tn.png',n:'Tunísia',g:'F',p:1},
+  {f:'https://flagcdn.com/w40/eg.png',n:'Egito',g:'G',p:0},{f:'https://flagcdn.com/w40/ir.png',n:'Irã',g:'G',p:0},{f:'https://flagcdn.com/w40/nz.png',n:'Nova Zelândia',g:'G',p:0},
+  {f:'https://flagcdn.com/w40/cv.png',n:'Cabo Verde',g:'H',p:0},{f:'https://flagcdn.com/w40/sa.png',n:'Arábia Saudita',g:'H',p:0},
+  {f:'https://flagcdn.com/w40/sn.png',n:'Senegal',g:'I',p:1},{f:'https://flagcdn.com/w40/iq.png',n:'Iraque',g:'I',p:0},{f:'https://flagcdn.com/w40/no.png',n:'Noruega',g:'I',p:1},
+  {f:'https://flagcdn.com/w40/dz.png',n:'Argélia',g:'J',p:0},{f:'https://flagcdn.com/w40/at.png',n:'Áustria',g:'J',p:0},{f:'https://flagcdn.com/w40/jo.png',n:'Jordânia',g:'J',p:0},
+  {f:'https://flagcdn.com/w40/cd.png',n:'RD Congo',g:'K',p:0},{f:'https://flagcdn.com/w40/uz.png',n:'Uzbequistão',g:'K',p:0},{f:'https://flagcdn.com/w40/co.png',n:'Colômbia',g:'K',p:1},
+  {f:'https://flagcdn.com/w40/hr.png',n:'Croácia',g:'L',p:0},{f:'https://flagcdn.com/w40/gh.png',n:'Gana',g:'L',p:0},{f:'https://flagcdn.com/w40/pa.png',n:'Panamá',g:'L',p:0},
 ];
 
 const MEMBROS_MOCK = Array.from({length:20},(_, i)=>{
@@ -651,10 +651,57 @@ new Chart(document.getElementById('chartAcum2'), {
 
 // ── Gráfico top seleções ──────────────────────────────────────
 const top10 = SELECOES.slice(0,10);
+
+// Pré-carrega imagens das bandeiras para usar como ícones no gráfico
+const top10Imgs = top10.map(s => {
+  const img = new Image(24, 17);
+  img.src = s.f;
+  return img;
+});
+
 new Chart(document.getElementById('chartTopSel'), {
-  type:'bar',
-  data:{labels:top10.map(s=>s.f+' '+s.n), datasets:[{label:'Palpites', data:top10.map(s=>s.p), backgroundColor:top10.map((_,i)=>`hsl(${40+i*14},80%,50%)`), borderRadius:5, borderSkipped:false}]},
-  options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(255,255,255,0.04)'}},y:{grid:{display:false}}}}
+  type: 'bar',
+  data: {
+    labels: top10.map(s => s.n), // só o nome, sem URL
+    datasets: [{
+      label: 'Palpites',
+      data: top10.map(s => s.p),
+      backgroundColor: top10.map((_,i) => `hsl(${40+i*14},80%,50%)`),
+      borderRadius: 5,
+      borderSkipped: false
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    maintainAspectRatio: false,
+    layout: { padding: { left: 36 } },
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.04)' } },
+      y: {
+        grid: { display: false },
+        ticks: {
+          font: { size: 11 },
+          callback: function(val, idx) {
+            return top10[idx]?.n || val; // só nome
+          }
+        }
+      }
+    }
+  },
+  plugins: [{
+    id: 'flagIcons',
+    afterDraw(chart) {
+      const { ctx, scales: { y } } = chart;
+      top10.forEach((s, i) => {
+        const img = top10Imgs[i];
+        if (!img.complete) return;
+        const yPos = y.getPixelForValue(i);
+        ctx.drawImage(img, y.left - 34, yPos - 9, 28, 18);
+      });
+    }
+  }]
 });
 
 // ── Gráfico confederações ─────────────────────────────────────
@@ -671,7 +718,7 @@ new Chart(document.getElementById('chartConf'), {
   document.getElementById('tbody-selecoes').innerHTML = sorted.map((s,i)=>`
     <tr>
       <td style="color:var(--muted);font-weight:600">${i+1}</td>
-      <td><span style="font-size:18px">${s.f}</span> ${s.n}</td>
+      <td><img src="${s.f}" alt="${s.n}" style="width:28px;height:20px;object-fit:cover;border-radius:3px;vertical-align:middle;margin-right:6px">${s.n}</td>
       <td><span class="badge badge-muted">Grupo ${s.g}</span></td>
       <td>${s.p}</td>
       <td>R$ ${(s.p*10).toLocaleString('pt-BR')},00</td>
@@ -724,7 +771,7 @@ function buildListaApuracao(elId, varName) {
     const realIdx = SELECOES.indexOf(s);
     const picked = varName==='f1'?pickedF1===realIdx:varName==='f2c'?pickedF2c===realIdx:pickedF2v===realIdx;
     return `<div class="sel-pick ${picked?'picked':''}" onclick="pickSel('${varName}',${realIdx})">
-      <span style="font-size:18px">${s.f}</span><span>${s.n}</span><span class="chk">✓</span>
+      <img src="${s.f}" alt="${s.n}" style="width:24px;height:17px;object-fit:cover;border-radius:2px;vertical-align:middle"><span>${s.n}</span><span class="chk">✓</span>
     </div>`;
   }).join('');
 }
