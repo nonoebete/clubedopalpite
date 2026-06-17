@@ -4,6 +4,47 @@
 const wpp   = require('../services/whatsapp.service');
 const notif = require('../services/notificacao.service');
 
+// Armazena o QR Code em memória
+let qrCodeCache = null;
+
+// POST /api/whatsapp/qrcode-webhook — recebe QR Code do Evolution (público)
+async function qrcodeWebhook(req, res) {
+  try {
+    const body = req.body;
+    if (body?.event === 'qrcode.updated' && body?.data?.qrcode?.base64) {
+      qrCodeCache = {
+        base64: body.data.qrcode.base64,
+        timestamp: new Date().toISOString(),
+      };
+      console.log('[WPP] QR Code recebido via webhook às', qrCodeCache.timestamp);
+    }
+    return res.json({ ok: true });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+// GET /api/whatsapp/qrcode-show — exibe QR Code em HTML (admin)
+async function qrcodeShow(req, res) {
+  if (!qrCodeCache) {
+    return res.send(`<html><body style="background:#0b1c35;color:#dce8f5;font-family:sans-serif;text-align:center;padding:40px">
+      <h2>QR Code não disponível ainda</h2>
+      <p>Aguarde o Evolution gerar o QR Code...</p>
+      <button onclick="location.reload()" style="background:#F0A500;border:none;padding:12px 24px;border-radius:8px;font-size:16px;cursor:pointer;margin-top:16px">🔄 Atualizar</button>
+      <script>setTimeout(()=>location.reload(),5000)</script>
+    </body></html>`);
+  }
+  const b64 = qrCodeCache.base64.replace(/^data:image\/\w+;base64,/, '');
+  return res.send(`<html><body style="background:#0b1c35;color:#dce8f5;font-family:sans-serif;text-align:center;padding:40px">
+    <h2>📱 Escaneie com o WhatsApp</h2>
+    <p style="color:#7a93ad">Gerado em: ${qrCodeCache.timestamp}</p>
+    <img src="data:image/png;base64,${b64}" style="border:8px solid white;border-radius:12px;margin:20px auto;display:block;max-width:300px">
+    <p style="color:#7a93ad;margin-top:16px">Abra WhatsApp → Dispositivos conectados → Conectar dispositivo</p>
+    <button onclick="location.reload()" style="background:#F0A500;border:none;padding:12px 24px;border-radius:8px;font-size:16px;cursor:pointer;margin-top:16px">🔄 Atualizar</button>
+    <script>setTimeout(()=>location.reload(),10000)</script>
+  </body></html>`);
+}
+
 // GET /api/whatsapp/status
 async function status(req, res) {
   const estado = await wpp.statusInstancia();
@@ -52,4 +93,4 @@ async function notificarFaseManual(req, res) {
   return res.json({ mensagem: `Lembrete "${tipo}" disparado em background para todos os membros.` });
 }
 
-module.exports = { status, qrcode, testar, notificarFaseManual };
+module.exports = { status, qrcode, qrcodeWebhook, qrcodeShow, testar, notificarFaseManual };
