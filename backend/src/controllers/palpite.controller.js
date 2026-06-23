@@ -124,4 +124,45 @@ async function ranking(req, res) {
   }
 }
 
-module.exports = { registrar, meusPalpites, ranking };
+// GET /api/palpites/ranking-selecoes — seleções mais palpitadas (público)
+async function rankingSelecoes(req, res) {
+  try {
+    const dados = await prisma.palpiteCampanha.groupBy({
+      by: ['selecaoCampeaId'],
+      where: { pagamentoConfirmado: true },
+      _count: { selecaoCampeaId: true },
+      orderBy: { _count: { selecaoCampeaId: 'desc' } },
+    });
+
+    const ids = dados.map(d => d.selecaoCampeaId);
+    const selecoes = await prisma.selecao.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, nome: true, sigla: true, bandeiraCss: true, grupo: true },
+    });
+    const mapaSelecoes = Object.fromEntries(selecoes.map(s => [s.id, s]));
+
+    // Total geral de palpites para calcular percentual
+    const total = dados.reduce((s, d) => s + d._count.selecaoCampeaId, 0);
+
+    const resultado = dados.map((d, i) => {
+      const sel = mapaSelecoes[d.selecaoCampeaId] || {};
+      return {
+        posicao:    i + 1,
+        id:         d.selecaoCampeaId,
+        nome:       sel.nome || '—',
+        sigla:      sel.sigla || '—',
+        bandeiraCss: sel.bandeiraCss || '',
+        grupo:      sel.grupo || '—',
+        palpites:   d._count.selecaoCampeaId,
+        percentual: total > 0 ? ((d._count.selecaoCampeaId / total) * 100).toFixed(1) : '0.0',
+      };
+    });
+
+    return res.json({ total, selecoes: resultado });
+  } catch (err) {
+    console.error('[rankingSelecoes]', err);
+    return res.status(500).json({ error: 'Erro ao buscar ranking de seleções.' });
+  }
+}
+
+module.exports = { registrar, meusPalpites, ranking, rankingSelecoes };
