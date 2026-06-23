@@ -21,7 +21,7 @@ function gerarCodigoCdp(id) {
 
 // ── POST /api/auth/cadastro ────────────────────────────────────
 async function cadastrar(req, res) {
-  const { nomeCompleto, apelido, telefone } = req.body;
+  const { nomeCompleto, apelido, telefone, cep, endereco, bairro, cidade, estado } = req.body;
 
   if (!nomeCompleto || !apelido || !telefone) {
     return res.status(400).json({ error: 'Preencha nome completo, apelido e telefone.' });
@@ -40,6 +40,11 @@ async function cadastrar(req, res) {
         nomeCompleto: nomeCompleto.trim(),
         apelido:      apelido.trim(),
         telefone:     telefone.trim(),
+        cep:          cep ? cep.trim() : null,
+        endereco:     endereco ? endereco.trim() : null,
+        bairro:       bairro ? bairro.trim() : null,
+        cidade:       cidade ? cidade.trim() : null,
+        estado:       estado ? estado.trim().toUpperCase() : null,
         senhaHash,
         perfil:       'PALPITEIRO',
       },
@@ -98,7 +103,9 @@ async function login(req, res) {
         codigoCdp:   usuario.codigoCdp,
         nomeCompleto: usuario.nomeCompleto,
         apelido:     usuario.apelido,
+        telefone:    usuario.telefone,
         perfil:      usuario.perfil,
+        criadoEm:    usuario.criadoEm,
       },
     });
 

@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -138,7 +137,7 @@ body{font-family:'Inter',sans-serif;background:var(--night);color:#dce8f5;min-he
     <div class="valor-box">
       <div class="valor-label">Valor total</div>
       <div class="valor-num" id="valor-total">R$ 30,00</div>
-      <div class="valor-det" id="valor-det">3 palpites · 1ª Fase · CDP15</div>
+      <div class="valor-det" id="valor-det">Carregando…</div>
     </div>
 
     <!-- Status -->
@@ -210,7 +209,7 @@ body{font-family:'Inter',sans-serif;background:var(--night);color:#dce8f5;min-he
       <div class="success-title">PIX Confirmado!</div>
       <div class="success-sub">Seu palpite foi registrado com sucesso.<br>Boa sorte na Copa 2026! 🏆</div>
       <div class="success-detail" id="success-detail">
-        <div class="sd-row"><span class="key">Palpiteiro</span><span class="val">CDP15 · Joãozinho</span></div>
+        <div class="sd-row"><span class="key">Palpiteiro</span><span class="val" id="suc-palpiteiro">—</span></div>
         <div class="sd-row"><span class="key">Fase</span><span class="val">1ª Fase · Seleção Campeã</span></div>
         <div class="sd-row"><span class="key">Palpites</span><span class="val" id="suc-palpites">3 seleções</span></div>
         <div class="sd-row"><span class="key">Valor pago</span><span class="val" id="suc-valor" style="color:var(--pix)">R$ 30,00</span></div>
@@ -226,14 +225,14 @@ body{font-family:'Inter',sans-serif;background:var(--night);color:#dce8f5;min-he
   <!-- ── RESUMO LATERAL ─────────────────────────────────── -->
   <div class="resumo-card">
     <div class="resumo-title">📋 Resumo do pedido</div>
-    <div class="resumo-row"><span class="rk">Palpiteiro</span><span class="rv">Joãozinho<br><small style="color:var(--muted)">CDP15</small></span></div>
-    <div class="resumo-row"><span class="rk">Fase</span><span class="rv">1ª Fase</span></div>
-    <div class="resumo-row"><span class="rk">Seleções palpitadas</span><span class="rv">🇧🇷 Brasil<br>🇦🇷 Argentina<br>🇫🇷 França</span></div>
-    <div class="resumo-row"><span class="rk">Valor unitário</span><span class="rv">R$ 10,00</span></div>
-    <div class="resumo-row"><span class="rk">Quantidade</span><span class="rv">3 palpites</span></div>
+    <div class="resumo-row"><span class="rk">Palpiteiro</span><span class="rv" id="resumo-palpiteiro">—</span></div>
+    <div class="resumo-row" id="resumo-row-fase"><span class="rk">Fase</span><span class="rv" id="resumo-fase">—</span></div>
+    <div class="resumo-row" id="resumo-row-selecoes"><span class="rk">Seleções palpitadas</span><span class="rv" id="resumo-selecoes">—</span></div>
+    <div class="resumo-row" id="resumo-row-valor-unit"><span class="rk">Valor unitário</span><span class="rv" id="resumo-valor-unit">—</span></div>
+    <div class="resumo-row" id="resumo-row-qtd"><span class="rk">Quantidade</span><span class="rv" id="resumo-qtd">—</span></div>
     <div class="total-block">
       <span class="tl">Total</span>
-      <span class="tv">R$ 30,00</span>
+      <span class="tv" id="resumo-total">—</span>
     </div>
 
     <div class="steps">
@@ -250,38 +249,93 @@ body{font-family:'Inter',sans-serif;background:var(--night);color:#dce8f5;min-he
 
 <script>
 // ── Config ────────────────────────────────────────────────────
+const API_BASE = '/api';
 const POLLING_INTERVAL_MS = 4000;   // verifica status a cada 4s
-const EXPIRACAO_SEGUNDOS  = 30 * 60; // 30 minutos
 
-let tempoRestante = EXPIRACAO_SEGUNDOS;
-let pollingTimer  = null;
+let tempoRestante  = 0;
+let pollingTimer   = null;
 let countdownTimer = null;
-let pagamentoId   = null; // vem da API ao criar o pagamento
-let statusAtual   = 'PENDENTE';
+let pagamentoId    = null;
+let statusAtual    = 'PENDENTE';
+let valorPagamento = '';
 
-// ── Simulação de dados (em produção vem da API) ───────────────
-// Na integração real, estes dados viriam do body da resposta de
-// POST /api/pagamentos/iniciar
-const dadosPagamento = {
-  pagamentoId: 42,
-  valor:       'R$ 30,00',
-  descricao:   '3 palpites · 1ª Fase · CDP15',
-  pix: {
-    copiaECola: '00020126580014BR.GOV.BCB.PIX0136a1b2c3d4-e5f6-7890-abcd-ef1234567890520400005303986540530.005802BR5920Clube de Palpites6009SAO PAULO62070503***6304ABCD',
-    qrCodeBase64: null, // se viesse da API: 'data:image/png;base64,...'
+function authHeaders() {
+  return { 'Authorization': `Bearer ${localStorage.getItem('token') || ''}` };
+}
+
+// ── Carrega dados reais do pagamento ───────────────────────────
+// 1) Tenta usar o que veio do portal.html (sessionStorage, sem precisar
+//    de outra chamada de API — já tem QR Code, copia-e-cola, etc.)
+// 2) Se a página for aberta direto via link (?pagamentoId=X) sem o
+//    sessionStorage, busca os dados via GET /api/pagamentos/:id/status
+//    (esse endpoint não retorna o QR Code de novo — então nesse caso
+//    pedimos para o usuário voltar e gerar o palpite novamente).
+async function carregarPagamento() {
+  const params = new URLSearchParams(window.location.search);
+  const idDaUrl = params.get('pagamentoId');
+
+  const salvo = sessionStorage.getItem('cdp_pagamento_atual');
+  let dados = null;
+  if (salvo) {
+    try { dados = JSON.parse(salvo); } catch { dados = null; }
   }
-};
 
-// ── Inicializa tela ───────────────────────────────────────────
-document.getElementById('valor-total').textContent = dadosPagamento.valor;
-document.getElementById('valor-det').textContent   = dadosPagamento.descricao;
-document.getElementById('pix-codigo').textContent  = dadosPagamento.pix.copiaECola;
-pagamentoId = dadosPagamento.pagamentoId;
+  if (dados && (!idDaUrl || String(dados.pagamentoId) === idDaUrl)) {
+    pagamentoId = dados.pagamentoId;
+    valorPagamento = dados.valor;
+    document.getElementById('valor-total').textContent = dados.valor;
+    document.getElementById('valor-det').textContent =
+      dados.quantPalpites ? `${dados.quantPalpites} palpite(s)` :
+      dados.quantJogos    ? `Bilhete · ${dados.quantJogos} jogo(s)` : '';
+    document.getElementById('pix-codigo').textContent = dados.pix.copiaECola;
 
-// Se vier QR Code real em base64, substitui o SVG
-if (dadosPagamento.pix.qrCodeBase64) {
-  document.getElementById('qr-wrap').innerHTML =
-    `<img src="data:image/png;base64,${dadosPagamento.pix.qrCodeBase64}" alt="QR Code PIX" />`;
+    if (dados.pix.qrCodeBase64) {
+      document.getElementById('qr-wrap').innerHTML =
+        `<img src="data:image/png;base64,${dados.pix.qrCodeBase64}" alt="QR Code PIX" />`;
+    }
+
+    // Preenche o resumo lateral e a tela de sucesso com os dados reais do pedido
+    const r = dados.resumo || {};
+    document.getElementById('resumo-palpiteiro').textContent = r.palpiteiro || '—';
+    document.getElementById('resumo-fase').textContent = r.faseLabel || '—';
+    document.getElementById('resumo-selecoes').innerHTML = r.selecoesLabel || '—';
+    document.getElementById('resumo-valor-unit').textContent = r.valorUnitario || '—';
+    document.getElementById('resumo-qtd').textContent = r.quantidadeLabel || '—';
+    document.getElementById('resumo-total').textContent = dados.valor || '—';
+    document.getElementById('suc-palpiteiro').textContent = r.palpiteiro || '—';
+    document.getElementById('suc-palpites').textContent = r.quantidadeLabel || '—';
+
+    const expiraEm = new Date(dados.pix.expiracao).getTime();
+    tempoRestante = Math.max(0, Math.floor((expiraEm - Date.now()) / 1000));
+    iniciarCountdown();
+    iniciarPolling();
+    return;
+  }
+
+  if (idDaUrl) {
+    // Reabriu a página sem o sessionStorage — confirma status mas sem QR Code novo
+    pagamentoId = idDaUrl;
+    document.getElementById('qr-wrap').innerHTML = `
+      <div class="qr-overlay">
+        <span class="icon">🔄</span>
+        <p>Verificando seu pagamento…</p>
+      </div>`;
+    ['resumo-palpiteiro','resumo-fase','resumo-selecoes','resumo-valor-unit','resumo-qtd','resumo-total'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = 'Indisponível';
+    });
+    iniciarPolling();
+    return;
+  }
+
+  // Sem nenhuma informação de pagamento
+  document.getElementById('status-bar').className = 'status-bar expirado';
+  document.getElementById('status-txt').textContent = 'Nenhum pagamento em andamento.';
+  document.getElementById('qr-wrap').innerHTML = `
+    <div class="qr-overlay">
+      <span class="icon">⚠️</span>
+      <p>Volte ao portal e escolha seus palpites para gerar um novo PIX.</p>
+    </div>`;
 }
 
 // ── Countdown timer ───────────────────────────────────────────
@@ -291,68 +345,65 @@ function formatarTempo(s) {
   return `${String(m).padStart(2,'0')}:${String(seg).padStart(2,'0')}`;
 }
 
-countdownTimer = setInterval(() => {
-  tempoRestante--;
-  const el = document.getElementById('timer');
-  el.textContent = formatarTempo(tempoRestante);
-  if (tempoRestante <= 120) el.classList.add('urgente');
-  if (tempoRestante <= 0) {
-    clearInterval(countdownTimer);
-    clearInterval(pollingTimer);
-    expirar();
-  }
-}, 1000);
+function iniciarCountdown() {
+  document.getElementById('timer').textContent = formatarTempo(tempoRestante);
+  countdownTimer = setInterval(() => {
+    tempoRestante--;
+    const el = document.getElementById('timer');
+    el.textContent = formatarTempo(tempoRestante);
+    if (tempoRestante <= 120) el.classList.add('urgente');
+    if (tempoRestante <= 0) {
+      clearInterval(countdownTimer);
+      clearInterval(pollingTimer);
+      expirar();
+    }
+  }, 1000);
+}
 
-document.getElementById('timer').textContent = formatarTempo(tempoRestante);
-
-// ── Polling de status ─────────────────────────────────────────
-// Em produção chama: GET /api/pagamentos/{id}/status
+// ── Polling real de status ──────────────────────────────────────
 async function verificarStatus() {
-  if (statusAtual !== 'PENDENTE') return;
+  if (statusAtual !== 'PENDENTE' || !pagamentoId) return;
   try {
-    // Substituir por fetch real em produção:
-    // const r = await fetch(`/api/pagamentos/${pagamentoId}/status`, {
-    //   headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-    // });
-    // const data = await r.json();
-    // if (data.pago) aprovado();
-    // else if (data.status === 'EXPIRADO') expirar();
-
-    // Simulação: aprova após 12s para demonstração
-    if (tempoRestante < EXPIRACAO_SEGUNDOS - 12) {
+    const r = await fetch(`${API_BASE}/pagamentos/${pagamentoId}/status`, { headers: authHeaders() });
+    if (!r.ok) return;
+    const data = await r.json();
+    if (data.pago) {
+      valorPagamento = data.valor || valorPagamento;
       aprovado();
+    } else if (data.status === 'EXPIRADO') {
+      expirar();
     }
   } catch (err) {
     console.error('Erro ao verificar status:', err);
   }
 }
 
-pollingTimer = setInterval(verificarStatus, POLLING_INTERVAL_MS);
+function iniciarPolling() {
+  pollingTimer = setInterval(verificarStatus, POLLING_INTERVAL_MS);
+  verificarStatus(); // primeira checagem imediata
+}
 
 // ── Ações ─────────────────────────────────────────────────────
 function aprovado() {
   statusAtual = 'APROVADO';
   clearInterval(countdownTimer);
   clearInterval(pollingTimer);
+  sessionStorage.removeItem('cdp_pagamento_atual');
 
-  // Atualiza status bar
   const sb = document.getElementById('status-bar');
   sb.className = 'status-bar aprovado';
   document.getElementById('status-txt').textContent = '✅ Pagamento confirmado pelo banco!';
 
-  // Mostra tela de sucesso
   document.getElementById('suc-hora').textContent = new Date().toLocaleTimeString('pt-BR');
-  document.getElementById('suc-valor').textContent = dadosPagamento.valor;
+  document.getElementById('suc-valor').textContent = valorPagamento;
 
   setTimeout(() => {
-    // Esconde elementos de pagamento
     document.querySelector('.qr-wrap').style.display  = 'none';
     document.querySelector('.copia-row').style.display = 'none';
     document.querySelector('.timer-row').style.display = 'none';
     document.getElementById('btn-cancelar').style.display = 'none';
     document.querySelector('.pix-sub').style.display  = 'none';
     document.getElementById('status-bar').style.display = 'none';
-    // Mostra tela de sucesso
     document.getElementById('success-screen').style.display = 'block';
   }, 800);
 }
@@ -362,8 +413,8 @@ function expirar() {
   statusAtual = 'EXPIRADO';
   clearInterval(countdownTimer);
   clearInterval(pollingTimer);
+  sessionStorage.removeItem('cdp_pagamento_atual');
 
-  // Overlay no QR Code
   document.getElementById('qr-wrap').innerHTML = `
     <div class="qr-overlay">
       <span class="icon">⏰</span>
@@ -379,6 +430,7 @@ function expirar() {
 
 function copiarPix() {
   const codigo = document.getElementById('pix-codigo').textContent.trim();
+  if (!codigo) return;
   navigator.clipboard.writeText(codigo).then(() => {
     const btn = document.getElementById('btn-copiar');
     btn.textContent = '✅ Copiado!';
@@ -391,9 +443,12 @@ function cancelar() {
   if (confirm('Cancelar pagamento? Os palpites serão removidos.')) {
     clearInterval(countdownTimer);
     clearInterval(pollingTimer);
+    sessionStorage.removeItem('cdp_pagamento_atual');
     window.location.href = 'portal.html';
   }
 }
+
+carregarPagamento();
 </script>
 </body>
 </html>

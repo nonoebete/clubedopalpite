@@ -386,50 +386,13 @@ async function meusPagamentos(req, res) {
       where:   { usuarioId: req.user.id },
       orderBy: { criadoEm: 'desc' },
       select: {
-        id: true, valor: true, status: true, palpiteIds: true,
+        id: true, valor: true, status: true,
         criadoEm: true, pagoEm: true, expiresAt: true,
         campanha: { select: { nome: true, fase: true } },
       },
     });
-
-    // Para cada pagamento, busca os palpites reais com nomes das seleções
-    const resultado = await Promise.all(pagamentos.map(async (pag) => {
-      let palpiteIds = [];
-      try { palpiteIds = JSON.parse(pag.palpiteIds || '[]'); } catch {}
-
-      const fase = pag.campanha?.fase;
-
-      let palpites = [];
-      if (fase === 3) {
-        palpites = await prisma.palpitePartida.findMany({
-          where: { id: { in: palpiteIds } },
-          select: {
-            id: true, resultado: true, pagamentoConfirmado: true, acertou: true,
-            partida: {
-              select: {
-                selecaoCasa: { select: { nome: true, bandeiraCss: true } },
-                selecaoFora: { select: { nome: true, bandeiraCss: true } },
-              },
-            },
-          },
-        });
-      } else {
-        palpites = await prisma.palpiteCampanha.findMany({
-          where: { id: { in: palpiteIds } },
-          select: {
-            id: true, valorPago: true, pagamentoConfirmado: true, acertou: true,
-            selecaoCampea: { select: { nome: true, bandeiraCss: true } },
-            selecaoVice:   { select: { nome: true, bandeiraCss: true } },
-          },
-        });
-      }
-
-      return { ...pag, palpites };
-    }));
-
-    return res.json(resultado);
-  } catch (err) {
-    console.error('[meusPagamentos]', err);
+    return res.json(pagamentos);
+  } catch {
     return res.status(500).json({ error: 'Erro ao buscar pagamentos.' });
   }
 }

@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -60,16 +59,23 @@ button{cursor:pointer;font-family:'Inter',sans-serif}
 .user-chip{display:flex;align-items:center;gap:8px;background:var(--navy2);border:1px solid var(--border);border-radius:var(--r);padding:5px 12px;font-size:12px}
 
 /* ── Layout ─────────────────────────────────────── */
-.body{display:grid;grid-template-columns:200px 1fr;overflow:hidden;height:calc(100vh - 56px)}
+.body{display:grid;grid-template-columns:200px 1fr;overflow:hidden;height:calc(100vh - 56px);transition:grid-template-columns .2s ease}
+.body.sidebar-collapsed{grid-template-columns:60px 1fr}
 
 /* ── Sidebar ────────────────────────────────────── */
 .sidebar{background:var(--navy);border-right:1px solid var(--border);padding:16px 10px;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
-.nav-section{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(122,147,173,.5);padding:12px 10px 5px}
-.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r);font-size:13px;font-weight:500;color:var(--muted);border:1px solid transparent;transition:all .15s;cursor:pointer}
+.sidebar-toggle{display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:var(--navy2);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;color:var(--muted);font-size:15px;margin-bottom:10px;flex-shrink:0;transition:all .15s}
+.sidebar-toggle:hover{color:#dce8f5;border-color:var(--gold)}
+.nav-section{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(122,147,173,.5);padding:12px 10px 5px;white-space:nowrap;overflow:hidden}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r);font-size:13px;font-weight:500;color:var(--muted);border:1px solid transparent;transition:all .15s;cursor:pointer;white-space:nowrap;overflow:hidden}
 .nav-item:hover{color:#dce8f5;background:rgba(255,255,255,.04)}
 .nav-item.active{color:#dce8f5;background:rgba(240,165,0,.1);border-color:rgba(240,165,0,.2)}
-.nav-item .icon{font-size:15px}
+.nav-item .icon{font-size:15px;flex-shrink:0}
 .nav-spacer{flex:1}
+.body.sidebar-collapsed .nav-item .label,
+.body.sidebar-collapsed .nav-section{display:none}
+.body.sidebar-collapsed .nav-item{justify-content:center;padding:9px}
+.body.sidebar-collapsed .sidebar-toggle{margin-left:auto;margin-right:auto}
 
 /* ── Main ───────────────────────────────────────── */
 .main{overflow-y:auto;padding:28px}
@@ -162,16 +168,35 @@ input[type=text]::placeholder{color:var(--muted)}
 .toast{position:fixed;bottom:28px;right:28px;z-index:999;background:var(--navy);border:1px solid rgba(29,185,84,.4);border-radius:var(--r-lg);padding:14px 20px;font-size:13px;font-weight:500;box-shadow:var(--shadow);display:flex;align-items:center;gap:10px;transform:translateY(80px);opacity:0;transition:all .3s;pointer-events:none}
 .toast.show{transform:translateY(0);opacity:1}
 .toast .icon{font-size:18px}
+/* ── Modais de gestão de membros ──────────────────────────────── */
+.modal-overlay{position:fixed;inset:0;background:rgba(7,16,29,.85);backdrop-filter:blur(4px);z-index:300;display:none;align-items:center;justify-content:center;padding:24px}
+.modal-overlay.show{display:flex}
+.modal-box{background:var(--navy);border:1px solid rgba(240,165,0,.2);border-radius:16px;padding:28px;width:100%;max-width:440px;box-shadow:0 8px 40px rgba(0,0,0,.6)}
+.modal-box-title{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;margin-bottom:16px}
+.modal-box .form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.modal-box .form-group label{font-size:12px;font-weight:500;color:var(--muted)}
+.modal-box .form-group input,.modal-box .form-group select{background:var(--navy2);border:1px solid var(--border);border-radius:var(--r);color:#dce8f5;font-size:13px;padding:10px 12px;outline:none;font-family:'Inter',sans-serif}
+.modal-box .form-group input:focus,.modal-box .form-group select:focus{border-color:var(--gold)}
+.modal-box .form-group input::placeholder{color:var(--muted)}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+.danger-box{background:rgba(224,82,82,.08);border:1px solid rgba(224,82,82,.25);border-radius:var(--r);padding:12px 14px;margin:12px 0;font-size:13px;color:var(--red)}
+.acoes-membro{display:flex;gap:5px}
+.btn-icon{background:var(--navy2);border:1px solid var(--border);color:var(--muted);font-size:12px;padding:6px 10px;border-radius:var(--r);cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.btn-icon:hover{color:#dce8f5}
+.btn-icon.danger{background:rgba(224,82,82,.15);border-color:rgba(224,82,82,.3);color:var(--red)}
+.btn-icon.danger:hover{background:rgba(224,82,82,.25)}
+.btn-icon.success{background:rgba(29,185,84,.15);border-color:rgba(29,185,84,.3);color:var(--green)}
+.btn-icon.success:hover{background:rgba(29,185,84,.25)}
 </style>
 </head>
 <body>
 
 <!-- ── TOPBAR ─────────────────────────────────────────── -->
 <header class="topbar">
-  <div class="logo">
+  <a href="index.html" target="_self" class="logo" style="text-decoration:none;cursor:pointer">
     <div style="width:38px;height:38px;border-radius:50%;background:#0f2644;border:1.5px solid #F0A500;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;color:#F0A500">CDP</div>
     Clube <span>Palpite</span>
-  </div>
+  </a>
   <span class="topbar-badge">🏆 Copa 2026</span>
   <div class="topbar-sep"></div>
   <div class="live-dot"></div>
@@ -182,23 +207,27 @@ input[type=text]::placeholder{color:var(--muted)}
 </header>
 
 <!-- ── BODY ───────────────────────────────────────────── -->
-<div class="body">
+<div class="body" id="app-body">
 
   <!-- SIDEBAR -->
   <nav class="sidebar">
+    <div class="sidebar-toggle" onclick="toggleSidebar()" title="Retrair/expandir menu">☰</div>
     <div class="nav-section">Painel</div>
-    <div class="nav-item active" onclick="showSec('dashboard',this)"><span class="icon">📊</span> Dashboard</div>
-    <div class="nav-item" onclick="showSec('arrecadacao',this)"><span class="icon">💰</span> Arrecadação</div>
-    <div class="nav-item" onclick="showSec('selecoes',this)"><span class="icon">⚽</span> Seleções</div>
+    <div class="nav-item active" onclick="showSec('dashboard',this)"><span class="icon">📊</span> <span class="label">Painel Geral</span></div>
+    <div class="nav-item" onclick="showSec('arrecadacao',this)"><span class="icon">💰</span> <span class="label">Arrecadação</span></div>
+    <div class="nav-item" onclick="showSec('selecoes',this)"><span class="icon">⚽</span> <span class="label">Seleções</span></div>
+    <div class="nav-item" onclick="showSec('ranking',this)"><span class="icon">🏅</span> <span class="label">Ranking dos Palpites</span></div>
 
     <div class="nav-section">Gestão</div>
-    <div class="nav-item" onclick="showSec('apurar',this)"><span class="icon">🏆</span> Apurar</div>
-    <div class="nav-item" onclick="showSec('membros',this)"><span class="icon">👥</span> Membros</div>
-    <div class="nav-item" onclick="showSec('relatorio',this)"><span class="icon">📑</span> Relatório</div>
+    <div class="nav-item" onclick="showSec('apurar',this)"><span class="icon">🏆</span> <span class="label">Apurar Campanha</span></div>
+    <div class="nav-item" onclick="showSec('membros',this)"><span class="icon">👥</span> <span class="label">Membros</span></div>
+    <div class="nav-item" onclick="showSec('palpites',this)"><span class="icon">⚽</span> <span class="label">Todos os Palpites</span></div>
+    <div class="nav-item" onclick="showSec('indicadores',this)"><span class="icon">🤝</span> <span class="label">Adm. Indicador(es)</span></div>
+    <div class="nav-item" onclick="showSec('relatorio',this)"><span class="icon">📑</span> <span class="label">Relatório</span></div>
 
     <div class="nav-spacer"></div>
     <a href="login.html" class="nav-item" style="color:#e05252">
-      <span class="icon">↩</span> Sair
+      <span class="icon">↩</span> <span class="label">Sair</span>
     </a>
   </nav>
 
@@ -209,7 +238,7 @@ input[type=text]::placeholder{color:var(--muted)}
     <div class="section active" id="sec-dashboard">
       <div class="page-header">
         <div>
-          <div class="page-title">Dashboard Geral</div>
+          <div class="page-title">Painel Geral</div>
           <div class="page-sub">Atualizado em tempo real · Copa 2026</div>
         </div>
         <div class="page-actions">
@@ -222,33 +251,28 @@ input[type=text]::placeholder{color:var(--muted)}
       <div class="kpi-grid">
         <div class="kpi gold">
           <div class="kpi-label">Total arrecadado</div>
-          <div class="kpi-value" id="kpi-total">R$ 2.540</div>
-          <div class="kpi-sub">3 campanhas ativas</div>
-          <div class="kpi-delta up">▲ +R$200 hoje</div>
+          <div class="kpi-value" id="kpi-total">—</div>
+          <div class="kpi-sub">Total das campanhas</div>
         </div>
         <div class="kpi green">
           <div class="kpi-label">Membros ativos</div>
-          <div class="kpi-value" id="kpi-membros">87</div>
+          <div class="kpi-value" id="kpi-membros">—</div>
           <div class="kpi-sub">Palpiteiros cadastrados</div>
-          <div class="kpi-delta up">▲ +12 essa semana</div>
         </div>
         <div class="kpi blue">
           <div class="kpi-label">Palpites 1ª e 2ª Fase</div>
-          <div class="kpi-value" id="kpi-palpites">216</div>
-          <div class="kpi-sub">164 fase 1 · 52 fase 2</div>
-          <div class="kpi-delta up">▲ +28 hoje</div>
+          <div class="kpi-value" id="kpi-palpites">—</div>
+          <div class="kpi-sub" id="kpi-palpites-sub">Carregando…</div>
         </div>
         <div class="kpi blue">
           <div class="kpi-label">Bilhetes 3ª Fase</div>
-          <div class="kpi-value" id="kpi-bilhetes">20</div>
+          <div class="kpi-value" id="kpi-bilhetes">—</div>
           <div class="kpi-sub">R$ 10,00 / bilhete fixo</div>
-          <div class="kpi-delta up">▲ +5 hoje</div>
         </div>
         <div class="kpi gold" style="--c:var(--green)">
           <div class="kpi-label">Fundo de prêmios</div>
-          <div class="kpi-value" style="color:var(--green)" id="kpi-fundo">R$ 1.524</div>
+          <div class="kpi-value" style="color:var(--green)" id="kpi-fundo">—</div>
           <div class="kpi-sub">60% da arrecadação total</div>
-          <div class="kpi-delta up">▲ em crescimento</div>
         </div>
       </div>
 
@@ -290,34 +314,34 @@ input[type=text]::placeholder{color:var(--muted)}
           <div class="card-body">
             <div style="margin-bottom:16px">
               <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px">
-                <span>1ª Fase · R$ 1.640</span><span class="badge badge-gold">R$ 984 prêmios</span>
+                <span id="rateio-f1-label">1ª Fase · —</span><span class="badge badge-gold" id="rateio-f1-premio">— prêmios</span>
               </div>
               <div class="rateio-visual">
-                <div class="rv-clube">40% · R$ 656</div>
-                <div class="rv-premio">60% · R$ 984</div>
+                <div class="rv-clube" id="rateio-f1-clube">40% · —</div>
+                <div class="rv-premio" id="rateio-f1-fundo">60% · —</div>
               </div>
             </div>
             <div style="margin-bottom:16px">
               <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px">
-                <span>2ª Fase · R$ 780</span><span class="badge badge-green">R$ 468 prêmios</span>
+                <span id="rateio-f2-label">2ª Fase · —</span><span class="badge badge-green" id="rateio-f2-premio">— prêmios</span>
               </div>
               <div class="rateio-visual">
-                <div class="rv-clube">40% · R$ 312</div>
-                <div class="rv-premio">60% · R$ 468</div>
+                <div class="rv-clube" id="rateio-f2-clube">40% · —</div>
+                <div class="rv-premio" id="rateio-f2-fundo">60% · —</div>
               </div>
             </div>
             <div>
               <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px">
-                <span>3ª Fase · R$ 200 <span style="font-size:10px;color:var(--muted)">(20 bilhetes)</span></span><span class="badge badge-blue">R$ 120 prêmios</span>
+                <span id="rateio-f3-label">3ª Fase · —</span><span class="badge badge-blue" id="rateio-f3-premio">— prêmios</span>
               </div>
               <div class="rateio-visual">
-                <div class="rv-clube" style="background:rgba(74,158,255,.15);color:var(--blue)">40% · R$ 80</div>
-                <div class="rv-premio" style="background:linear-gradient(90deg,var(--blue),#8ec8ff)">60% · Top 3 acertadores</div>
+                <div class="rv-clube" style="background:rgba(74,158,255,.15);color:var(--blue)" id="rateio-f3-clube">40% · —</div>
+                <div class="rv-premio" style="background:linear-gradient(90deg,var(--blue),#8ec8ff)" id="rateio-f3-fundo">60% · Top 3 acertadores</div>
               </div>
             </div>
             <div style="border-top:1px solid var(--border);margin-top:16px;padding-top:14px;display:flex;justify-content:space-between;align-items:center">
               <span style="font-size:13px;color:var(--muted)">Lucro total do clube</span>
-              <span style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:var(--gold)">R$ 1.048</span>
+              <span style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:var(--gold)" id="rateio-lucro-total">—</span>
             </div>
           </div>
         </div>
@@ -351,19 +375,19 @@ input[type=text]::placeholder{color:var(--muted)}
           <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
             <div style="background:var(--navy2);border-radius:var(--r);padding:14px;text-align:center">
               <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Bilhetes vendidos</div>
-              <div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;color:var(--blue)" id="f3-bilhetes">20</div>
+              <div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;color:var(--blue)" id="f3-bilhetes">—</div>
             </div>
             <div style="background:var(--navy2);border-radius:var(--r);padding:14px;text-align:center">
               <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Total arrecadado</div>
-              <div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;color:var(--gold)" id="f3-total">R$ 200</div>
+              <div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;color:var(--gold)" id="f3-total">—</div>
             </div>
             <div style="background:var(--navy2);border-radius:var(--r);padding:14px;text-align:center">
               <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Lucro clube (40%)</div>
-              <div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800" id="f3-lucro">R$ 80</div>
+              <div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800" id="f3-lucro">—</div>
             </div>
             <div style="background:var(--navy2);border-radius:var(--r);padding:14px;text-align:center">
               <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Fundo prêmios (60%)</div>
-              <div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;color:var(--green)" id="f3-fundo">R$ 120</div>
+              <div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;color:var(--green)" id="f3-fundo">—</div>
             </div>
           </div>
           <div style="background:rgba(74,158,255,.06);border:1px solid rgba(74,158,255,.2);border-radius:var(--r);padding:14px;font-size:12px;color:var(--muted)">
@@ -524,21 +548,22 @@ input[type=text]::placeholder{color:var(--muted)}
     <!-- ════════════════ MEMBROS ════════════════ -->
     <div class="section" id="sec-membros">
       <div class="page-header">
-        <div><div class="page-title">Membros do Clube</div><div class="page-sub" id="membros-count">87 membros cadastrados</div></div>
+        <div><div class="page-title">Membros do Clube</div><div class="page-sub" id="membros-count">Carregando…</div></div>
         <div class="page-actions">
           <input type="text" id="busca-membro" placeholder="🔍 Nome, apelido ou CDP…" oninput="filtrarMembros()">
           <button class="btn-export btn-export-primary" onclick="exportCSV('membros')">⬇ Exportar</button>
         </div>
       </div>
       <div class="filter-bar">
-        <button class="filter-btn active" onclick="filtroMembros('todos',this)">Todos (87)</button>
-        <button class="filter-btn" onclick="filtroMembros('1fase',this)">1ª Fase (78)</button>
-        <button class="filter-btn" onclick="filtroMembros('2fase',this)">2ª Fase (42)</button>
-        <button class="filter-btn" onclick="filtroMembros('ambas',this)">Ambas (33)</button>
+        <button class="filter-btn active" onclick="filtroMembros('todos',this)">Todos</button>
+        <button class="filter-btn" onclick="filtroMembros('ativo',this)">Ativos</button>
+        <button class="filter-btn" onclick="filtroMembros('bloqueado',this)">Bloqueados</button>
+        <button class="filter-btn" onclick="filtroMembros('1fase',this)">1ª Fase</button>
+        <button class="filter-btn" onclick="filtroMembros('2fase',this)">2ª Fase</button>
       </div>
       <div class="card" style="padding:0">
         <table>
-          <thead><tr><th>CDP</th><th>Nome / Apelido</th><th>Telefone</th><th>Fase 1</th><th>Fase 2</th><th>Total pago</th><th>Cadastro</th></tr></thead>
+          <thead><tr><th>CDP</th><th>Nome / Apelido</th><th>Telefone</th><th>Cidade/UF</th><th>Palpites</th><th>Status</th><th>Cadastro</th><th>Ações</th></tr></thead>
           <tbody id="tbody-membros"></tbody>
         </table>
       </div>
@@ -574,7 +599,7 @@ input[type=text]::placeholder{color:var(--muted)}
           </div>
           <div style="background:var(--navy2);border-radius:var(--r);padding:14px;text-align:center">
             <div style="font-size:11px;color:var(--muted)">Fundo de prêmios</div>
-            <div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:700;color:var(--green)">R$ 1.404,00</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:700;color:var(--green)" id="rel-fundo-total">—</div>
           </div>
           <div style="background:var(--navy2);border-radius:var(--r);padding:14px;text-align:center">
             <div style="font-size:11px;color:var(--muted)">Total membros</div>
@@ -585,15 +610,212 @@ input[type=text]::placeholder{color:var(--muted)}
         <table style="margin-bottom:24px">
           <thead><tr style="background:var(--navy2)"><th>Campanha</th><th>Período</th><th>Palpites</th><th>Arrecadado</th><th>Lucro (40%)</th><th>Prêmios (60%)</th><th>Status</th></tr></thead>
           <tbody>
-            <tr><td><strong>1ª Fase · Seleção Campeã</strong></td><td>10/06–04/07/2026</td><td>164</td><td>R$ 1.640,00</td><td>R$ 656,00</td><td style="color:var(--green)">R$ 984,00</td><td><span class="badge badge-green">Aberta</span></td></tr>
-            <tr><td><strong>2ª Fase · Campeã + Vice</strong></td><td>10/06–10/07/2026</td><td>52</td><td>R$ 780,00</td><td>R$ 312,00</td><td style="color:var(--green)">R$ 468,00</td><td><span class="badge badge-green">Aberta</span></td></tr>
-            <tr><td><strong>3ª Fase · Palpite Resultado</strong></td><td>16/06–19/07/2026</td><td>20 bilhetes</td><td>R$ 200,00</td><td>R$ 80,00</td><td style="color:var(--blue)">R$ 120,00</td><td><span class="badge badge-blue">Aberta</span></td></tr>
-            <tr style="background:var(--navy2)"><td><strong>TOTAL</strong></td><td>—</td><td><strong>236</strong></td><td><strong style="color:var(--gold)">R$ 2.620,00</strong></td><td><strong>R$ 1.048,00</strong></td><td><strong style="color:var(--green)">R$ 1.572,00</strong></td><td>—</td></tr>
+            <tbody id="tbody-relatorio-campanhas"></tbody>
           </tbody>
         </table>
 
         <div style="font-size:11px;color:var(--muted);border-top:1px solid var(--border);padding-top:16px;text-align:center">
           Clube de Palpites · Todos os direitos reservados · Copa do Mundo FIFA 2026
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMINISTRAR INDICADORES -->
+    <div class="section" id="sec-indicadores">
+      <div class="page-header">
+        <div><div class="page-title">🤝 Administrar Indicadores</div><div class="page-sub">Programa de indicações: comissões, resgates e configuração</div></div>
+      </div>
+
+      <div class="section-tabs" style="display:flex;gap:6px;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:12px">
+        <button class="ind-stab ind-stab-on" data-t="visao" onclick="indAdmSetSec('visao',this)" style="padding:7px 18px;border-radius:var(--r);border:none;background:rgba(240,165,0,.12);color:var(--gold);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">📊 Visão geral</button>
+        <button class="ind-stab" data-t="indicadores" onclick="indAdmSetSec('indicadores',this)" style="padding:7px 18px;border-radius:var(--r);border:none;background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">👥 Indicadores</button>
+        <button class="ind-stab" data-t="resgates" onclick="indAdmSetSec('resgates',this)" style="padding:7px 18px;border-radius:var(--r);border:none;background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">💸 Resgates</button>
+        <button class="ind-stab" data-t="config" onclick="indAdmSetSec('config',this)" style="padding:7px 18px;border-radius:var(--r);border:none;background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">⚙️ Configuração</button>
+      </div>
+
+      <!-- VISÃO GERAL -->
+      <div class="ind-sec" id="ind-sec-visao">
+        <div class="kpi-grid">
+          <div class="kpi gold"><div class="kpi-label">Total comissões pagas</div><div class="kpi-value">R$ 186</div></div>
+          <div class="kpi blue"><div class="kpi-label">Indicadores ativos</div><div class="kpi-value">23</div></div>
+          <div class="kpi green"><div class="kpi-label">Novos via indicação</div><div class="kpi-value">41</div></div>
+          <div class="kpi red"><div class="kpi-label">Resgates pendentes</div><div class="kpi-value">R$ 67</div></div>
+        </div>
+        <div class="card">
+          <div class="card-header" style="padding:12px 18px;border-bottom:1px solid var(--border);font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700">Top 5 indicadores do mês</div>
+          <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse;font-size:12px">
+              <thead><tr><th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">CDP</th><th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Apelido</th><th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Indicados</th><th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Comissão gerada</th><th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Saldo atual</th></tr></thead>
+              <tbody>
+                <tr><td style="padding:10px 14px;border-bottom:1px solid var(--border)"><span class="badge badge-gold">CDP1</span></td><td style="padding:10px 14px;border-bottom:1px solid var(--border)">Mariazinha</td><td style="padding:10px 14px;border-bottom:1px solid var(--border);text-align:center">12</td><td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--gold)">R$ 48,00</td><td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--green)">R$ 23,50</td></tr>
+                <tr><td style="padding:10px 14px;border-bottom:1px solid var(--border)"><span class="badge badge-gold">CDP3</span></td><td style="padding:10px 14px;border-bottom:1px solid var(--border)">Aninha</td><td style="padding:10px 14px;border-bottom:1px solid var(--border);text-align:center">9</td><td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--gold)">R$ 36,00</td><td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--green)">R$ 11,00</td></tr>
+                <tr><td style="padding:10px 14px;border-bottom:1px solid var(--border)"><span class="badge badge-gold">CDP15</span></td><td style="padding:10px 14px;border-bottom:1px solid var(--border)">Joãozinho</td><td style="padding:10px 14px;border-bottom:1px solid var(--border);text-align:center">7</td><td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--gold)">R$ 38,00</td><td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--green)">R$ 28,50</td></tr>
+                <tr><td style="padding:10px 14px;border-bottom:1px solid var(--border)"><span class="badge badge-gold">CDP4</span></td><td style="padding:10px 14px;border-bottom:1px solid var(--border)">Carlão</td><td style="padding:10px 14px;border-bottom:1px solid var(--border);text-align:center">5</td><td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--gold)">R$ 22,00</td><td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--green)">R$ 7,00</td></tr>
+                <tr><td style="padding:10px 14px;border-bottom:1px solid var(--border)"><span class="badge badge-gold">CDP7</span></td><td style="padding:10px 14px;border-bottom:1px solid var(--border)">Paulinha</td><td style="padding:10px 14px;border-bottom:1px solid var(--border);text-align:center">4</td><td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--gold)">R$ 18,00</td><td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--green)">R$ 18,00</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- INDICADORES -->
+      <div class="ind-sec" id="ind-sec-indicadores" style="display:none">
+        <div class="card">
+          <div class="card-header" style="padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+            <span style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700">Todos os indicadores</span>
+            <span style="font-size:11px;color:var(--muted)">23 membros com indicações</span>
+          </div>
+          <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse;font-size:12px">
+              <thead><tr>
+                <th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">CDP</th>
+                <th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Apelido</th>
+                <th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Telefone</th>
+                <th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Indicados</th>
+                <th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Total ganho</th>
+                <th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Saldo</th>
+              </tr></thead>
+              <tbody id="ind-adm-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- RESGATES -->
+      <div class="ind-sec" id="ind-sec-resgates" style="display:none">
+        <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap">
+          <button class="ind-res-filtro" data-f="PENDENTE" onclick="indAdmFiltrarRes('PENDENTE',this)" style="font-size:11px;padding:6px 14px;background:var(--gold);color:var(--night);border:none;border-radius:var(--r);cursor:pointer;font-family:'Inter',sans-serif;font-weight:600">Pendentes</button>
+          <button class="ind-res-filtro" data-f="PAGO" onclick="indAdmFiltrarRes('PAGO',this)" style="font-size:11px;padding:6px 14px;background:var(--navy2);border:1px solid var(--border);color:var(--muted);border-radius:var(--r);cursor:pointer;font-family:'Inter',sans-serif">Pagos</button>
+          <button class="ind-res-filtro" data-f="todos" onclick="indAdmFiltrarRes('todos',this)" style="font-size:11px;padding:6px 14px;background:var(--navy2);border:1px solid var(--border);color:var(--muted);border-radius:var(--r);cursor:pointer;font-family:'Inter',sans-serif">Todos</button>
+        </div>
+        <div class="card">
+          <div class="card-header" style="padding:12px 18px;border-bottom:1px solid var(--border);font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700">Solicitações de resgate</div>
+          <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse;font-size:12px">
+              <thead><tr>
+                <th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">CDP</th>
+                <th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Apelido</th>
+                <th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Tipo</th>
+                <th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Valor</th>
+                <th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Chave PIX</th>
+                <th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Solicitado em</th>
+                <th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Status</th>
+                <th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Ação</th>
+              </tr></thead>
+              <tbody id="ind-adm-res-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONFIGURAÇÃO -->
+      <div class="ind-sec" id="ind-sec-config" style="display:none">
+        <div style="background:var(--navy);border:1px solid var(--border);border-radius:16px;padding:22px;max-width:480px">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;margin-bottom:16px">⚙️ Configuração do programa</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;background:var(--navy2);border-radius:var(--r);padding:12px 16px;margin-bottom:16px">
+            <span style="font-size:13px;color:#dce8f5">Programa de indicações ativo</span>
+            <div id="ind-toggle-ativo" onclick="indAdmToggleAtivo()" style="width:38px;height:20px;background:var(--green);border:1px solid var(--green);border-radius:20px;cursor:pointer;position:relative;transition:background .2s">
+              <div id="ind-toggle-knob" style="content:'';position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;top:2px;left:20px;transition:left .2s"></div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:16px">
+            <label style="font-size:12px;font-weight:500;color:var(--muted)">Comissão por palpite (%)</label>
+            <input type="number" id="ind-cfg-pct" value="10.00" min="0" max="50" step="0.5" style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--r);color:#dce8f5;font-size:14px;padding:10px 12px;outline:none;font-family:'Barlow Condensed',sans-serif;font-weight:700;width:100%;box-sizing:border-box">
+            <div style="font-size:11px;color:var(--muted)">% do valor de cada palpite pago pelo indicado (ex: 10% de R$10 = R$1,00)</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:16px">
+            <label style="font-size:12px;font-weight:500;color:var(--muted)">Palpites por marco</label>
+            <input type="number" id="ind-cfg-marco-qtd" value="100" min="1" step="1" style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--r);color:#dce8f5;font-size:14px;padding:10px 12px;outline:none;font-family:'Barlow Condensed',sans-serif;font-weight:700;width:100%;box-sizing:border-box">
+            <div style="font-size:11px;color:var(--muted)">A cada esse número de palpites pagos por UM indicado, o indicador recebe o bônus abaixo (repete em 100, 200, 300...)</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:16px">
+            <label style="font-size:12px;font-weight:500;color:var(--muted)">Valor do bônus por marco (R$)</label>
+            <input type="number" id="ind-cfg-marco-val" value="100.00" min="0" step="1" style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--r);color:#dce8f5;font-size:14px;padding:10px 12px;outline:none;font-family:'Barlow Condensed',sans-serif;font-weight:700;width:100%;box-sizing:border-box">
+            <div style="font-size:11px;color:var(--muted)">Valor creditado ao indicador a cada marco atingido por um indicado individual</div>
+          </div>
+          <div style="background:var(--navy2);border-radius:var(--r);padding:14px;margin-bottom:16px;font-size:12px;color:var(--muted);line-height:1.7">
+            <strong style="color:#dce8f5">Simulação:</strong> Um indicado que faz 100 palpites de R$10 gera para o indicador:<br>
+            Comissões (10% × 100 × R$10): <strong style="color:var(--green)" id="ind-sim-com">R$ 100,00</strong> +
+            Bônus de marco: <strong style="color:var(--gold)" id="ind-sim-bonus">R$ 100,00</strong> =
+            <strong style="color:#32BCAD" id="ind-sim-total">R$ 200,00</strong>
+          </div>
+          <button class="btn-export btn-export-primary" style="width:100%;justify-content:center;padding:12px;font-size:13px" onclick="indAdmSalvarConfig()">Salvar configuração</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RANKING DOS PALPITES -->
+    <div class="section" id="sec-ranking">
+      <div class="page-header">
+        <div><div class="page-title">🏆 Ranking dos Palpites</div><div class="page-sub">Acompanhe quem está na frente na corrida pelo prêmio · <span style="color:var(--green)">● Ao vivo</span></div></div>
+      </div>
+
+      <div style="display:flex;justify-content:center;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+        <button class="rk-fase-tab rk-fase-on" data-f="1" onclick="rkSetFase(1,this)" style="padding:8px 22px;border-radius:20px;border:1px solid var(--border);background:rgba(240,165,0,.12);color:var(--gold);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">1ª Fase · Seleção Campeã</button>
+        <button class="rk-fase-tab" data-f="2" onclick="rkSetFase(2,this)" style="padding:8px 22px;border-radius:20px;border:1px solid var(--border);background:var(--navy);color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">2ª Fase · Campeã + Vice</button>
+        <button class="rk-fase-tab" data-f="3" onclick="rkSetFase(3,this)" style="padding:8px 22px;border-radius:20px;border:1px solid var(--border);background:var(--navy);color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">Palpite por Resultado</button>
+        <button class="rk-fase-tab" data-f="0" onclick="rkSetFase(0,this)" style="padding:8px 22px;border-radius:20px;border:1px solid var(--border);background:var(--navy);color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">Geral (ambas)</button>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi blue"><div class="kpi-label">Palpiteiros</div><div class="kpi-value">87</div><div class="kpi-sub">participantes</div></div>
+        <div class="kpi gold"><div class="kpi-label">Palpites registrados</div><div class="kpi-value">216</div><div class="kpi-sub">confirmados e pagos</div></div>
+        <div class="kpi green"><div class="kpi-label">Fundo de prêmios</div><div class="kpi-value" id="rk-kpi-fundo">—</div><div class="kpi-sub">60% da arrecadação</div></div>
+        <div class="kpi gold"><div class="kpi-label">Fase atual</div><div class="kpi-value">1ª</div><div class="kpi-sub">até 04/07/2026</div></div>
+      </div>
+
+      <!-- PÓDIO -->
+      <div id="rk-podio" style="display:flex;align-items:flex-end;justify-content:center;gap:12px;margin-bottom:24px;flex-wrap:wrap"></div>
+
+      <!-- RANKING COMPLETO -->
+      <div class="card">
+        <div class="card-header" style="padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <span id="rk-titulo" style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700">🏆 Ranking · 1ª Fase</span>
+          <input type="text" placeholder="🔍 Buscar palpiteiro…" oninput="rkFiltrar(this.value)" style="background:var(--navy2);border:1px solid var(--border);color:#dce8f5;font-size:12px;padding:7px 12px;border-radius:var(--r);outline:none;font-family:'Inter',sans-serif;width:200px">
+        </div>
+        <div id="rk-lista"></div>
+      </div>
+
+      <!-- SELEÇÕES MAIS PALPITADAS -->
+      <div class="card" style="margin-top:16px">
+        <div class="card-header" style="padding:12px 18px;border-bottom:1px solid var(--border);font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700">⚽ Seleções mais palpitadas</div>
+        <div id="rk-sel-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;padding:16px 18px"></div>
+      </div>
+    </div>
+
+    <!-- TODOS OS PALPITES -->
+    <div class="section" id="sec-palpites">
+      <div class="page-header">
+        <div><div class="page-title">⚽ Todos os Palpites</div><div class="page-sub" id="adm-palpites-count">Carregando…</div></div>
+        <div class="page-actions">
+          <input type="text" id="adm-palpites-busca" placeholder="🔍 Nome, CDP ou seleção…" oninput="admPalpitesFiltrar()">
+        </div>
+      </div>
+
+      <!-- Abas de status -->
+      <div style="display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:0">
+        <button class="adm-pal-tab adm-pal-tab-on" data-s="todos" onclick="admPalpitesSetTab('todos',this)" style="padding:9px 16px;border:none;border-bottom:2px solid var(--gold);background:transparent;color:var(--gold);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">Todos</button>
+        <button class="adm-pal-tab" data-s="confirmado" onclick="admPalpitesSetTab('confirmado',this)" style="padding:9px 16px;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">✅ Confirmados</button>
+        <button class="adm-pal-tab" data-s="pendente" onclick="admPalpitesSetTab('pendente',this)" style="padding:9px 16px;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">⏳ Pendentes</button>
+        <button class="adm-pal-tab" data-s="sem-selecao" onclick="admPalpitesSetTab('sem-selecao',this)" style="padding:9px 16px;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">⚠️ Sem seleção</button>
+      </div>
+
+      <div class="card" style="padding:0">
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead><tr>
+              <th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">#</th>
+              <th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Palpiteiro</th>
+              <th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Telefone</th>
+              <th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Seleção</th>
+              <th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Fase</th>
+              <th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Valor</th>
+              <th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Pgto</th>
+              <th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Data</th>
+              <th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Ações</th>
+            </tr></thead>
+            <tbody id="adm-palpites-tbody"></tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -606,6 +828,36 @@ input[type=text]::placeholder{color:var(--muted)}
 
 <!-- ── SCRIPTS ───────────────────────────────────────────── -->
 <script>
+// ── Config de API ─────────────────────────────────────────────
+const API_BASE = '/api';
+
+// ── Proteção de acesso: só ADMIN autenticado entra aqui ─────────
+(function protegerAcessoAdmin() {
+  try {
+    const usuario = JSON.parse(localStorage.getItem('cdp_usuario') || 'null');
+    const token = localStorage.getItem('token');
+    if (!usuario || !token || usuario.perfil !== 'ADMIN') {
+      window.location.href = 'login.html';
+    }
+  } catch {
+    window.location.href = 'login.html';
+  }
+})();
+
+// ── Sidebar: retrair/expandir ───────────────────────────────────
+function toggleSidebar() {
+  const body = document.getElementById('app-body');
+  body.classList.toggle('sidebar-collapsed');
+  localStorage.setItem('cdp_sidebar_collapsed', body.classList.contains('sidebar-collapsed') ? '1' : '0');
+}
+(function initSidebar() {
+  if (localStorage.getItem('cdp_sidebar_collapsed') === '1') {
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('app-body')?.classList.add('sidebar-collapsed');
+    });
+  }
+})();
+
 // ── Dados mock ──────────────────────────────────────────────
 const SELECOES = [
   {f:'https://flagcdn.com/w40/br.png',n:'Brasil',g:'C',p:38},{f:'https://flagcdn.com/w40/ar.png',n:'Argentina',g:'J',p:31},{f:'https://flagcdn.com/w40/fr.png',n:'França',g:'I',p:22},
@@ -625,13 +877,6 @@ const SELECOES = [
   {f:'https://flagcdn.com/w40/hr.png',n:'Croácia',g:'L',p:0},{f:'https://flagcdn.com/w40/gh.png',n:'Gana',g:'L',p:0},{f:'https://flagcdn.com/w40/pa.png',n:'Panamá',g:'L',p:0},
 ];
 
-const MEMBROS_MOCK = Array.from({length:20},(_, i)=>{
-  const nomes = ['João Silva','Maria Souza','Pedro Lima','Ana Paula','Carlos Rosa','Fernanda Nunes','Lucas Pereira','Bruna Costa','Rafael Alves','Tatiane Gomes','Marcos Santos','Juliana Melo','André Dias','Patricia Ramos','Bruno Leite','Camila Freitas','Diego Cunha','Larissa Pinto','Felipe Araújo','Natalia Vieira'];
-  const apelidos = ['Joãozinho','Mariazinha','Pedrão','Aninha','Carlão','Fer','Lu','Bru','Rafa','Tati','Marquinhos','Ju','Andrezão','Pat','Bruninho','Cami','Dieguinho','Lari','Fê','Nati'];
-  const f1 = Math.floor(Math.random()*6)+1, f2 = Math.random()>.4?Math.floor(Math.random()*4):0;
-  return {cdp:'CDP'+(i+1), nome:nomes[i]||'Membro '+i, apelido:apelidos[i]||'apelido'+i, tel:'(48) 999'+String(i).padStart(2,'0')+'-000'+i, f1, f2, total:(f1*10+f2*15), data:'0'+Math.min(9,6+Math.floor(i/7))+'/06/2026'};
-});
-
 // ── Tema Chart.js ──────────────────────────────────────────
 Chart.defaults.color = '#7a93ad';
 Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
@@ -641,25 +886,25 @@ Chart.defaults.font.family = 'Inter';
 const C = {gold:'#F0A500', green:'#1db954', blue:'#4a9eff', red:'#e05252', muted:'rgba(122,147,173,0.5)'};
 
 // ── Gráfico linha — arrecadação ─────────────────────────────
-const diasArr = ['06/06','07/06','08/06','09/06','10/06','11/06','12/06'];
-const arrDados = [120,80,160,200,140,240,320];
-let chartLinha;
-function buildChartLinha(dados) {
+// ── Gráficos — inicializados vazios, preenchidos pela API ─────
+let chartLinha = null;
+let chartBarsInstance = null;
+let chartAcum1Instance = null;
+let chartAcum2Instance = null;
+
+function buildChartLinha(labels, dados) {
   if (chartLinha) chartLinha.destroy();
   chartLinha = new Chart(document.getElementById('chartLinha'), {
     type: 'line',
     data: {
-      labels: diasArr.slice(0, dados.length),
+      labels: labels,
       datasets: [{
         label: 'Arrecadação (R$)',
         data: dados,
         borderColor: C.gold,
         backgroundColor: 'rgba(240,165,0,0.08)',
         pointBackgroundColor: C.gold,
-        pointRadius: 4,
-        tension: 0.35,
-        fill: true,
-        borderWidth: 2,
+        pointRadius: 4, tension: 0.35, fill: true, borderWidth: 2,
       }]
     },
     options: {
@@ -672,14 +917,13 @@ function buildChartLinha(dados) {
     }
   });
 }
-buildChartLinha(arrDados);
 
 // ── Gráfico donut ────────────────────────────────────────────
-new Chart(document.getElementById('chartDonuts'), {
+window.chartDonutsInstance = new Chart(document.getElementById('chartDonuts'), {
   type: 'doughnut',
   data: {
-    labels: ['Lucro clube (40%)', 'Prêmios 1ª fase', 'Prêmios 2ª fase'],
-    datasets: [{ data: [936, 984, 468], backgroundColor: ['rgba(122,147,173,0.4)', C.green, '#3dbc70'], borderWidth: 0, hoverOffset: 8 }]
+    labels: ['Lucro clube (40%)', 'Fundo de prêmios (60%)'],
+    datasets: [{ data: [0, 0], backgroundColor: ['rgba(122,147,173,0.4)', C.green], borderWidth: 0, hoverOffset: 8 }]
   },
   options: {
     responsive: true, maintainAspectRatio: false,
@@ -691,117 +935,435 @@ new Chart(document.getElementById('chartDonuts'), {
   }
 });
 
-// ── Gráfico barras — membros por dia ─────────────────────────
-new Chart(document.getElementById('chartBars'), {
+// ── Gráfico barras — membros por dia (inicializa vazio) ───────
+chartBarsInstance = new Chart(document.getElementById('chartBars'), {
   type: 'bar',
   data: {
-    labels: diasArr,
-    datasets: [{ label: 'Novos membros', data: [8,5,12,15,9,18,20], backgroundColor: 'rgba(74,158,255,0.6)', borderColor: C.blue, borderWidth: 1, borderRadius: 4 }]
+    labels: [],
+    datasets: [{ label: 'Novos membros', data: [], backgroundColor: 'rgba(74,158,255,0.6)', borderColor: C.blue, borderWidth: 1, borderRadius: 4 }]
   },
   options: {
     responsive: true, maintainAspectRatio: false,
     plugins: { legend: { display: false } },
-    scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' } }, x: { grid: { display: false } } }
+    scales: {
+      y: {
+        grid: { color: 'rgba(255,255,255,0.05)' },
+        ticks: { stepSize: 1, precision: 0, callback: v => Number.isInteger(v) ? v : null }
+      },
+      x: { grid: { display: false } }
+    }
   }
 });
 
-// ── Toggle período ────────────────────────────────────────────
+// ── Gráficos acumulados (inicializam vazios) ─────────────────
+function acumData(arr) { let s=0; return arr.map(v=>(s+=v)); }
+chartAcum1Instance = new Chart(document.getElementById('chartAcum1'), {
+  type:'line', data:{ labels:[], datasets:[{label:'Acumulado 1ª fase', data:[], borderColor:C.gold, backgroundColor:'rgba(240,165,0,0.07)', fill:true, tension:.3, borderWidth:2, pointRadius:3}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>'R$'+v}},x:{grid:{display:false}}}}
+});
+chartAcum2Instance = new Chart(document.getElementById('chartAcum2'), {
+  type:'line', data:{ labels:[], datasets:[{label:'Acumulado 2ª fase', data:[], borderColor:C.green, backgroundColor:'rgba(29,185,84,0.07)', fill:true, tension:.3, borderWidth:2, pointRadius:3}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>'R$'+v}},x:{grid:{display:false}}}}
+});
+
+// ── Toggle período ─────────────────────────────────────────────
 function togglePeriodo(btn, p) {
   document.querySelectorAll('#sec-dashboard .filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  const sets = { '7d': [120,80,160,200,140,240,320], '15d': [80,100,120,90,200,180,160,240,220,280,300,260,320,380,400], '30d': Array.from({length:20},(_,i)=>100+i*18+Math.random()*40|0) };
-  buildChartLinha(sets[p] || arrDados);
+  // Recarrega gráfico com filtro de período
+  admCarregarGraficos(p);
 }
 
-// ── Gráficos acumulados (arrecadação) ────────────────────────
-function acumData(arr) { let s=0; return arr.map(v=>(s+=v)); }
-new Chart(document.getElementById('chartAcum1'), {
-  type:'line', data:{ labels:diasArr, datasets:[{label:'Acumulado 1ª fase', data:acumData([120,80,160,200,140,240,320]), borderColor:C.gold, backgroundColor:'rgba(240,165,0,0.07)', fill:true, tension:.3, borderWidth:2, pointRadius:3}]},
-  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>'R$'+v}},x:{grid:{display:false}}}}
-});
-new Chart(document.getElementById('chartAcum2'), {
-  type:'line', data:{ labels:['01/07','02/07','03/07','04/07','05/07','06/07','07/07'], datasets:[{label:'Acumulado 2ª fase', data:acumData([60,90,120,75,150,135,150]), borderColor:C.green, backgroundColor:'rgba(29,185,84,0.07)', fill:true, tension:.3, borderWidth:2, pointRadius:3}]},
-  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>'R$'+v}},x:{grid:{display:false}}}}
-});
+// ── Tabela arrecadação diária — preenchida por admCarregarGraficos ─
+// (tbody-arr é populado quando admCarregarGraficos() roda)
 
-// ── Tabela arrecadação diária ─────────────────────────────────
-(function buildTblArr(){
-  const dados = [
-    {dt:'06/06',fase:'1ª',p:22,v:220,acum:220,nm:8},{dt:'07/06',fase:'1ª',p:15,v:150,acum:370,nm:5},
-    {dt:'08/06',fase:'1ª',p:28,v:280,acum:650,nm:12},{dt:'09/06',fase:'1ª',p:32,v:320,acum:970,nm:15},
-    {dt:'10/06',fase:'1ª',p:18,v:180,acum:1150,nm:9},{dt:'11/06',fase:'1ª',p:30,v:300,acum:1450,nm:18},
-    {dt:'12/06',fase:'1ª',p:19,v:190,acum:1640,nm:20},{dt:'01/07',fase:'2ª',p:10,v:150,acum:1790,nm:3},
-    {dt:'16/06',fase:'3ª',p:8,v:80,acum:1870,nm:2},{dt:'16/06',fase:'3ª',p:5,v:50,acum:1920,nm:1},{dt:'17/06',fase:'3ª',p:7,v:70,acum:1990,nm:2},
-  ];
-  document.getElementById('tbody-arr').innerHTML = dados.map(d=>`
-    <tr><td>${d.dt}</td><td><span class="badge ${d.fase==='1ª'?'badge-gold':d.fase==='2ª'?'badge-green':'badge-blue'}">${d.fase} Fase</span></td>
-    <td>${d.p}</td><td>R$ ${d.v.toLocaleString('pt-BR')},00</td>
-    <td style="color:var(--gold)">R$ ${d.acum.toLocaleString('pt-BR')},00</td><td>+${d.nm}</td></tr>`).join('');
-})();
-
-// ── Gráfico top seleções ──────────────────────────────────────
-const top10 = SELECOES.slice(0,10);
-
-// Pré-carrega imagens das bandeiras para usar como ícones no gráfico
-const top10Imgs = top10.map(s => {
-  const img = new Image(24, 17);
-  img.src = s.f;
-  return img;
-});
-
-new Chart(document.getElementById('chartTopSel'), {
+// ── Gráfico top seleções — inicializa vazio, preenchido pela API ─
+let chartTopSelInstance = new Chart(document.getElementById('chartTopSel'), {
   type: 'bar',
-  data: {
-    labels: top10.map(s => s.n), // só o nome, sem URL
-    datasets: [{
-      label: 'Palpites',
-      data: top10.map(s => s.p),
-      backgroundColor: top10.map((_,i) => `hsl(${40+i*14},80%,50%)`),
-      borderRadius: 5,
-      borderSkipped: false
-    }]
-  },
+  data: { labels: [], datasets: [{ label: 'Palpites', data: [], backgroundColor: [], borderRadius: 5, borderSkipped: false }] },
   options: {
-    indexAxis: 'y',
-    responsive: true,
-    maintainAspectRatio: false,
-    layout: { padding: { left: 36 } },
+    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
     plugins: { legend: { display: false } },
     scales: {
-      x: { grid: { color: 'rgba(255,255,255,0.04)' } },
-      y: {
-        grid: { display: false },
-        ticks: {
-          font: { size: 11 },
-          callback: function(val, idx) {
-            return top10[idx]?.n || val; // só nome
+      x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { precision: 0 } },
+      y: { grid: { display: false }, ticks: { font: { size: 11 } } }
+    }
+  }
+});
+
+// ── Gráfico confederações — preenchido com palpites reais por confederação
+let chartConfInstance = new Chart(document.getElementById('chartConf'), {
+  type:'pie',
+  data:{labels:[],datasets:[{data:[],backgroundColor:['rgba(240,165,0,0.7)','rgba(29,185,84,0.7)','rgba(74,158,255,0.7)','rgba(224,82,82,0.7)','rgba(160,100,240,0.7)','rgba(122,147,173,0.5)'],borderWidth:0,hoverOffset:8}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11},padding:10}},tooltip:{callbacks:{label:c=>' '+c.parsed+' palpites'}}}}
+});
+
+// ── Carrega dados reais para Dashboard, Seleções e Ranking ───────
+async function admCarregarDadosReais() {
+  try {
+    const token = localStorage.getItem('token') || '';
+    if (!token) { console.warn('[Admin] Token não encontrado'); return; }
+
+    // Busca financeiro e usuários em paralelo
+    const [rFin, rUsu, rSel, rRank] = await Promise.all([
+      fetch(`${API_BASE}/admin/financeiro`,       { headers: authHeadersAdmin() }),
+      fetch(`${API_BASE}/admin/usuarios`,         { headers: authHeadersAdmin() }),
+      fetch(`${API_BASE}/palpites/ranking-selecoes`),
+      fetch(`${API_BASE}/palpites/ranking`),
+    ]);
+
+    if (!rFin.ok) console.warn('[Admin] financeiro erro:', rFin.status);
+    if (!rUsu.ok) console.warn('[Admin] usuarios erro:', rUsu.status);
+
+    const financeiro = rFin.ok ? await rFin.json() : [];
+    const usuarios   = rUsu.ok ? await rUsu.json() : [];
+    const selecoes   = rSel.ok ? await rSel.json() : { total: 0, selecoes: [] };
+    const ranking    = rRank.ok ? await rRank.json() : [];
+
+    console.log('[Admin] financeiro:', financeiro.length, 'campanhas | usuarios:', usuarios.length);
+
+    // ── KPIs do Painel Geral ─────────────────────────────────
+    // Declara f1/f2/f3 PRIMEIRO para uso em todos os blocos abaixo
+    const f1 = financeiro.find(c => c.fase === 1);
+    const f2 = financeiro.find(c => c.fase === 2);
+    const f3 = financeiro.find(c => c.fase === 3);
+
+    // parseVal: a API retorna "R$ 40.00" (ponto decimal) — basta remover "R$ "
+    const parseVal = str => parseFloat((str || 'R$ 0').replace('R$ ', '')) || 0;
+
+    const totalArrecadado = financeiro.reduce((s, c) => s + parseVal(c.totalArrecadado), 0);
+    const totalFundo      = financeiro.reduce((s, c) => s + parseVal(c.fundoPremio), 0);
+    const totalLucro      = financeiro.reduce((s, c) => s + parseVal(c.lucroClube), 0);
+    const totalPalpites   = financeiro.reduce((s, c) => s + (c.totalPalpites || 0), 0);
+    const membrosAtivos   = usuarios.filter(u => u.perfil !== 'ADMIN' && !u.bloqueado).length;
+
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+
+    set('kpi-total',    `R$ ${totalArrecadado.toLocaleString('pt-BR', {minimumFractionDigits:2})}`);
+    set('kpi-membros',  membrosAtivos);
+    set('kpi-palpites', totalPalpites);
+    set('kpi-fundo',    `R$ ${totalFundo.toLocaleString('pt-BR', {minimumFractionDigits:2})}`);
+
+    const p1c = f1?.totalPalpites || 0;
+    const p2c = f2?.totalPalpites || 0;
+    const p3c = f3?.totalPalpites || 0;
+    set('kpi-palpites-sub', `${p1c} fase 1 · ${p2c} fase 2 · ${p3c} fase 3`);
+    if (f3) set('kpi-bilhetes', f3.totalPalpites);
+
+    // ── Gráfico top seleções (seção Arrecadação) ─────────────
+    if (chartTopSelInstance && selecoes.selecoes?.length) {
+      const top10 = selecoes.selecoes.slice(0, 10);
+      chartTopSelInstance.data.labels = top10.map(s => s.nome);
+      chartTopSelInstance.data.datasets[0].data = top10.map(s => s.palpites);
+      chartTopSelInstance.data.datasets[0].backgroundColor = top10.map((_,i) => `hsl(${40+i*14},80%,50%)`);
+      chartTopSelInstance.update();
+    }
+
+    // ── Gráfico confederações — agrupa palpites reais por confederação ─
+    if (chartConfInstance && selecoes.selecoes?.length) {
+      // Mapa seleção → confederação (baseado nos grupos da Copa 2026)
+      const confMap = {
+        'UEFA':     ['Alemanha','Áustria','Bélgica','Bósnia','Croácia','Curaçao','Escócia','Espanha','França','Holanda','Inglaterra','Noruega','República Tcheca','Suécia','Suíça','Turquia'],
+        'CONMEBOL': ['Argentina','Brasil','Colômbia','Equador','Paraguai','Uruguai','Venezuela','Chile','Peru','Bolívia'],
+        'CAF':      ['África do Sul','Argélia','Cabo Verde','Costa do Marfim','Egito','Gana','Marrocos','RD Congo','Senegal','Tunísia'],
+        'AFC':      ['Arábia Saudita','Austrália','Coreia do Sul','Japão','Jordânia','Irã','Iraque','Uzbequistão'],
+        'CONCACAF': ['Canadá','Estados Unidos','Haiti','México','Panamá'],
+        'OFC':      ['Nova Zelândia'],
+      };
+      const confPalpites = {};
+      selecoes.selecoes.forEach(s => {
+        for (const [conf, nomes] of Object.entries(confMap)) {
+          if (nomes.includes(s.nome)) {
+            confPalpites[conf] = (confPalpites[conf] || 0) + s.palpites;
+            break;
           }
         }
+      });
+      const confLabels = Object.keys(confPalpites).filter(k => confPalpites[k] > 0);
+      const confData   = confLabels.map(k => confPalpites[k]);
+      if (confLabels.length) {
+        chartConfInstance.data.labels = confLabels;
+        chartConfInstance.data.datasets[0].data = confData;
+        chartConfInstance.update();
       }
     }
-  },
-  plugins: [{
-    id: 'flagIcons',
-    afterDraw(chart) {
-      const { ctx, scales: { y } } = chart;
-      top10.forEach((s, i) => {
-        const img = top10Imgs[i];
-        if (!img.complete) return;
-        const yPos = y.getPixelForValue(i);
-        ctx.drawImage(img, y.left - 34, yPos - 9, 28, 18);
-      });
+
+    // ── Gráfico de rosca — dados reais ───────────────────────
+    if (window.chartDonutsInstance) {
+      window.chartDonutsInstance.data.datasets[0].data = [totalLucro, totalFundo];
+      window.chartDonutsInstance.update();
     }
-  }]
-});
 
-// ── Gráfico confederações ─────────────────────────────────────
-new Chart(document.getElementById('chartConf'), {
-  type:'pie',
-  data:{labels:['UEFA','CONMEBOL','CAF','AFC','CONCACAF','OFC'],datasets:[{data:[38,14,9,8,8,2],backgroundColor:['rgba(240,165,0,0.7)','rgba(29,185,84,0.7)','rgba(74,158,255,0.7)','rgba(224,82,82,0.7)','rgba(160,100,240,0.7)','rgba(122,147,173,0.5)'],borderWidth:0,hoverOffset:8}]},
-  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11},padding:10}}}}
-});
+    // ── Rateio por fase ──────────────────────────────────────
+    set('rateio-lucro-total', `R$ ${totalLucro.toLocaleString('pt-BR', {minimumFractionDigits:2})}`);
 
-// ── Tabela seleções ───────────────────────────────────────────
+    if (f1) {
+      const t = parseVal(f1.totalArrecadado);
+      const l = parseVal(f1.lucroClube);
+      const p = parseVal(f1.fundoPremio);
+      set('rateio-f1-label',  `1ª Fase · R$ ${t.toFixed(2)}`);
+      set('rateio-f1-premio', `R$ ${p.toFixed(2)} prêmios`);
+      set('rateio-f1-clube',  `40% · R$ ${l.toFixed(2)}`);
+      set('rateio-f1-fundo',  `60% · R$ ${p.toFixed(2)}`);
+    }
+    if (f2) {
+      const t = parseVal(f2.totalArrecadado);
+      const l = parseVal(f2.lucroClube);
+      const p = parseVal(f2.fundoPremio);
+      set('rateio-f2-label',  `2ª Fase · R$ ${t.toFixed(2)}`);
+      set('rateio-f2-premio', `R$ ${p.toFixed(2)} prêmios`);
+      set('rateio-f2-clube',  `40% · R$ ${l.toFixed(2)}`);
+      set('rateio-f2-fundo',  `60% · R$ ${p.toFixed(2)}`);
+    }
+    if (f3) {
+      const t = parseVal(f3.totalArrecadado);
+      const l = parseVal(f3.lucroClube);
+      const p = parseVal(f3.fundoPremio);
+      set('rateio-f3-label',  `3ª Fase · R$ ${t.toFixed(2)}`);
+      set('rateio-f3-premio', `R$ ${p.toFixed(2)} prêmios`);
+      set('rateio-f3-clube',  `40% · R$ ${l.toFixed(2)}`);
+    }
+
+    // ── KPIs 3ª Fase (seção Arrecadação) ────────────────────
+    if (f3) {
+      const t3 = parseVal(f3.totalArrecadado);
+      const l3 = parseVal(f3.lucroClube);
+      const p3 = parseVal(f3.fundoPremio);
+      set('f3-bilhetes', f3.totalPalpites);
+      set('f3-total',    `R$ ${t3.toFixed(2)}`);
+      set('f3-lucro',    `R$ ${l3.toFixed(2)}`);
+      set('f3-fundo',    `R$ ${p3.toFixed(2)}`);
+    }
+
+    // ── Rateio na seção Apurar (1ª fase) ────────────────────
+    if (f1) {
+      const t1 = parseFloat(f1.totalArrecadado.replace('R$ ',''));
+      const l1 = parseFloat(f1.lucroClube.replace('R$ ',''));
+      const p1 = parseFloat(f1.fundoPremio.replace('R$ ',''));
+      const elApTotal = document.querySelector('#sec-apurar .rv-clube');
+      const elApPremio = document.querySelector('#sec-apurar .rv-premio');
+      const elApLabel  = document.querySelector('#sec-apurar .rateio-visual')?.previousElementSibling?.querySelector('strong');
+      if (elApLabel)  elApLabel.textContent  = `R$ ${t1.toFixed(2)}`;
+      if (elApTotal)  elApTotal.textContent  = `40% · R$ ${l1.toFixed(2)}`;
+      if (elApPremio) elApPremio.textContent = `60% · R$ ${p1.toFixed(2)}`;
+    }
+
+    // ── Tabela Resumo do Relatório ───────────────────────────
+    const tbodyRel = document.getElementById('tbody-relatorio-campanhas');
+    if (tbodyRel && financeiro.length) {
+      const totPalpites = financeiro.reduce((s,c) => s + (c.totalPalpites || 0), 0);
+      const totArr      = financeiro.reduce((s,c) => s + parseVal(c.totalArrecadado), 0);
+      const totLucro    = financeiro.reduce((s,c) => s + parseVal(c.lucroClube), 0);
+      const totFundo    = financeiro.reduce((s,c) => s + parseVal(c.fundoPremio), 0);
+
+      tbodyRel.innerHTML = financeiro.map(c => {
+        const arr   = parseVal(c.totalArrecadado);
+        const lucro = parseVal(c.lucroClube);
+        const fundo = parseVal(c.fundoPremio);
+        const badge = c.ativa ? '<span class="badge badge-green">Aberta</span>' : '<span class="badge badge-muted">Encerrada</span>';
+        return `<tr>
+          <td><strong>${c.campanha}</strong></td>
+          <td>—</td>
+          <td>${c.totalPalpites}</td>
+          <td>R$ ${arr.toFixed(2)}</td>
+          <td>R$ ${lucro.toFixed(2)}</td>
+          <td style="color:var(--green)">R$ ${fundo.toFixed(2)}</td>
+          <td>${badge}</td>
+        </tr>`;
+      }).join('') + `<tr style="background:var(--navy2)">
+        <td><strong>TOTAL</strong></td><td>—</td>
+        <td><strong>${totPalpites}</strong></td>
+        <td><strong style="color:var(--gold)">R$ ${totArr.toFixed(2)}</strong></td>
+        <td><strong>R$ ${totLucro.toFixed(2)}</strong></td>
+        <td><strong style="color:var(--green)">R$ ${totFundo.toFixed(2)}</strong></td>
+        <td>—</td>
+      </tr>`;
+
+      // KPI fundo no relatório
+      const elRelFundo = document.getElementById('rel-fundo-total');
+      if (elRelFundo) elRelFundo.textContent = `R$ ${totFundo.toFixed(2)}`;
+      const elRkFundo = document.getElementById('rk-kpi-fundo');
+      if (elRkFundo) elRkFundo.textContent = `R$ ${totFundo.toFixed(2)}`;
+    }
+
+    // ── Gráfico de rosca — Distribuição do fundo ─────────────
+    if (financeiro.length && window.chartDonutsInstance) {
+      const lucroTotal2 = financeiro.reduce((s,c) => s + parseFloat(c.lucroClube.replace('R$ ','')), 0);
+      const fundoTotal2 = financeiro.reduce((s,c) => s + parseFloat(c.fundoPremio.replace('R$ ','')), 0);
+      window.chartDonutsInstance.data.datasets[0].data = [lucroTotal2, fundoTotal2];
+      window.chartDonutsInstance.update();
+    }
+    const tbodySel = document.getElementById('tbody-selecoes');
+    if (tbodySel && selecoes.selecoes?.length) {
+      const total = selecoes.total || 1;
+      tbodySel.innerHTML = selecoes.selecoes.map((s, i) => `
+        <tr>
+          <td style="color:var(--muted);font-weight:600">${i+1}</td>
+          <td><img src="${s.bandeiraCss}" alt="${s.nome}" style="width:28px;height:20px;object-fit:cover;border-radius:3px;vertical-align:middle;margin-right:6px">${s.nome}</td>
+          <td><span class="badge badge-muted">Grupo ${s.grupo}</span></td>
+          <td>${s.palpites}</td>
+          <td>R$ ${(s.palpites * 10).toLocaleString('pt-BR')},00</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="prog-bar" style="flex:1"><div class="prog-fill" style="width:${s.percentual}%;background:var(--gold)"></div></div>
+              ${s.percentual}%
+            </div>
+          </td>
+        </tr>`).join('');
+    } else if (tbodySel) {
+      tbodySel.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted)">Nenhum palpite registrado ainda.</td></tr>';
+    }
+
+    // ── Ranking dos Palpiteiros — atualiza RK_RANKING_DATA ──
+    if (ranking.length) {
+      RK_RANKING_DATA[0] = ranking.map((r, i) => ({
+        pos: i + 1,
+        apelido: r.apelido,
+        cdp: r.codigoCdp,
+        acertos: r.acertos,
+        palpites: r.acertos,
+        investido: 0,
+      }));
+      // Recarrega o ranking se já estiver inicializado
+      if (rkJaInit) { rkRenderRanking(); rkRenderPodio(); }
+    }
+
+  } catch (err) {
+    console.error('[Admin] erro ao carregar dados reais:', err);
+  }
+}
+
+// Carrega dados reais ao iniciar
+// Carrega dados reais ao iniciar (script no final do body, DOM já está pronto)
+setTimeout(() => {
+  admCarregarDadosReais().catch(err => console.error('[admCarregarDadosReais]', err));
+  admCarregarGraficos('7d').catch(err => console.error('[admCarregarGraficos]', err));
+}, 100);
+
+// ── Gráficos com dados reais de pagamentos ───────────────────
+async function admCarregarGraficos(periodo = '7d') {
+  try {
+    // Busca pagamentos aprovados para montar gráficos por data
+    const r = await fetch(`${API_BASE}/admin/usuarios`, { headers: authHeadersAdmin() });
+    const rPag = await fetch(`${API_BASE}/admin/palpites`, { headers: authHeadersAdmin() });
+    const usuarios = r.ok ? await r.json() : [];
+    const palpites = rPag.ok ? await rPag.json() : [];
+
+    // Agrupa palpites confirmados por data
+    const pagsPorData = {};
+    const membrosPorData = {};
+
+    palpites.filter(p => p.pagamentoConfirmado).forEach(p => {
+      const data = new Date(p.criadoEm).toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'});
+      pagsPorData[data] = (pagsPorData[data] || 0) + parseFloat(p.valorPago || 10);
+    });
+
+    usuarios.filter(u => u.perfil !== 'ADMIN').forEach(u => {
+      const data = new Date(u.criadoEm).toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'});
+      membrosPorData[data] = (membrosPorData[data] || 0) + 1;
+    });
+
+    // ── Histórico diário — todas as fases ────────────────────
+    const tbodyArr = document.getElementById('tbody-arr');
+    if (tbodyArr) {
+      // Agrupa palpites confirmados por data e fase
+      const porDataFase = {};
+      palpites.filter(p => p.pagamentoConfirmado).forEach(p => {
+        const data = new Date(p.criadoEm).toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'});
+        const fase = p.campanha?.fase || 1;
+        const key  = `${data}|${fase}`;
+        if (!porDataFase[key]) porDataFase[key] = { data, fase, palpites: 0, valor: 0 };
+        porDataFase[key].palpites++;
+        porDataFase[key].valor += parseFloat(p.valorPago || 10);
+      });
+
+      const linhas = Object.values(porDataFase).sort((a, b) => {
+        const [da,ma] = a.data.split('/'); const [db,mb] = b.data.split('/');
+        return new Date(2026,ma-1,da) - new Date(2026,mb-1,db) || a.fase - b.fase;
+      });
+
+      // Calcula acumulado global
+      let acum = 0;
+      const faseBadge = f => f===1?'badge-gold':f===2?'badge-green':'badge-blue';
+      const faseLabel = f => f===1?'1ª':f===2?'2ª':'3ª';
+
+      tbodyArr.innerHTML = linhas.length ? linhas.map(l => {
+        acum += l.valor;
+        return `<tr>
+          <td>${l.data}</td>
+          <td><span class="badge ${faseBadge(l.fase)}">${faseLabel(l.fase)} Fase</span></td>
+          <td>${l.palpites}</td>
+          <td>R$ ${l.valor.toFixed(2)}</td>
+          <td style="color:var(--gold)">R$ ${acum.toFixed(2)}</td>
+          <td>—</td>
+        </tr>`;
+      }).join('') : '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted)">Nenhum palpite confirmado ainda.</td></tr>';
+    }
+    const dias = periodo === '7d' ? 7 : periodo === '15d' ? 15 : 30;
+    const todasDatas = [...new Set([
+      ...Object.keys(pagsPorData),
+      ...Object.keys(membrosPorData)
+    ])].sort((a, b) => {
+      const [da, ma] = a.split('/'); const [db, mb] = b.split('/');
+      return new Date(2026, ma-1, da) - new Date(2026, mb-1, db);
+    }).slice(-dias);
+
+    const labelsArr  = todasDatas;
+    const valoresArr = todasDatas.map(d => pagsPorData[d] || 0);
+    const membrosArr = todasDatas.map(d => membrosPorData[d] || 0);
+
+    // Atualiza gráfico de arrecadação
+    if (labelsArr.length) {
+      buildChartLinha(labelsArr, valoresArr);
+    } else {
+      buildChartLinha(['Sem dados'], [0]);
+    }
+
+    // Atualiza gráfico de membros por dia
+    if (chartBarsInstance) {
+      chartBarsInstance.data.labels   = labelsArr.length ? labelsArr : ['Sem dados'];
+      chartBarsInstance.data.datasets[0].data = membrosArr.length ? membrosArr : [0];
+      chartBarsInstance.update();
+    }
+
+    // Gráficos acumulados por fase
+    const palpF1 = palpites.filter(p => p.pagamentoConfirmado && p.campanha?.fase === 1);
+    const palpF2 = palpites.filter(p => p.pagamentoConfirmado && p.campanha?.fase === 2);
+
+    function montarAcumulado(lista) {
+      const porData = {};
+      lista.forEach(p => {
+        const d = new Date(p.criadoEm).toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'});
+        porData[d] = (porData[d] || 0) + parseFloat(p.valorPago || 10);
+      });
+      const datas = Object.keys(porData).sort((a, b) => {
+        const [da,ma] = a.split('/'); const [db,mb] = b.split('/');
+        return new Date(2026,ma-1,da) - new Date(2026,mb-1,db);
+      });
+      let acum = 0;
+      return { labels: datas, dados: datas.map(d => (acum += porData[d])) };
+    }
+
+    const acum1 = montarAcumulado(palpF1);
+    const acum2 = montarAcumulado(palpF2);
+
+    if (chartAcum1Instance) {
+      chartAcum1Instance.data.labels = acum1.labels.length ? acum1.labels : ['Sem dados'];
+      chartAcum1Instance.data.datasets[0].data = acum1.dados.length ? acum1.dados : [0];
+      chartAcum1Instance.update();
+    }
+    if (chartAcum2Instance) {
+      chartAcum2Instance.data.labels = acum2.labels.length ? acum2.labels : ['Sem dados'];
+      chartAcum2Instance.data.datasets[0].data = acum2.dados.length ? acum2.dados : [0];
+      chartAcum2Instance.update();
+    }
+
+  } catch (err) {
+    console.error('[Gráficos]', err);
+  }
+}
+
+// ── Tabela seleções (fallback mock até API carregar) ──────────────
 (function buildTblSel(){
   const sorted = [...SELECOES].sort((a,b)=>b.p-a.p);
   const total = sorted.reduce((s,x)=>s+x.p,0)||1;
@@ -822,70 +1384,235 @@ new Chart(document.getElementById('chartConf'), {
 })();
 
 // ── Tabela membros ────────────────────────────────────────────
+// ── Membros: dados reais via API (GET /api/admin/usuarios) ──────
+let MEMBROS = [];
 let membrosFilter = 'todos', membrosSearch = '';
-function buildTblMembros() {
-  let dados = MEMBROS_MOCK;
-  if (membrosFilter==='1fase')  dados = dados.filter(m=>m.f1>0 && m.f2===0);
-  if (membrosFilter==='2fase')  dados = dados.filter(m=>m.f2>0 && m.f1===0);
-  if (membrosFilter==='ambas')  dados = dados.filter(m=>m.f1>0 && m.f2>0);
-  if (membrosSearch) dados = dados.filter(m=>m.nome.toLowerCase().includes(membrosSearch)||m.apelido.toLowerCase().includes(membrosSearch)||m.cdp.toLowerCase().includes(membrosSearch));
-  document.getElementById('tbody-membros').innerHTML = dados.map(m=>`
-    <tr>
-      <td><span class="badge badge-gold">${m.cdp}</span></td>
-      <td><div style="font-weight:500">${m.nome}</div><div style="font-size:11px;color:var(--muted)">${m.apelido}</div></td>
-      <td style="color:var(--muted)">${m.tel}</td>
-      <td>${m.f1 ? `<span class="badge badge-gold">${m.f1}</span>` : '<span class="badge badge-muted">—</span>'}</td>
-      <td>${m.f2 ? `<span class="badge badge-green">${m.f2}</span>` : '<span class="badge badge-muted">—</span>'}</td>
-      <td style="color:var(--gold);font-weight:600">R$ ${m.total.toFixed(2)}</td>
-      <td style="color:var(--muted)">${m.data}</td>
-    </tr>`).join('');
-  document.getElementById('membros-count').textContent = dados.length + ' membros';
+let membroSelecionado = null;
+
+function authHeadersAdmin() {
+  return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token') || ''}` };
 }
-function filtroMembros(f,btn){
-  membrosFilter=f;
-  document.querySelectorAll('#sec-membros .filter-btn').forEach(b=>b.classList.remove('active'));
+
+async function carregarMembros() {
+  try {
+    const r = await fetch(`${API_BASE}/admin/usuarios`, { headers: authHeadersAdmin() });
+    if (!r.ok) {
+      document.getElementById('tbody-membros').innerHTML =
+        '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--muted)">Não foi possível carregar os membros.</td></tr>';
+      return;
+    }
+    MEMBROS = await r.json();
+    buildTblMembros();
+  } catch (err) {
+    console.error('[Membros] erro ao carregar:', err);
+  }
+}
+
+function buildTblMembros() {
+  let dados = MEMBROS.filter(m => m.perfil !== 'ADMIN');
+  if (membrosFilter === 'ativo')     dados = dados.filter(m => !m.bloqueado);
+  if (membrosFilter === 'bloqueado') dados = dados.filter(m => m.bloqueado);
+  if (membrosFilter === '1fase' || membrosFilter === '2fase') dados = dados.filter(m => (m._count?.palpites || 0) > 0);
+  if (membrosSearch) {
+    dados = dados.filter(m =>
+      m.nomeCompleto.toLowerCase().includes(membrosSearch) ||
+      m.apelido.toLowerCase().includes(membrosSearch) ||
+      m.codigoCdp.toLowerCase().includes(membrosSearch)
+    );
+  }
+
+  document.getElementById('tbody-membros').innerHTML = dados.length ? dados.map(m => `
+    <tr>
+      <td><span class="badge badge-gold">${m.codigoCdp}</span></td>
+      <td><div style="font-weight:500">${m.nomeCompleto}</div><div style="font-size:11px;color:var(--muted)">${m.apelido}</div></td>
+      <td style="color:var(--muted)">${m.telefone}</td>
+      <td style="color:var(--muted)">${m.cidade ? `${m.cidade}/${m.estado || '—'}` : '—'}</td>
+      <td style="text-align:center">${m._count?.palpites ?? 0}</td>
+      <td><span class="badge ${m.bloqueado ? 'badge-red' : 'badge-green'}">${m.bloqueado ? 'Bloqueado' : 'Ativo'}</span></td>
+      <td style="color:var(--muted)">${new Date(m.criadoEm).toLocaleDateString('pt-BR')}</td>
+      <td>
+        <div class="acoes-membro">
+          <button class="btn-icon" onclick="abrirEditarMembro(${m.id})" title="Editar dados">✏️</button>
+          <button class="btn-icon" onclick="abrirResetSenhaMembro(${m.id})" title="Resetar senha">🔑</button>
+          <button class="btn-icon ${m.bloqueado ? 'success' : 'danger'}" onclick="abrirBloqueioMembro(${m.id})" title="${m.bloqueado ? 'Desbloquear' : 'Bloquear'}">${m.bloqueado ? '✅' : '🚫'}</button>
+          <button class="btn-icon danger" onclick="abrirExcluirMembro(${m.id})" title="Excluir">🗑️</button>
+        </div>
+      </td>
+    </tr>`).join('') : '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--muted)">Nenhum membro encontrado.</td></tr>';
+
+  document.getElementById('membros-count').textContent = dados.length + ' de ' + MEMBROS.filter(m => m.perfil !== 'ADMIN').length + ' membros';
+}
+
+function filtroMembros(f, btn) {
+  membrosFilter = f;
+  document.querySelectorAll('#sec-membros .filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   buildTblMembros();
 }
-function filtrarMembros(){membrosSearch=document.getElementById('busca-membro').value.toLowerCase();buildTblMembros();}
-buildTblMembros();
+function filtrarMembros() { membrosSearch = document.getElementById('busca-membro').value.toLowerCase(); buildTblMembros(); }
+function fecharModalMembro(id) { document.getElementById(id).classList.remove('show'); }
+
+// ── Editar ──
+function abrirEditarMembro(id) {
+  const m = MEMBROS.find(x => x.id === id);
+  if (!m) return;
+  membroSelecionado = m;
+  document.getElementById('modal-membro-titulo').textContent = 'Editar membro · ' + m.codigoCdp;
+  document.getElementById('mb-nome').value = m.nomeCompleto;
+  document.getElementById('mb-apelido').value = m.apelido;
+  document.getElementById('mb-tel').value = m.telefone;
+  document.getElementById('mb-cdp').value = m.codigoCdp;
+  document.getElementById('modal-editar-membro').classList.add('show');
+}
+async function salvarEdicaoMembro() {
+  const nomeCompleto = document.getElementById('mb-nome').value.trim();
+  const apelido = document.getElementById('mb-apelido').value.trim();
+  const telefone = document.getElementById('mb-tel').value.trim();
+  if (!nomeCompleto || !apelido || !telefone) { showToast('⚠️ Preencha todos os campos.'); return; }
+
+  try {
+    const r = await fetch(`${API_BASE}/admin/usuarios/${membroSelecionado.id}`, {
+      method: 'PUT', headers: authHeadersAdmin(),
+      body: JSON.stringify({ nomeCompleto, apelido, telefone }),
+    });
+    const data = await r.json();
+    if (!r.ok) { showToast(`❌ ${data.error || 'Erro ao salvar.'}`); return; }
+    showToast('✅ Dados de ' + membroSelecionado.codigoCdp + ' atualizados!');
+    fecharModalMembro('modal-editar-membro');
+    carregarMembros();
+  } catch (err) {
+    console.error(err);
+    showToast('❌ Erro ao conectar com o servidor.');
+  }
+}
+
+// ── Resetar senha ──
+function abrirResetSenhaMembro(id) {
+  const m = MEMBROS.find(x => x.id === id);
+  if (!m) return;
+  membroSelecionado = m;
+  const primeiroNome = m.nomeCompleto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').split(' ')[0].toLowerCase().slice(0, 3);
+  document.getElementById('senha-nova-valor').textContent = primeiroNome + '123';
+  document.getElementById('modal-senha-membro').classList.add('show');
+}
+async function confirmarResetSenhaMembro() {
+  try {
+    const r = await fetch(`${API_BASE}/admin/usuarios/${membroSelecionado.id}/resetar-senha`, {
+      method: 'POST', headers: authHeadersAdmin(),
+    });
+    const data = await r.json();
+    if (!r.ok) { showToast(`❌ ${data.error || 'Erro ao resetar senha.'}`); return; }
+    showToast('🔑 Senha de ' + membroSelecionado.codigoCdp + ' resetada para: ' + data.novaSenha);
+    fecharModalMembro('modal-senha-membro');
+  } catch (err) {
+    console.error(err);
+    showToast('❌ Erro ao conectar com o servidor.');
+  }
+}
+
+// ── Bloquear / desbloquear ──
+function abrirBloqueioMembro(id) {
+  const m = MEMBROS.find(x => x.id === id);
+  if (!m) return;
+  membroSelecionado = m;
+  const bloqueando = !m.bloqueado;
+  document.getElementById('bloquear-membro-titulo').textContent = bloqueando ? '🚫 Bloquear membro' : '✅ Desbloquear membro';
+  document.getElementById('bloquear-membro-aviso').textContent = bloqueando
+    ? 'Esta ação impedirá o membro de fazer login e registrar novos palpites. Os palpites existentes são mantidos.'
+    : 'O membro voltará a ter acesso completo ao sistema.';
+  document.getElementById('bloquear-membro-nome').textContent = m.nomeCompleto + ' (' + m.codigoCdp + ')';
+  const btn = document.getElementById('bloquear-membro-btn-confirm');
+  btn.textContent = bloqueando ? '🚫 Confirmar bloqueio' : '✅ Confirmar desbloqueio';
+  btn.className = 'btn-icon ' + (bloqueando ? 'danger' : 'success');
+  document.getElementById('modal-bloquear-membro').classList.add('show');
+}
+async function confirmarBloqueioMembro() {
+  try {
+    const r = await fetch(`${API_BASE}/admin/usuarios/${membroSelecionado.id}/bloqueio`, {
+      method: 'PATCH', headers: authHeadersAdmin(),
+    });
+    const data = await r.json();
+    if (!r.ok) { showToast(`❌ ${data.error || 'Erro ao alterar bloqueio.'}`); return; }
+    showToast((data.bloqueado ? '🚫 ' : '✅ ') + membroSelecionado.codigoCdp + (data.bloqueado ? ' bloqueado!' : ' desbloqueado!'));
+    fecharModalMembro('modal-bloquear-membro');
+    carregarMembros();
+  } catch (err) {
+    console.error(err);
+    showToast('❌ Erro ao conectar com o servidor.');
+  }
+}
+
+// ── Excluir (irreversível) ──
+function abrirExcluirMembro(id) {
+  const m = MEMBROS.find(x => x.id === id);
+  if (!m) return;
+  membroSelecionado = m;
+  document.getElementById('excluir-membro-nome').textContent = m.nomeCompleto + ' (' + m.codigoCdp + ')';
+  document.getElementById('excluir-confirmacao').value = '';
+  validarConfirmacaoExclusao();
+  document.getElementById('modal-excluir-membro').classList.add('show');
+}
+function validarConfirmacaoExclusao() {
+  const ok = document.getElementById('excluir-confirmacao').value.trim() === 'EXCLUIR';
+  const btn = document.getElementById('excluir-membro-btn-confirm');
+  btn.disabled = !ok;
+  btn.style.opacity = ok ? '1' : '.4';
+  btn.style.cursor = ok ? 'pointer' : 'not-allowed';
+}
+async function confirmarExclusaoMembro() {
+  try {
+    const r = await fetch(`${API_BASE}/admin/usuarios/${membroSelecionado.id}`, {
+      method: 'DELETE', headers: authHeadersAdmin(),
+    });
+    const data = await r.json();
+    if (!r.ok) { showToast(`❌ ${data.error || 'Erro ao excluir membro.'}`); return; }
+    showToast('🗑️ ' + data.mensagem);
+    fecharModalMembro('modal-excluir-membro');
+    carregarMembros();
+  } catch (err) {
+    console.error(err);
+    showToast('❌ Erro ao conectar com o servidor.');
+  }
+}
+
+carregarMembros();
+
 
 // ── 3ª Fase — Jogos completos da Copa 2026 (16/06 a 19/07) ──
 const JOGOS_F3 = [
-  // ── Fase de Grupos (16/06 – 27/06) ──
-  {id:1,  fase:'Grupos',    casa:'Brasil',        cb:'https://flagcdn.com/w40/br.png',     fora:'Marrocos',        fb:'https://flagcdn.com/w40/ma.png',     data:'16/06', hora:'16:00'},
-  {id:2,  fase:'Grupos',    casa:'Argentina',     cb:'https://flagcdn.com/w40/ar.png',     fora:'Argélia',         fb:'https://flagcdn.com/w40/dz.png',     data:'16/06', hora:'19:00'},
-  {id:3,  fase:'Grupos',    casa:'França',        cb:'https://flagcdn.com/w40/fr.png',     fora:'Senegal',         fb:'https://flagcdn.com/w40/sn.png',     data:'16/06', hora:'22:00'},
-  {id:4,  fase:'Grupos',    casa:'Espanha',       cb:'https://flagcdn.com/w40/es.png',     fora:'Uruguai',         fb:'https://flagcdn.com/w40/uy.png',     data:'17/06', hora:'13:00'},
-  {id:5,  fase:'Grupos',    casa:'Inglaterra',    cb:'https://flagcdn.com/w40/gb-eng.png', fora:'Croácia',         fb:'https://flagcdn.com/w40/hr.png',     data:'17/06', hora:'16:00'},
-  {id:6,  fase:'Grupos',    casa:'Portugal',      cb:'https://flagcdn.com/w40/pt.png',     fora:'Colômbia',        fb:'https://flagcdn.com/w40/co.png',     data:'17/06', hora:'19:00'},
-  {id:7,  fase:'Grupos',    casa:'Alemanha',      cb:'https://flagcdn.com/w40/de.png',     fora:'Equador',         fb:'https://flagcdn.com/w40/ec.png',     data:'18/06', hora:'13:00'},
-  {id:8,  fase:'Grupos',    casa:'Holanda',       cb:'https://flagcdn.com/w40/nl.png',     fora:'Japão',           fb:'https://flagcdn.com/w40/jp.png',     data:'18/06', hora:'16:00'},
-  {id:9,  fase:'Grupos',    casa:'Bélgica',       cb:'https://flagcdn.com/w40/be.png',     fora:'Egito',           fb:'https://flagcdn.com/w40/eg.png',     data:'19/06', hora:'13:00'},
-  {id:10, fase:'Grupos',    casa:'México',        cb:'https://flagcdn.com/w40/mx.png',     fora:'Coreia do Sul',   fb:'https://flagcdn.com/w40/kr.png',     data:'19/06', hora:'16:00'},
-  {id:11, fase:'Grupos',    casa:'EUA',           cb:'https://flagcdn.com/w40/us.png',     fora:'Paraguai',        fb:'https://flagcdn.com/w40/py.png',     data:'22/06', hora:'16:00'},
-  {id:12, fase:'Grupos',    casa:'Canadá',        cb:'https://flagcdn.com/w40/ca.png',     fora:'Qatar',           fb:'https://flagcdn.com/w40/qa.png',     data:'22/06', hora:'19:00'},
+  // ── Fase de Grupos (já realizados — não aparecem) ──
+  {id:1,  fase:'Grupos',    casa:'Brasil',          cb:'https://flagcdn.com/w40/br.png',     fora:'Marrocos',       fb:'https://flagcdn.com/w40/ma.png',     data:'2026-06-12', hora:'16:00'},
+  {id:2,  fase:'Grupos',    casa:'Argentina',       cb:'https://flagcdn.com/w40/ar.png',     fora:'Argélia',        fb:'https://flagcdn.com/w40/dz.png',     data:'2026-06-12', hora:'19:00'},
+  {id:3,  fase:'Grupos',    casa:'França',          cb:'https://flagcdn.com/w40/fr.png',     fora:'Senegal',        fb:'https://flagcdn.com/w40/sn.png',     data:'2026-06-13', hora:'22:00'},
+  {id:4,  fase:'Grupos',    casa:'Espanha',         cb:'https://flagcdn.com/w40/es.png',     fora:'Uruguai',        fb:'https://flagcdn.com/w40/uy.png',     data:'2026-06-14', hora:'13:00'},
+  {id:5,  fase:'Grupos',    casa:'Inglaterra',      cb:'https://flagcdn.com/w40/gb-eng.png', fora:'Croácia',        fb:'https://flagcdn.com/w40/hr.png',     data:'2026-06-15', hora:'16:00'},
+  {id:6,  fase:'Grupos',    casa:'Portugal',        cb:'https://flagcdn.com/w40/pt.png',     fora:'Colômbia',       fb:'https://flagcdn.com/w40/co.png',     data:'2026-06-15', hora:'19:00'},
+  {id:7,  fase:'Grupos',    casa:'Alemanha',        cb:'https://flagcdn.com/w40/de.png',     fora:'Equador',        fb:'https://flagcdn.com/w40/ec.png',     data:'2026-06-16', hora:'13:00'},
+  {id:8,  fase:'Grupos',    casa:'Holanda',         cb:'https://flagcdn.com/w40/nl.png',     fora:'Japão',          fb:'https://flagcdn.com/w40/jp.png',     data:'2026-06-17', hora:'16:00'},
+  {id:9,  fase:'Grupos',    casa:'Bélgica',         cb:'https://flagcdn.com/w40/be.png',     fora:'Egito',          fb:'https://flagcdn.com/w40/eg.png',     data:'2026-06-18', hora:'13:00'},
+  {id:10, fase:'Grupos',    casa:'México',          cb:'https://flagcdn.com/w40/mx.png',     fora:'Coreia do Sul',  fb:'https://flagcdn.com/w40/kr.png',     data:'2026-06-19', hora:'16:00'},
+  {id:11, fase:'Grupos',    casa:'Estados Unidos',  cb:'https://flagcdn.com/w40/us.png',     fora:'Paraguai',       fb:'https://flagcdn.com/w40/py.png',     data:'2026-06-20', hora:'16:00'},
+  {id:12, fase:'Grupos',    casa:'Canadá',          cb:'https://flagcdn.com/w40/ca.png',     fora:'Qatar',          fb:'https://flagcdn.com/w40/qa.png',     data:'2026-06-21', hora:'19:00'},
   // ── Oitavas (Round of 32) — 28/06 a 03/07 ──
-  {id:13, fase:'Oitavas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'28/06', hora:''},
-  {id:14, fase:'Oitavas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'29/06', hora:''},
-  {id:15, fase:'Oitavas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'30/06', hora:''},
-  {id:16, fase:'Oitavas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'01/07', hora:''},
-  {id:17, fase:'Oitavas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'02/07', hora:''},
-  {id:18, fase:'Oitavas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'03/07', hora:''},
+  {id:13, fase:'Oitavas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'2026-06-28', hora:''},
+  {id:14, fase:'Oitavas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'2026-06-28', hora:''},
+  {id:15, fase:'Oitavas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'2026-06-29', hora:''},
+  {id:16, fase:'Oitavas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'2026-06-29', hora:''},
+  {id:17, fase:'Oitavas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'2026-06-30', hora:''},
+  {id:18, fase:'Oitavas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'2026-07-01', hora:''},
+  {id:19, fase:'Oitavas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'2026-07-02', hora:''},
+  {id:20, fase:'Oitavas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'2026-07-03', hora:''},
   // ── Quartas de Final — 04/07 a 07/07 ──
-  {id:19, fase:'Quartas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'04/07', hora:''},
-  {id:20, fase:'Quartas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'05/07', hora:''},
-  {id:21, fase:'Quartas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'06/07', hora:''},
-  {id:22, fase:'Quartas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'07/07', hora:''},
-  // ── Semifinais — 09/07 a 11/07 ──
-  {id:23, fase:'Semifinal', casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'09/07', hora:''},
-  {id:24, fase:'Semifinal', casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'11/07', hora:''},
-  // ── Semifinais — 14/07 a 15/07 ──
-  {id:25, fase:'Semifinal', casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'14/07', hora:''},
-  {id:26, fase:'Semifinal', casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'15/07', hora:''},
+  {id:21, fase:'Quartas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'2026-07-04', hora:''},
+  {id:22, fase:'Quartas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'2026-07-05', hora:''},
+  {id:23, fase:'Quartas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'2026-07-06', hora:''},
+  {id:24, fase:'Quartas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'2026-07-07', hora:''},
+  // ── Semifinais — 09/07 e 11/07 ──
+  {id:25, fase:'Semifinal', casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'2026-07-09', hora:''},
+  {id:26, fase:'Semifinal', casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'2026-07-11', hora:''},
   // ── 3º Lugar e Final ──
-  {id:27, fase:'3º Lugar',  casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'18/07', hora:''},
-  {id:28, fase:'Final',     casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'19/07', hora:''},
+  {id:27, fase:'3º Lugar',  casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'2026-07-14', hora:''},
+  {id:28, fase:'Final',     casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'2026-07-15', hora:''},
 ];
 const resultadosF3 = {};
 
@@ -996,11 +1723,31 @@ function apurarF3() {
 function buildF3JogosArrecadacao() {
   const el = document.getElementById('tbl-f3-jogos');
   if (!el) return;
-  const fases = [...new Set(JOGOS_F3.map(j => j.fase))];
+
+  const hoje = new Date();
+  hoje.setHours(0,0,0,0);
+
+  // Filtra apenas jogos que ainda não ocorreram ou que são de hoje
+  const jogosVisiveis = JOGOS_F3.filter(j => new Date(j.data) >= hoje);
+
+  if (!jogosVisiveis.length) {
+    el.style.gridTemplateColumns = '1fr';
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">Todos os jogos já foram realizados.</div>';
+    return;
+  }
+
+  const fases = [...new Set(jogosVisiveis.map(j => j.fase))];
   el.style.gridTemplateColumns = '1fr';
+
+  // Formata data de ISO para DD/MM
+  const fmtData = iso => {
+    const [y,m,d] = iso.split('-');
+    return `${d}/${m}`;
+  };
+
   el.innerHTML = fases.map(fase => {
-    const cor = FASE_COR[fase] || '#8095b0';
-    const jogos = JOGOS_F3.filter(j => j.fase === fase);
+    const cor  = FASE_COR[fase] || '#8095b0';
+    const jogos = jogosVisiveis.filter(j => j.fase === fase);
     return `
       <div style="margin-bottom:12px">
         <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:${cor};margin-bottom:6px">${fase}</div>
@@ -1009,11 +1756,11 @@ function buildF3JogosArrecadacao() {
             const aClass = j.casa === 'A Classificar';
             const flagC = j.cb ? `<img src="${j.cb}" alt="${j.casa}" style="width:18px;height:13px;object-fit:cover;border-radius:2px">` : '';
             const flagF = j.fb ? `<img src="${j.fb}" alt="${j.fora}" style="width:18px;height:13px;object-fit:cover;border-radius:2px">` : '';
-            return `<div style="display:flex;align-items:center;gap:6px;background:var(--navy2);border-radius:var(--r);padding:8px 10px;font-size:11px">
+            return `<div style="display:flex;align-items:center;gap:6px;background:var(--navy2);border-radius:var(--r);padding:8px 10px;font-size:11px;${aClass?'opacity:.6':''}">
               ${flagC}<span style="font-weight:600;color:${aClass?'var(--muted)':'#dce8f5'}">${j.casa}</span>
               <span style="color:var(--muted);margin:0 2px">x</span>
               <span style="font-weight:600;color:${aClass?'var(--muted)':'#dce8f5'}">${j.fora}</span>${flagF}
-              <span style="margin-left:auto;color:var(--muted);font-size:10px">${j.data}</span>
+              <span style="margin-left:auto;color:var(--muted);font-size:10px;white-space:nowrap">${fmtData(j.data)}${j.hora?' '+j.hora:''}</span>
             </div>`;
           }).join('')}
         </div>
@@ -1059,8 +1806,8 @@ function apurar(fase) {
 function exportCSV(tipo='geral') {
   let csv, filename;
   if (tipo==='membros') {
-    csv = 'CDP,Nome,Apelido,Telefone,Palpites1a,Palpites2a,TotalPago,Cadastro\n'
-      + MEMBROS_MOCK.map(m=>`${m.cdp},${m.nome},${m.apelido},${m.tel},${m.f1},${m.f2},${m.total.toFixed(2)},${m.data}`).join('\n');
+    csv = 'CDP,Nome,Apelido,Telefone,Cidade,Estado,Palpites,Status,Cadastro\n'
+      + MEMBROS.filter(m => m.perfil !== 'ADMIN').map(m=>`${m.codigoCdp},${m.nomeCompleto},${m.apelido},${m.telefone},${m.cidade || ''},${m.estado || ''},${m._count?.palpites ?? 0},${m.bloqueado ? 'Bloqueado' : 'Ativo'},${new Date(m.criadoEm).toLocaleDateString('pt-BR')}`).join('\n');
     filename = 'membros-clube-palpite.csv';
   } else {
     csv = 'Campanha,Periodo,Palpites,Arrecadado,LucroClube40,FundoPremios60\n'
@@ -1102,24 +1849,451 @@ function showSec(id, navEl) {
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   if (navEl) navEl.classList.add('active');
   else document.querySelectorAll('.nav-item').forEach(n=>{ if(n.textContent.trim().toLowerCase().includes(id.substring(0,4))) n.classList.add('active'); });
-  if (id==='apurar') { buildListaApuracao('lista-sel-f1','f1'); buildListaApuracao('lista-sel-f2c','f2c'); buildListaApuracao('lista-sel-f2v','f2v'); buildF3Jogos(); }
-  if (id==='arrecadacao') { buildF3JogosArrecadacao(); }
+  if (id==='apurar')      { buildListaApuracao('lista-sel-f1','f1'); buildListaApuracao('lista-sel-f2c','f2c'); buildListaApuracao('lista-sel-f2v','f2v'); buildF3Jogos(); }
+  if (id==='arrecadacao') { buildF3JogosArrecadacao(); admCarregarDadosReais(); }
+  if (id==='selecoes')    { admCarregarDadosReais(); }
+  if (id==='indicadores') { indAdmInit(); }
+  if (id==='ranking')     { rkInit(); admCarregarDadosReais(); }
+  if (id==='palpites')    { admPalpitesInit(); }
 }
 
 // ── Simula atualização ao vivo ────────────────────────────────
-setInterval(()=>{
-  const delta = Math.floor(Math.random()*30)*10;
-  if (delta && Math.random()>.7) {
-    const v = document.getElementById('kpi-total');
-    if (v) {
-      const cur = parseInt(v.textContent.replace(/\D/g,''));
-      v.textContent = 'R$ '+(cur+delta).toLocaleString('pt-BR');
-    }
-  }
-}, 8000);
-
 // Relatório: data atual
 document.getElementById('rel-data').textContent = 'Gerado em: '+new Date().toLocaleString('pt-BR');
+
+// ── Administrar Indicadores ──────────────────────────────────────
+const IND_ADM_INDICADORES = [
+  {cdp:'CDP1', ap:'Mariazinha',tel:'(48) 99000-0001',ind:12,ganho:'R$ 48,00',saldo:'R$ 23,50'},
+  {cdp:'CDP3', ap:'Aninha',    tel:'(48) 99000-0003',ind:9, ganho:'R$ 36,00',saldo:'R$ 11,00'},
+  {cdp:'CDP15',ap:'Joãozinho', tel:'(48) 99999-0000',ind:7, ganho:'R$ 38,00',saldo:'R$ 28,50'},
+  {cdp:'CDP4', ap:'Carlão',    tel:'(48) 99000-0004',ind:5, ganho:'R$ 22,00',saldo:'R$ 7,00'},
+  {cdp:'CDP7', ap:'Paulinha',  tel:'(48) 99000-0007',ind:4, ganho:'R$ 18,00',saldo:'R$ 18,00'},
+];
+const IND_ADM_RESGATES_ALL = [
+  {id:1,cdp:'CDP1', ap:'Mariazinha',tipo:'PIX',    val:'R$ 14,50',pix:'(48) 99000-0001',data:'10/06/2026',status:'PENDENTE'},
+  {id:2,cdp:'CDP3', ap:'Aninha',    tipo:'PALPITE',val:'R$ 10,00',pix:'—',              data:'09/06/2026',status:'PENDENTE'},
+  {id:3,cdp:'CDP15',ap:'Joãozinho', tipo:'PIX',    val:'R$ 14,50',pix:'(48) 99999-0000',data:'07/06/2026',status:'PAGO'},
+  {id:4,cdp:'CDP7', ap:'Paulinha',  tipo:'PIX',    val:'R$ 18,00',pix:'paulinha@email.com',data:'06/06/2026',status:'PENDENTE'},
+  {id:5,cdp:'CDP4', ap:'Carlão',    tipo:'PALPITE',val:'R$ 7,00', pix:'—',              data:'05/06/2026',status:'REJEITADO'},
+];
+let indAdmJaInit = false;
+let indAdmFiltroRes = 'PENDENTE';
+let indAdmAtivoConfig = true;
+
+function indAdmInit() {
+  if (indAdmJaInit) return;
+  indAdmJaInit = true;
+  indAdmRenderIndicadores();
+  indAdmRenderResgates();
+  indAdmAtualizarSim();
+  document.getElementById('ind-cfg-pct').addEventListener('input', indAdmAtualizarSim);
+  document.getElementById('ind-cfg-marco-qtd').addEventListener('input', indAdmAtualizarSim);
+  document.getElementById('ind-cfg-marco-val').addEventListener('input', indAdmAtualizarSim);
+}
+
+function indAdmSetSec(id, btn) {
+  document.querySelectorAll('.ind-sec').forEach(s => s.style.display = 'none');
+  document.getElementById('ind-sec-'+id).style.display = 'block';
+  document.querySelectorAll('.ind-stab').forEach(b => { b.style.background='transparent'; b.style.color='var(--muted)'; });
+  btn.style.background = 'rgba(240,165,0,.12)';
+  btn.style.color = 'var(--gold)';
+  if (id === 'indicadores') indAdmRenderIndicadores();
+  if (id === 'resgates') indAdmRenderResgates();
+}
+
+function indAdmRenderIndicadores() {
+  document.getElementById('ind-adm-tbody').innerHTML = IND_ADM_INDICADORES.map(i => `
+    <tr>
+      <td style="padding:10px 14px;border-bottom:1px solid var(--border)"><span class="badge badge-gold">${i.cdp}</span></td>
+      <td style="padding:10px 14px;border-bottom:1px solid var(--border);font-weight:500">${i.ap}</td>
+      <td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--muted)">${i.tel}</td>
+      <td style="padding:10px 14px;border-bottom:1px solid var(--border);text-align:center">${i.ind}</td>
+      <td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--gold)">${i.ganho}</td>
+      <td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--green)">${i.saldo}</td>
+    </tr>`).join('');
+}
+
+function indAdmFiltrarRes(f, btn) {
+  indAdmFiltroRes = f;
+  document.querySelectorAll('.ind-res-filtro').forEach(b => {
+    b.style.background='var(--navy2)'; b.style.color='var(--muted)'; b.style.border='1px solid var(--border)';
+  });
+  btn.style.background = 'var(--gold)';
+  btn.style.color = 'var(--night)';
+  btn.style.border = 'none';
+  indAdmRenderResgates();
+}
+
+function indAdmRenderResgates() {
+  const lista = indAdmFiltroRes === 'todos' ? IND_ADM_RESGATES_ALL : IND_ADM_RESGATES_ALL.filter(r => r.status === indAdmFiltroRes);
+  const statusMap = { PENDENTE:'badge-gold', PAGO:'badge-green', REJEITADO:'badge-red' };
+  document.getElementById('ind-adm-res-tbody').innerHTML = lista.map(r => `
+    <tr>
+      <td style="padding:10px 14px;border-bottom:1px solid var(--border)"><span class="badge badge-gold">${r.cdp}</span></td>
+      <td style="padding:10px 14px;border-bottom:1px solid var(--border);font-weight:500">${r.ap}</td>
+      <td style="padding:10px 14px;border-bottom:1px solid var(--border)"><span class="badge badge-blue">${r.tipo}</span></td>
+      <td style="padding:10px 14px;border-bottom:1px solid var(--border);font-weight:500">${r.val}</td>
+      <td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--muted);font-size:11px">${r.pix}</td>
+      <td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--muted)">${r.data}</td>
+      <td style="padding:10px 14px;border-bottom:1px solid var(--border)"><span class="badge ${statusMap[r.status]}">${r.status}</span></td>
+      <td style="padding:10px 14px;border-bottom:1px solid var(--border)">
+        ${r.status === 'PENDENTE' ? `
+        <div style="display:flex;gap:4px">
+          <button style="background:rgba(29,185,84,.15);border:1px solid rgba(29,185,84,.3);color:var(--green);font-size:11px;padding:4px 8px;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif" onclick="indAdmAprovarResgate(${r.id})">✅ Pagar</button>
+          <button style="background:rgba(224,82,82,.12);border:1px solid rgba(224,82,82,.3);color:var(--red);font-size:11px;padding:4px 8px;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif" onclick="indAdmRejeitarResgate(${r.id})">✕</button>
+        </div>` : '—'}
+      </td>
+    </tr>`).join('');
+}
+
+function indAdmAprovarResgate(id) {
+  const r = IND_ADM_RESGATES_ALL.find(x => x.id === id);
+  if (r) { r.status = 'PAGO'; indAdmRenderResgates(); showToast(`✅ Resgate de ${r.ap} (${r.val}) marcado como pago!`); }
+}
+function indAdmRejeitarResgate(id) {
+  const r = IND_ADM_RESGATES_ALL.find(x => x.id === id);
+  if (r) { r.status = 'REJEITADO'; indAdmRenderResgates(); showToast(`❌ Resgate de ${r.ap} rejeitado. Saldo estornado.`); }
+}
+
+function indAdmToggleAtivo() {
+  indAdmAtivoConfig = !indAdmAtivoConfig;
+  const toggle = document.getElementById('ind-toggle-ativo');
+  const knob = document.getElementById('ind-toggle-knob');
+  if (indAdmAtivoConfig) {
+    toggle.style.background = 'var(--green)';
+    toggle.style.borderColor = 'var(--green)';
+    knob.style.left = '20px';
+  } else {
+    toggle.style.background = 'var(--navy)';
+    toggle.style.borderColor = 'var(--border)';
+    knob.style.left = '2px';
+  }
+}
+
+function indAdmAtualizarSim() {
+  const pct        = parseFloat(document.getElementById('ind-cfg-pct').value)        || 0;
+  const marcoQtd   = parseFloat(document.getElementById('ind-cfg-marco-qtd').value)  || 100;
+  const marcoVal   = parseFloat(document.getElementById('ind-cfg-marco-val').value)  || 0;
+  const comissoes  = (marcoQtd * 10 * pct) / 100;
+  const bonus      = marcoVal;
+  const total      = bonus + comissoes;
+  document.getElementById('ind-sim-com').textContent   = `R$ ${comissoes.toFixed(2)}`;
+  document.getElementById('ind-sim-bonus').textContent = `R$ ${bonus.toFixed(2)}`;
+  document.getElementById('ind-sim-total').textContent  = `R$ ${total.toFixed(2)}`;
+}
+
+function indAdmSalvarConfig() {
+  showToast('✅ Configuração salva com sucesso!');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  const m = document.getElementById('toast-msg');
+  if (!t || !m) { console.log(msg); return; }
+  m.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+// ── Ranking dos Palpites ──────────────────────────────────────────
+// ── Ranking dos Palpites — dados reais via API ──────────────────
+let rkJaInit = false;
+let rkFaseSel = 1;
+let rkRankingFiltrado = [];
+let RK_CACHE = {};
+
+async function rkInit() {
+  if (rkJaInit) return;
+  rkJaInit = true;
+  await rkCarregarFase(1);
+}
+
+async function rkCarregarFase(fase) {
+  if (RK_CACHE[fase]) { rkRenderPodio(); rkRenderRanking(); if(fase===1)rkRenderSelecoes(); return; }
+  document.getElementById('rk-lista').innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted)">Carregando…</div>';
+  document.getElementById('rk-podio').innerHTML = '';
+  try {
+    const url = fase===0 ? `${API_BASE}/palpites/ranking-por-fase` : `${API_BASE}/palpites/ranking-por-fase?fase=${fase}`;
+    const r = await fetch(url);
+    RK_CACHE[fase] = r.ok ? await r.json() : [];
+  } catch { RK_CACHE[fase] = []; }
+  rkRenderPodio();
+  rkRenderRanking();
+  if (fase===1) rkRenderSelecoes();
+}
+
+function rkSetFase(f, btn) {
+  rkFaseSel = f;
+  document.querySelectorAll('.rk-fase-tab').forEach(t => { t.style.background='var(--navy)'; t.style.color='var(--muted)'; t.style.borderColor='var(--border)'; });
+  btn.style.background='rgba(240,165,0,.12)'; btn.style.color='var(--gold)'; btn.style.borderColor='rgba(240,165,0,.35)';
+  const labels={1:'1ª Fase · Seleção Campeã',2:'2ª Fase · Campeã + Vice',3:'Palpite por Resultado',0:'Ranking Geral'};
+  document.getElementById('rk-titulo').textContent = '🏆 ' + labels[f];
+  rkCarregarFase(f);
+}
+
+function rkIniciais(nome) { return nome.slice(0,2).toUpperCase(); }
+
+function rkRenderPodio() {
+  const dados = (RK_CACHE[rkFaseSel]||[]).slice(0,3);
+  if (!dados.length) { document.getElementById('rk-podio').innerHTML=''; return; }
+  const ordem = dados.length>=3 ? [dados[1],dados[0],dados[2]] : dados;
+  const alturas=['180px','220px','160px'];
+  const grads=['linear-gradient(180deg,rgba(176,190,197,.1) 0%,var(--navy) 100%)','linear-gradient(180deg,rgba(240,165,0,.15) 0%,var(--navy) 100%)','linear-gradient(180deg,rgba(205,127,50,.1) 0%,var(--navy) 100%)'];
+  const borderCols=['var(--border)','rgba(240,165,0,.3)','var(--border)'];
+  const pos=['🥈','🥇','🥉'];
+  document.getElementById('rk-podio').innerHTML = ordem.map((p,i) => {
+    if(!p) return '';
+    return `<div style="flex:1;max-width:220px;text-align:center">
+      <div style="border-radius:16px 16px 0 0;padding:${i===1?'28px':'20px'} 12px 16px;border:1px solid ${borderCols[i]};border-bottom:none;background:${grads[i]};min-height:${alturas[i]}">
+        <div style="font-size:28px;line-height:1;margin-bottom:6px">${pos[i]}</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.apelido}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${p.codigoCdp}</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;color:var(--gold);line-height:1;margin-top:8px">${p.palpites} palpite${p.palpites!==1?'s':''}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">R$ ${p.investido.toFixed(2)}</div>
+      </div>
+      <div style="background:var(--navy2);border:1px solid var(--border);border-top:none;padding:6px;text-align:center;font-size:11px;color:var(--muted)">#${p.posicao}</div>
+    </div>`;
+  }).join('');
+}
+
+function rkRenderRanking(filtro='') {
+  const dados = RK_CACHE[rkFaseSel]||[];
+  rkRankingFiltrado = filtro ? dados.filter(p=>p.apelido.toLowerCase().includes(filtro.toLowerCase())||p.codigoCdp.toLowerCase().includes(filtro.toLowerCase())) : dados;
+  const cab = `<div style="display:grid;grid-template-columns:52px 1fr 80px 100px;align-items:center;opacity:.5;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;padding:8px 18px;border-bottom:1px solid var(--border);gap:8px"><div style="text-align:center">#</div><div>Palpiteiro</div><div style="text-align:center">Palpites</div><div style="text-align:center">Investido</div></div>`;
+  if (!rkRankingFiltrado.length) { document.getElementById('rk-lista').innerHTML=cab+'<div style="text-align:center;padding:40px;color:var(--muted)">Nenhum palpiteiro encontrado.</div>'; return; }
+  const linhas = rkRankingFiltrado.map(p => {
+    const cor = p.posicao===1?'var(--gold)':p.posicao===2?'#b0bec5':p.posicao===3?'#cd7f32':'#dce8f5';
+    const medal = p.posicao<=3?['🥇','🥈','🥉'][p.posicao-1]:p.posicao;
+    return `<div style="display:grid;grid-template-columns:52px 1fr 80px 100px;align-items:center;padding:13px 18px;border-bottom:1px solid var(--border);gap:8px">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;text-align:center;color:${cor}">${medal}</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--navy2);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--muted);flex-shrink:0;border:1px solid var(--border)">${rkIniciais(p.apelido)}</div>
+        <div><div style="font-weight:500;font-size:14px">${p.apelido}</div><div style="font-size:11px;color:var(--muted);margin-top:1px">${p.codigoCdp}</div></div>
+      </div>
+      <div style="text-align:center"><div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700">${p.palpites}</div></div>
+      <div style="text-align:center"><div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700">R$${p.investido.toFixed(2)}</div></div>
+    </div>`;
+  }).join('');
+  document.getElementById('rk-lista').innerHTML = cab+linhas;
+}
+
+function rkFiltrar(v) { rkRenderRanking(v); }
+
+async function rkRenderSelecoes() {
+  const el = document.getElementById('rk-sel-grid');
+  if (!el) return;
+  try {
+    const r = await fetch(`${API_BASE}/palpites/ranking-selecoes`);
+    const data = r.ok ? await r.json() : {selecoes:[]};
+    const top12 = (data.selecoes||[]).slice(0,12);
+    if (!top12.length) { el.innerHTML='<div style="color:var(--muted);font-size:12px;padding:8px">Sem dados ainda.</div>'; return; }
+    const maxP = top12[0].palpites||1;
+    el.innerHTML = top12.map(s => `
+      <div style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;display:flex;align-items:center;gap:8px;font-size:13px">
+        <img src="${s.bandeiraCss}" style="width:26px;height:18px;object-fit:cover;border-radius:2px;flex-shrink:0">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.nome}</div>
+          <div style="height:3px;background:var(--navy3);border-radius:2px;margin-top:4px;overflow:hidden"><div style="height:100%;border-radius:2px;background:var(--gold);width:${(s.palpites/maxP*100).toFixed(0)}%"></div></div>
+        </div>
+        <span style="font-size:11px;color:var(--gold);font-weight:600;flex-shrink:0">${s.palpites}</span>
+      </div>`).join('');
+  } catch { el.innerHTML='<div style="color:var(--muted);font-size:12px;padding:8px">Erro ao carregar.</div>'; }
+}
+
+// ── Todos os Palpites (Admin) ────────────────────────────────────
+let ADM_PALPITES_CACHE = [];
+let admPalJaInit = false;
+let admPalTab = 'todos';
+let admPalBusca = '';
+
+async function admPalpitesInit() {
+  if (admPalJaInit) return;
+  admPalJaInit = true;
+  await admPalpitesCarregar();
+}
+
+async function admPalpitesCarregar() {
+  document.getElementById('adm-palpites-tbody').innerHTML =
+    '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--muted)">Carregando…</td></tr>';
+  try {
+    const r = await fetch(`${API_BASE}/admin/palpites`, { headers: authHeadersAdmin() });
+    if (!r.ok) throw new Error();
+    ADM_PALPITES_CACHE = await r.json();
+    admPalpitesRender();
+  } catch {
+    document.getElementById('adm-palpites-tbody').innerHTML =
+      '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--muted)">Erro ao carregar.</td></tr>';
+  }
+}
+
+function admPalpitesSetTab(tab, btn) {
+  admPalTab = tab;
+  document.querySelectorAll('.adm-pal-tab').forEach(b => {
+    b.style.color = 'var(--muted)';
+    b.style.borderBottom = '2px solid transparent';
+  });
+  btn.style.color = 'var(--gold)';
+  btn.style.borderBottom = '2px solid var(--gold)';
+  admPalpitesRender();
+}
+
+function admPalpitesFiltrar() {
+  admPalBusca = document.getElementById('adm-palpites-busca').value.toLowerCase();
+  admPalpitesRender();
+}
+
+function admPalpitesRender() {
+  let dados = ADM_PALPITES_CACHE;
+
+  if (admPalTab === 'confirmado')  dados = dados.filter(p => p.pagamentoConfirmado);
+  if (admPalTab === 'pendente')    dados = dados.filter(p => !p.pagamentoConfirmado && p.selecaoCampeaId);
+  if (admPalTab === 'sem-selecao') dados = dados.filter(p => !p.selecaoCampeaId);
+
+  if (admPalBusca) {
+    dados = dados.filter(p =>
+      (p.usuario?.nomeCompleto || '').toLowerCase().includes(admPalBusca) ||
+      (p.usuario?.apelido || '').toLowerCase().includes(admPalBusca) ||
+      (p.usuario?.codigoCdp || '').toLowerCase().includes(admPalBusca) ||
+      (p.selecaoCampea?.nome || '').toLowerCase().includes(admPalBusca)
+    );
+  }
+
+  document.getElementById('adm-palpites-count').textContent =
+    `${dados.length} de ${ADM_PALPITES_CACHE.length} palpites`;
+
+  if (!dados.length) {
+    document.getElementById('adm-palpites-tbody').innerHTML =
+      '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--muted)">Nenhum palpite encontrado.</td></tr>';
+    return;
+  }
+
+  document.getElementById('adm-palpites-tbody').innerHTML = dados.map(p => {
+    const pgto = p.pagamentoConfirmado
+      ? '<span class="badge badge-green">Pago</span>'
+      : '<span class="badge badge-gold">Pendente</span>';
+    const selecao = p.selecaoCampea
+      ? `<div style="display:flex;align-items:center;gap:6px"><img src="${p.selecaoCampea.bandeiraCss}" style="height:14px;border-radius:2px"> ${p.selecaoCampea.nome}${p.selecaoVice ? ` + ${p.selecaoVice.nome}` : ''}</div>`
+      : '<span style="color:var(--red)">⚠️ Sem seleção</span>';
+    const fase = p.campanha?.fase === 2 ? '<span class="badge badge-gold">2ª</span>' : '<span class="badge badge-green">1ª</span>';
+    const data = new Date(p.criadoEm).toLocaleDateString('pt-BR');
+
+    const acoes = `
+      <div style="display:flex;gap:4px;flex-wrap:wrap">
+        ${!p.pagamentoConfirmado && p.selecaoCampeaId ? `<button class="btn-icon success" onclick="admConfirmarPalpite(${p.id})" title="Confirmar pagamento">✅</button>` : ''}
+        ${p.pagamentoConfirmado ? `<button class="btn-icon" onclick="admReenviarPalpite(${p.id})" title="Reenviar WhatsApp">📲</button>` : ''}
+        ${!p.pagamentoConfirmado ? `<button class="btn-icon danger" onclick="admExcluirPalpite(${p.id}, '${p.usuario?.codigoCdp}')" title="Excluir palpite">🗑️</button>` : ''}
+      </div>`;
+
+    return `<tr>
+      <td style="padding:10px 14px;border-bottom:1px solid var(--border)">${p.id}</td>
+      <td style="padding:10px 14px;border-bottom:1px solid var(--border)">
+        <div style="font-weight:500">${p.usuario?.apelido || '—'}</div>
+        <div style="font-size:10px;color:var(--muted)">${p.usuario?.codigoCdp || '—'}</div>
+      </td>
+      <td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--muted)">${p.usuario?.telefone || '—'}</td>
+      <td style="padding:10px 14px;border-bottom:1px solid var(--border)">${selecao}</td>
+      <td style="padding:10px 14px;border-bottom:1px solid var(--border)">${fase}</td>
+      <td style="padding:10px 14px;border-bottom:1px solid var(--border)">R$ ${parseFloat(p.valorPago).toFixed(2)}</td>
+      <td style="padding:10px 14px;border-bottom:1px solid var(--border)">${pgto}</td>
+      <td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--muted)">${data}</td>
+      <td style="padding:10px 14px;border-bottom:1px solid var(--border)">${acoes}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function admConfirmarPalpite(id) {
+  if (!confirm(`Confirmar pagamento do palpite #${id} manualmente?`)) return;
+  try {
+    const r = await fetch(`${API_BASE}/admin/palpites/${id}/confirmar`, { method: 'PATCH', headers: authHeadersAdmin() });
+    const data = await r.json();
+    if (!r.ok) { showToast(`❌ ${data.error}`); return; }
+    showToast(`✅ ${data.mensagem}`);
+    admPalJaInit = false;
+    admPalpitesCarregar();
+  } catch { showToast('❌ Erro ao confirmar.'); }
+}
+
+async function admReenviarPalpite(id) {
+  try {
+    const r = await fetch(`${API_BASE}/admin/palpites/${id}/reenviar`, { method: 'POST', headers: authHeadersAdmin() });
+    const data = await r.json();
+    showToast(r.ok ? `📲 ${data.mensagem}` : `❌ ${data.error}`);
+  } catch { showToast('❌ Erro ao reenviar.'); }
+}
+
+async function admExcluirPalpite(id, cdp) {
+  if (!confirm(`Excluir palpite #${id} de ${cdp}?\n\nEsta ação é irreversível.`)) return;
+  try {
+    const r = await fetch(`${API_BASE}/admin/palpites/${id}`, { method: 'DELETE', headers: authHeadersAdmin() });
+    const data = await r.json();
+    if (!r.ok) { showToast(`❌ ${data.error}`); return; }
+    showToast(`🗑️ ${data.mensagem}`);
+    ADM_PALPITES_CACHE = ADM_PALPITES_CACHE.filter(p => p.id !== id);
+    admPalpitesRender();
+  } catch { showToast('❌ Erro ao excluir.'); }
+}
 </script>
+<!-- ── MODAL EDITAR / NOVO MEMBRO ── -->
+<div class="modal-overlay" id="modal-editar-membro">
+  <div class="modal-box">
+    <div class="modal-box-title" id="modal-membro-titulo">Editar membro</div>
+    <div class="form-group"><label>Nome completo</label><input type="text" id="mb-nome" placeholder="Nome completo"></div>
+    <div class="form-group"><label>Apelido</label><input type="text" id="mb-apelido" placeholder="Apelido"></div>
+    <div class="form-group"><label>Telefone</label><input type="tel" id="mb-tel" placeholder="(48) 99999-0000"></div>
+    <div class="form-group"><label>Código CDP</label><input type="text" id="mb-cdp" disabled style="opacity:.5"></div>
+    <div class="modal-footer">
+      <button class="btn-icon" onclick="fecharModalMembro('modal-editar-membro')">Cancelar</button>
+      <button class="btn-export btn-export-primary" onclick="salvarEdicaoMembro()">Salvar alterações</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL RESETAR SENHA ── -->
+<div class="modal-overlay" id="modal-senha-membro">
+  <div class="modal-box">
+    <div class="modal-box-title">🔑 Resetar senha</div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px">A senha será redefinida para o padrão: <strong style="color:#dce8f5">3 primeiras letras do nome + 123</strong></p>
+    <div class="danger-box" id="senha-preview-box">Nova senha: <strong id="senha-nova-valor">—</strong></div>
+    <p style="font-size:12px;color:var(--muted)">Informe a nova senha ao membro (por enquanto, o envio automático via WhatsApp ainda não está integrado).</p>
+    <div class="modal-footer">
+      <button class="btn-icon" onclick="fecharModalMembro('modal-senha-membro')">Cancelar</button>
+      <button class="btn-export btn-export-primary" onclick="confirmarResetSenhaMembro()">✔ Confirmar reset</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL BLOQUEAR / DESBLOQUEAR ── -->
+<div class="modal-overlay" id="modal-bloquear-membro">
+  <div class="modal-box">
+    <div class="modal-box-title" id="bloquear-membro-titulo">Bloquear membro</div>
+    <div class="danger-box" id="bloquear-membro-aviso">Esta ação impedirá o membro de fazer login e registrar novos palpites. Os palpites existentes são mantidos.</div>
+    <p style="font-size:13px;color:var(--muted);margin-top:12px">Membro: <strong id="bloquear-membro-nome" style="color:#dce8f5">—</strong></p>
+    <div class="modal-footer">
+      <button class="btn-icon" onclick="fecharModalMembro('modal-bloquear-membro')">Cancelar</button>
+      <button class="btn-icon danger" id="bloquear-membro-btn-confirm" onclick="confirmarBloqueioMembro()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL EXCLUIR (irreversível) ── -->
+<div class="modal-overlay" id="modal-excluir-membro">
+  <div class="modal-box">
+    <div class="modal-box-title">🗑️ Excluir membro</div>
+    <div class="danger-box">
+      Esta ação é <strong>irreversível</strong>. Todos os palpites, pagamentos e dados de indicação deste membro serão apagados permanentemente.
+      Membros com pagamentos confirmados não podem ser excluídos — use "Bloquear" nesse caso.
+    </div>
+    <p style="font-size:13px;color:var(--muted);margin-top:12px">Membro: <strong id="excluir-membro-nome" style="color:#dce8f5">—</strong></p>
+    <div class="form-group" style="margin-top:14px">
+      <label>Digite <strong style="color:var(--red)">EXCLUIR</strong> para confirmar</label>
+      <input type="text" id="excluir-confirmacao" placeholder="EXCLUIR" oninput="validarConfirmacaoExclusao()">
+    </div>
+    <div class="modal-footer">
+      <button class="btn-icon" onclick="fecharModalMembro('modal-excluir-membro')">Cancelar</button>
+      <button class="btn-icon danger" id="excluir-membro-btn-confirm" onclick="confirmarExclusaoMembro()" disabled style="opacity:.4;cursor:not-allowed">🗑️ Excluir permanentemente</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
