@@ -603,7 +603,7 @@ input[type=text]::placeholder{color:var(--muted)}
           </div>
           <div style="background:var(--navy2);border-radius:var(--r);padding:14px;text-align:center">
             <div style="font-size:11px;color:var(--muted)">Total membros</div>
-            <div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:700;color:var(--blue)">87</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:700;color:var(--blue)" id="rel-total-membros">—</div>
           </div>
         </div>
 
@@ -758,8 +758,8 @@ input[type=text]::placeholder{color:var(--muted)}
       </div>
 
       <div class="kpi-grid">
-        <div class="kpi blue"><div class="kpi-label">Palpiteiros</div><div class="kpi-value">87</div><div class="kpi-sub">participantes</div></div>
-        <div class="kpi gold"><div class="kpi-label">Palpites registrados</div><div class="kpi-value">216</div><div class="kpi-sub">confirmados e pagos</div></div>
+        <div class="kpi blue"><div class="kpi-label">Palpiteiros</div><div class="kpi-value" id="rk-kpi-palpiteiros">—</div><div class="kpi-sub">participantes</div></div>
+        <div class="kpi gold"><div class="kpi-label">Palpites registrados</div><div class="kpi-value" id="rk-kpi-palpites">—</div><div class="kpi-sub">confirmados e pagos</div></div>
         <div class="kpi green"><div class="kpi-label">Fundo de prêmios</div><div class="kpi-value" id="rk-kpi-fundo">—</div><div class="kpi-sub">60% da arrecadação</div></div>
         <div class="kpi gold"><div class="kpi-label">Fase atual</div><div class="kpi-value">1ª</div><div class="kpi-sub">até 04/07/2026</div></div>
       </div>
@@ -1182,8 +1182,10 @@ async function admCarregarDadosReais() {
       // KPI fundo no relatório
       const elRelFundo = document.getElementById('rel-fundo-total');
       if (elRelFundo) elRelFundo.textContent = `R$ ${totFundo.toFixed(2)}`;
-      const elRkFundo = document.getElementById('rk-kpi-fundo');
-      if (elRkFundo) elRkFundo.textContent = `R$ ${totFundo.toFixed(2)}`;
+      set('rk-kpi-palpiteiros', membrosAtivos);
+    set('rk-kpi-palpites',    totalPalpites);
+    set('rk-kpi-fundo',       `R$ ${totalFundo.toLocaleString('pt-BR', {minimumFractionDigits:2})}`);
+    set('rel-total-membros',  membrosAtivos);
     }
 
     // ── Gráfico de rosca — Distribuição do fundo ─────────────
