@@ -4,6 +4,8 @@
 const prisma = require('../models/prisma');
 const mp     = require('../services/mercadopago.service');
 const crypto = require('crypto');
+const { creditarComissaoPalpite } = require('./indicacao.controller');
+const notif  = require('../services/notificacao.service');
 
 // ────────────────────────────────────────────────────────────────
 //  POST /api/pagamentos/iniciar
@@ -38,6 +40,88 @@ async function iniciarPagamento(req, res) {
       return res.status(400).json({ error: 'Campanha não está aberta para novos palpites.' });
     }
 
+    // ── Campanha 3: Palpite por Resultado (bilhete fixo R$10) ───────
+    if (campanha.tipo === 'PALPITE_RESULTADO') {
+      // Body esperado: { campanhaId, palpites: [{ partidaId, resultado }] }
+      for (const p of palpites) {
+        if (!p.partidaId) return res.status(400).json({ error: 'partidaId obrigatório em cada palpite.' });
+        if (!['CASA','FORA','EMPATE'].includes(p.resultado)) {
+          return res.status(400).json({ error: 'resultado deve ser CASA, FORA ou EMPATE.' });
+        }
+      }
+
+      // Valida que as partidas existem e ainda aceitam palpite (janela de 10 min)
+      const { abertaParaPalpite } = require('./partida.controller');
+      const partidaIds = palpites.map(p => Number(p.partidaId));
+      const partidas   = await prisma.partida.findMany({ where: { id: { in: partidaIds } } });
+      const mapa       = Object.fromEntries(partidas.map(p => [p.id, p]));
+      for (const p of palpites) {
+        const partida = mapa[Number(p.partidaId)];
+        if (!partida) return res.status(404).json({ error: `Partida ${p.partidaId} não encontrada.` });
+        if (partida.encerrada) return res.status(400).json({ error: `Partida ${p.partidaId} já encerrada.` });
+        if (!abertaParaPalpite(partida)) {
+          return res.status(400).json({ error: `Palpites da partida ${p.partidaId} já encerraram (10 min antes do jogo).` });
+        }
+      }
+
+      // Valor do BILHETE: fixo R$10 (campanha.valorPalpite), independe da qtd de jogos
+      const valorBilhete = Number(campanha.valorPalpite);
+
+      // Cria PalpitePartida como PENDENTE (valorPago no 1º, 0 nos demais)
+      const palpitesCriados = await prisma.$transaction(
+        palpites.map((p, idx) =>
+          prisma.palpitePartida.upsert({
+            where:  { usuario_partida_unico: { usuarioId, partidaId: Number(p.partidaId) } },
+            update: { palpiteResultado: p.resultado, valorPago: idx === 0 ? valorBilhete : 0, pagamentoConfirmado: false },
+            create: { usuarioId, partidaId: Number(p.partidaId), palpiteResultado: p.resultado, valorPago: idx === 0 ? valorBilhete : 0, pagamentoConfirmado: false },
+          })
+        )
+      );
+
+      const palpiteIds = palpitesCriados.map(p => p.id);
+      const descricao  = `${campanha.nome} · ${usuario.apelido} (${usuario.codigoCdp}) · Bilhete ${palpites.length} jogo(s)`;
+
+      const pixData = await mp.criarCobrancaPix({
+        valor:             valorBilhete,
+        descricao,
+        pagadorNome:       usuario.nomeCompleto,
+        pagadorEmail:      usuario.email || `${usuario.codigoCdp.toLowerCase()}@clubedopalpite.com`,
+        pagadorCpf:        usuario.cpf   || '00000000000',
+        referenciaExterna: `bilhete_${palpiteIds.join('_')}`,
+        expiracaoMinutos:  30,
+      });
+
+      const pagamento = await prisma.pagamento.create({
+        data: {
+          usuarioId,
+          campanhaId:    campanha.id,
+          palpiteIds:    JSON.stringify(palpiteIds),
+          mpPaymentId:   String(pixData.mpPaymentId),
+          qrCode:        pixData.qrCode,
+          qrCodeBase64:  pixData.qrCodeBase64,
+          pixCopiaECola: pixData.pixCopiaECola,
+          valor:         valorBilhete,
+          status:        'PENDENTE',
+          expiresAt:     new Date(pixData.expiresAt),
+        },
+      });
+
+      return res.status(201).json({
+        pagamentoId:   pagamento.id,
+        mpPaymentId:   pixData.mpPaymentId,
+        valor:         `R$ ${valorBilhete.toFixed(2)}`,
+        quantJogos:    palpites.length,
+        pix: {
+          qrCodeBase64: pixData.qrCodeBase64,
+          copiaECola:   pixData.pixCopiaECola,
+          expiracao:    pixData.expiresAt,
+          expiracaoMin: 30,
+        },
+        instrucoes: `Bilhete com ${palpites.length} jogo(s). Abra seu banco, vá em PIX e escaneie o QR Code. O pagamento expira em 30 minutos.`,
+      });
+    }
+
+    // ── Campanhas 1 e 2: Seleção Campeã / Campeã + Vice ────────────
     // Validações específicas por fase
     for (const p of palpites) {
       if (!p.selecaoCampeaId) return res.status(400).json({ error: 'selecaoCampeaId obrigatório.' });
@@ -139,6 +223,7 @@ async function webhook(req, res) {
 
     console.log('[WEBHOOK] Recebido — type:', body.type, '| data.id:', body?.data?.id);
 
+    // Valida assinatura com o body já parseado
     if (secret && !validarAssinaturaMP(assinatura, requestId, body, secret)) {
       console.warn('[WEBHOOK] Assinatura inválida — signature:', assinatura.slice(0,40));
       return res.status(401).json({ error: 'Assinatura inválida.' });
@@ -194,6 +279,10 @@ async function webhook(req, res) {
 async function confirmarPagamento(pagamento, pagoEm) {
   const palpiteIds = JSON.parse(pagamento.palpiteIds);
 
+  // Determina qual tabela usar com base no tipo da campanha
+  const campanha = await prisma.campanha.findUnique({ where: { id: pagamento.campanhaId } });
+  const isPalpiteResultado = campanha?.tipo === 'PALPITE_RESULTADO';
+
   await prisma.$transaction([
     // Marca pagamento como APROVADO
     prisma.pagamento.update({
@@ -203,14 +292,27 @@ async function confirmarPagamento(pagamento, pagoEm) {
         pagoEm: pagoEm ? new Date(pagoEm) : new Date(),
       },
     }),
-    // Libera todos os palpites vinculados
-    prisma.palpiteCampanha.updateMany({
-      where: { id: { in: palpiteIds } },
-      data:  { pagamentoConfirmado: true },
-    }),
+    // Libera os palpites vinculados (tabela correta por tipo de campanha)
+    isPalpiteResultado
+      ? prisma.palpitePartida.updateMany({
+          where: { id: { in: palpiteIds } },
+          data:  { pagamentoConfirmado: true },
+        })
+      : prisma.palpiteCampanha.updateMany({
+          where: { id: { in: palpiteIds } },
+          data:  { pagamentoConfirmado: true },
+        }),
   ]);
 
   console.log(`[PIX] ✅ Pagamento ${pagamento.id} aprovado. Palpites liberados: ${palpiteIds.join(', ')}`);
+
+  // Envia confirmação detalhada via WhatsApp (assíncrono, não bloqueia)
+  notif.notificarPalpiteConfirmado(pagamento.id)
+    .catch(e => console.error('[WPP] confirmação:', e.message));
+
+  // Credita comissão de indicação ao indicador, se houver (assíncrono)
+  creditarComissaoPalpite(pagamento.usuarioId, Number(pagamento.valor))
+    .catch(e => console.error('[IND] comissão:', e.message));
 }
 
 // ────────────────────────────────────────────────────────────────
@@ -220,15 +322,22 @@ async function rejeitarPagamento(pagamento, motivo) {
   const palpiteIds = JSON.parse(pagamento.palpiteIds);
   const novoStatus = motivo === 'expired' ? 'EXPIRADO' : motivo === 'cancelled' ? 'CANCELADO' : 'REJEITADO';
 
+  const campanha = await prisma.campanha.findUnique({ where: { id: pagamento.campanhaId } });
+  const isPalpiteResultado = campanha?.tipo === 'PALPITE_RESULTADO';
+
   await prisma.$transaction([
     prisma.pagamento.update({
       where: { id: pagamento.id },
       data:  { status: novoStatus },
     }),
-    // Remove palpites que não foram pagos
-    prisma.palpiteCampanha.deleteMany({
-      where: { id: { in: palpiteIds }, pagamentoConfirmado: false },
-    }),
+    // Remove palpites pendentes (tabela correta por tipo)
+    isPalpiteResultado
+      ? prisma.palpitePartida.deleteMany({
+          where: { id: { in: palpiteIds }, pagamentoConfirmado: false },
+        })
+      : prisma.palpiteCampanha.deleteMany({
+          where: { id: { in: palpiteIds }, pagamentoConfirmado: false },
+        }),
   ]);
 
   console.log(`[PIX] ❌ Pagamento ${pagamento.id} ${novoStatus}. Palpites removidos.`);
@@ -245,10 +354,6 @@ async function consultarStatus(req, res) {
       where: { id: Number(id), usuarioId: req.user.id },
       select: { id: true, status: true, valor: true, pagoEm: true, expiresAt: true, quantPalpites: true },
     });
-
-  // Credita comissão de indicação (assíncrono, não bloqueia resposta)
-  creditarComissaoPalpite(pagamento.usuarioId, Number(pagamento.valor))
-    .catch(e => console.error('[IND] comissão:', e.message));
 
     if (!pagamento) return res.status(404).json({ error: 'Pagamento não encontrado.' });
 
@@ -281,13 +386,50 @@ async function meusPagamentos(req, res) {
       where:   { usuarioId: req.user.id },
       orderBy: { criadoEm: 'desc' },
       select: {
-        id: true, valor: true, status: true,
+        id: true, valor: true, status: true, palpiteIds: true,
         criadoEm: true, pagoEm: true, expiresAt: true,
         campanha: { select: { nome: true, fase: true } },
       },
     });
-    return res.json(pagamentos);
-  } catch {
+
+    // Para cada pagamento, busca os palpites reais com nomes das seleções
+    const resultado = await Promise.all(pagamentos.map(async (pag) => {
+      let palpiteIds = [];
+      try { palpiteIds = JSON.parse(pag.palpiteIds || '[]'); } catch {}
+
+      const fase = pag.campanha?.fase;
+
+      let palpites = [];
+      if (fase === 3) {
+        palpites = await prisma.palpitePartida.findMany({
+          where: { id: { in: palpiteIds } },
+          select: {
+            id: true, resultado: true, pagamentoConfirmado: true, acertou: true,
+            partida: {
+              select: {
+                selecaoCasa: { select: { nome: true, bandeiraCss: true } },
+                selecaoFora: { select: { nome: true, bandeiraCss: true } },
+              },
+            },
+          },
+        });
+      } else {
+        palpites = await prisma.palpiteCampanha.findMany({
+          where: { id: { in: palpiteIds } },
+          select: {
+            id: true, valorPago: true, pagamentoConfirmado: true, acertou: true,
+            selecaoCampea: { select: { nome: true, bandeiraCss: true } },
+            selecaoVice:   { select: { nome: true, bandeiraCss: true } },
+          },
+        });
+      }
+
+      return { ...pag, palpites };
+    }));
+
+    return res.json(resultado);
+  } catch (err) {
+    console.error('[meusPagamentos]', err);
     return res.status(500).json({ error: 'Erro ao buscar pagamentos.' });
   }
 }
@@ -311,4 +453,34 @@ function validarAssinaturaMP(assinatura, requestId, body, secret) {
   }
 }
 
-module.exports = { iniciarPagamento, webhook, consultarStatus, meusPagamentos };
+// ────────────────────────────────────────────────────────────────
+//  POST /api/pagamentos/:id/reenviar-whatsapp
+//  Reenvia a mensagem de confirmação do palpite via WhatsApp
+//  (botão "Reenviar confirmação" em Meus Palpites)
+// ────────────────────────────────────────────────────────────────
+async function reenviarConfirmacao(req, res) {
+  const { id } = req.params;
+  try {
+    const pagamento = await prisma.pagamento.findFirst({
+      where:  { id: Number(id), usuarioId: req.user.id },
+      select: { id: true, status: true },
+    });
+
+    if (!pagamento) return res.status(404).json({ error: 'Pagamento não encontrado.' });
+    if (pagamento.status !== 'APROVADO') {
+      return res.status(400).json({ error: 'Este pagamento ainda não foi confirmado.' });
+    }
+
+    const result = await notif.notificarPalpiteConfirmado(pagamento.id);
+    if (!result?.ok) {
+      return res.status(502).json({ error: 'Não foi possível enviar pelo WhatsApp agora. Tente novamente em alguns minutos.' });
+    }
+
+    return res.json({ mensagem: 'Confirmação reenviada para o seu WhatsApp! ✅' });
+  } catch (err) {
+    console.error('[PIX] Erro ao reenviar confirmação:', err.message);
+    return res.status(500).json({ error: 'Erro ao reenviar confirmação.' });
+  }
+}
+
+module.exports = { iniciarPagamento, webhook, consultarStatus, meusPagamentos, reenviarConfirmacao };
