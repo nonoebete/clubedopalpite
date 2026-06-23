@@ -3,8 +3,9 @@ const router = require('express').Router();
 const ctrl   = require('../controllers/palpite.controller');
 const { autenticar } = require('../middleware/auth.middleware');
 
-router.post('/',        autenticar, ctrl.registrar);
-router.get('/meus',     autenticar, ctrl.meusPalpites);
-router.get('/ranking',  ctrl.ranking); // público
+router.post('/',                    autenticar, ctrl.registrar);
+router.get('/meus',                 autenticar, ctrl.meusPalpites);
+router.get('/ranking',              ctrl.ranking);          // público
+router.get('/ranking-selecoes',     ctrl.rankingSelecoes);  // público
 
 module.exports = router;
