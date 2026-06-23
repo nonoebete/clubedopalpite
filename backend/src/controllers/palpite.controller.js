@@ -170,36 +170,89 @@ async function rankingPorFase(req, res) {
   try {
     const fase = req.query.fase ? Number(req.query.fase) : null;
 
-    // Busca palpites confirmados agrupados por usuário
-    const where = { pagamentoConfirmado: true };
-    if (fase && fase !== 0) {
-      const campanha = await prisma.campanha.findFirst({ where: { fase } });
-      if (campanha) where.campanhaId = campanha.id;
+    let resultado = [];
+
+    if (fase === 3) {
+      // ── 3ª Fase: usa tabela palpitesPartida ──────────────────
+      const dados = await prisma.palpitePartida.groupBy({
+        by: ['usuarioId'],
+        where: { pagamentoConfirmado: true },
+        _count: { id: true },
+        orderBy: { _count: { id: 'desc' } },
+        take: 20,
+      });
+      const ids = dados.map(d => d.usuarioId);
+      const usuarios = await prisma.usuario.findMany({
+        where: { id: { in: ids } },
+        select: { id: true, apelido: true, codigoCdp: true },
+      });
+      const mapaUsu = Object.fromEntries(usuarios.map(u => [u.id, u]));
+      resultado = dados.map((d, i) => ({
+        posicao:   i + 1,
+        apelido:   mapaUsu[d.usuarioId]?.apelido   || '—',
+        codigoCdp: mapaUsu[d.usuarioId]?.codigoCdp || '—',
+        palpites:  d._count.id,
+        investido: d._count.id * 10,
+      }));
+
+    } else {
+      // ── Fases 1, 2 ou Geral (0): usa palpitesCampanha ────────
+      const where = { pagamentoConfirmado: true };
+      if (fase && fase !== 0) {
+        const campanha = await prisma.campanha.findFirst({ where: { fase } });
+        if (campanha) where.campanhaId = campanha.id;
+      }
+
+      const dados = await prisma.palpiteCampanha.groupBy({
+        by: ['usuarioId'],
+        where,
+        _count: { id: true },
+        _sum:   { valorPago: true },
+        orderBy: { _count: { id: 'desc' } },
+        take: 20,
+      });
+
+      // Para o Geral (fase=0), soma também os palpitesPartida
+      let extraPorUsuario = {};
+      if (!fase || fase === 0) {
+        const extras = await prisma.palpitePartida.groupBy({
+          by: ['usuarioId'],
+          where: { pagamentoConfirmado: true },
+          _count: { id: true },
+        });
+        extraPorUsuario = Object.fromEntries(extras.map(e => [e.usuarioId, e._count.id]));
+      }
+
+      const ids = [...new Set([...dados.map(d => d.usuarioId), ...Object.keys(extraPorUsuario).map(Number)])];
+      const usuarios = await prisma.usuario.findMany({
+        where:  { id: { in: ids } },
+        select: { id: true, apelido: true, codigoCdp: true },
+      });
+      const mapaUsu = Object.fromEntries(usuarios.map(u => [u.id, u]));
+
+      // Mescla palpitesCampanha + palpitesPartida para o geral
+      const mergeMap = {};
+      dados.forEach(d => {
+        mergeMap[d.usuarioId] = {
+          palpites:  d._count.id + (extraPorUsuario[d.usuarioId] || 0),
+          investido: Number(d._sum.valorPago || 0) + (extraPorUsuario[d.usuarioId] || 0) * 10,
+        };
+      });
+      Object.entries(extraPorUsuario).forEach(([uid, cnt]) => {
+        if (!mergeMap[uid]) mergeMap[uid] = { palpites: cnt, investido: cnt * 10 };
+      });
+
+      resultado = Object.entries(mergeMap)
+        .map(([uid, v]) => ({
+          usuarioId: Number(uid),
+          ...v,
+          apelido:   mapaUsu[uid]?.apelido   || '—',
+          codigoCdp: mapaUsu[uid]?.codigoCdp || '—',
+        }))
+        .sort((a, b) => b.palpites - a.palpites)
+        .slice(0, 20)
+        .map((r, i) => ({ ...r, posicao: i + 1 }));
     }
-
-    const dados = await prisma.palpiteCampanha.groupBy({
-      by: ['usuarioId'],
-      where,
-      _count: { id: true },
-      _sum:   { valorPago: true },
-      orderBy: { _count: { id: 'desc' } },
-      take: 20,
-    });
-
-    const ids = dados.map(d => d.usuarioId);
-    const usuarios = await prisma.usuario.findMany({
-      where:  { id: { in: ids } },
-      select: { id: true, apelido: true, codigoCdp: true },
-    });
-    const mapaUsu = Object.fromEntries(usuarios.map(u => [u.id, u]));
-
-    const resultado = dados.map((d, i) => ({
-      posicao:   i + 1,
-      apelido:   mapaUsu[d.usuarioId]?.apelido    || '—',
-      codigoCdp: mapaUsu[d.usuarioId]?.codigoCdp  || '—',
-      palpites:  d._count.id,
-      investido: Number(d._sum.valorPago || 0),
-    }));
 
     return res.json(resultado);
   } catch (err) {
