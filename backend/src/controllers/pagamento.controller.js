@@ -125,17 +125,26 @@ async function iniciarPagamento(req, res) {
 // ────────────────────────────────────────────────────────────────
 async function webhook(req, res) {
   try {
-    // Validação da assinatura do Mercado Pago (segurança)
-    const assinatura = req.headers['x-signature']         || '';
-    const requestId  = req.headers['x-request-id']       || '';
-    const secret     = process.env.MP_WEBHOOK_SECRET      || '';
+    const assinatura = req.headers['x-signature']    || '';
+    const requestId  = req.headers['x-request-id']  || '';
+    const secret     = process.env.MP_WEBHOOK_SECRET || '';
 
-    if (secret && !validarAssinaturaMP(assinatura, requestId, req.body, secret)) {
-      console.warn('[WEBHOOK] Assinatura inválida recebida');
+    // O body chega como Buffer (raw) — parseia para objeto
+    let body;
+    try {
+      body = JSON.parse(req.body.toString());
+    } catch {
+      return res.status(400).json({ error: 'Body inválido.' });
+    }
+
+    console.log('[WEBHOOK] Recebido — type:', body.type, '| data.id:', body?.data?.id);
+
+    if (secret && !validarAssinaturaMP(assinatura, requestId, body, secret)) {
+      console.warn('[WEBHOOK] Assinatura inválida — signature:', assinatura.slice(0,40));
       return res.status(401).json({ error: 'Assinatura inválida.' });
     }
 
-    const { type, data } = req.body;
+    const { type, data } = body;
 
     // Só processa notificações de pagamento
     if (type !== 'payment') {
