@@ -165,4 +165,47 @@ async function rankingSelecoes(req, res) {
   }
 }
 
-module.exports = { registrar, meusPalpites, ranking, rankingSelecoes };
+// GET /api/palpites/ranking-por-fase?fase=1|2|3|0 — ranking por fase (público)
+async function rankingPorFase(req, res) {
+  try {
+    const fase = req.query.fase ? Number(req.query.fase) : null;
+
+    // Busca palpites confirmados agrupados por usuário
+    const where = { pagamentoConfirmado: true };
+    if (fase && fase !== 0) {
+      const campanha = await prisma.campanha.findFirst({ where: { fase } });
+      if (campanha) where.campanhaId = campanha.id;
+    }
+
+    const dados = await prisma.palpiteCampanha.groupBy({
+      by: ['usuarioId'],
+      where,
+      _count: { id: true },
+      _sum:   { valorPago: true },
+      orderBy: { _count: { id: 'desc' } },
+      take: 20,
+    });
+
+    const ids = dados.map(d => d.usuarioId);
+    const usuarios = await prisma.usuario.findMany({
+      where:  { id: { in: ids } },
+      select: { id: true, apelido: true, codigoCdp: true },
+    });
+    const mapaUsu = Object.fromEntries(usuarios.map(u => [u.id, u]));
+
+    const resultado = dados.map((d, i) => ({
+      posicao:   i + 1,
+      apelido:   mapaUsu[d.usuarioId]?.apelido    || '—',
+      codigoCdp: mapaUsu[d.usuarioId]?.codigoCdp  || '—',
+      palpites:  d._count.id,
+      investido: Number(d._sum.valorPago || 0),
+    }));
+
+    return res.json(resultado);
+  } catch (err) {
+    console.error('[rankingPorFase]', err);
+    return res.status(500).json({ error: 'Erro ao buscar ranking por fase.' });
+  }
+}
+
+module.exports = { registrar, meusPalpites, ranking, rankingSelecoes, rankingPorFase };
