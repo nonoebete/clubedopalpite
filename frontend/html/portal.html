@@ -360,22 +360,22 @@
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px">
         <div class="stat-card" style="border-top:2px solid var(--blue,#4a9eff)">
           <div class="stat-label">Saldo disponível</div>
-          <div class="stat-value" id="ind-kpi-saldo">R$ 28,50</div>
+          <div class="stat-value" id="ind-kpi-saldo">—</div>
           <div class="stat-sub">para resgatar ou usar</div>
         </div>
         <div class="stat-card" style="border-top:2px solid var(--gold)">
           <div class="stat-label">Total ganho</div>
-          <div class="stat-value" id="ind-kpi-ganho">R$ 43,00</div>
+          <div class="stat-value" id="ind-kpi-ganho">—</div>
           <div class="stat-sub">desde o início</div>
         </div>
         <div class="stat-card" style="border-top:2px solid #4a9eff">
           <div class="stat-label">Indicados</div>
-          <div class="stat-value" id="ind-kpi-ind">7</div>
+          <div class="stat-value" id="ind-kpi-ind">—</div>
           <div class="stat-sub">membros cadastrados</div>
         </div>
         <div class="stat-card" style="border-top:2px solid #1db954">
           <div class="stat-label">Comissões geradas</div>
-          <div class="stat-value" id="ind-kpi-com">R$ 38,00</div>
+          <div class="stat-value" id="ind-kpi-com">—</div>
           <div class="stat-sub">pelos palpites deles</div>
         </div>
       </div>
@@ -384,7 +384,7 @@
       <div class="card mt-24" style="padding:20px 22px">
         <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--gold);margin-bottom:8px">🔗 Seu link de indicação exclusivo</div>
         <div style="display:flex;align-items:center;gap:8px;background:var(--night,#07101d);border:1px solid var(--border2);border-radius:var(--r);padding:10px 14px;flex-wrap:wrap">
-          <span id="ind-link-url" style="flex:1;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">clubedopalpite.app.br/login.html?ref=CDP15</span>
+          <span id="ind-link-url" style="flex:1;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">clubedopalpite.app.br/login.html?ref=...</span>
           <button class="btn-nav-admin" style="font-size:12px;padding:7px 14px" onclick="indCopiarLink()">📋 Copiar link</button>
           <button class="btn-nav-admin" style="font-size:12px;padding:7px 14px" onclick="indAbrirQrCode()">📱 QR Code</button>
         </div>
@@ -570,7 +570,7 @@
       <button id="ind-tab-palp" onclick="indSetTab('palpite')" style="flex:1;padding:7px;border:none;background:transparent;color:var(--muted);font-size:13px;font-weight:600;border-radius:8px;cursor:pointer">⚽ Pagar palpites</button>
     </div>
     <div style="background:rgba(29,185,84,.08);border:1px solid rgba(29,185,84,.2);border-radius:var(--r);padding:10px 14px;margin-bottom:14px;font-size:13px">
-      Saldo disponível: <strong style="color:#1db954" id="ind-modal-saldo">R$ 28,50</strong>
+      Saldo disponível: <strong style="color:#1db954" id="ind-modal-saldo">—</strong>
     </div>
     <div id="ind-campos-pix">
       <div class="form-group"><label>Chave PIX</label><input type="text" id="ind-inp-pix" placeholder="CPF, e-mail, telefone ou chave aleatória"></div>
@@ -622,6 +622,11 @@ let USUARIO_LOGADO = null;
     } else if (elDesde) {
       elDesde.textContent = '—';
     }
+
+    // Preenche o link de indicação imediatamente com o CDP real
+    const cdp = usuario.codigoCdp || '';
+    const elLink = document.getElementById('ind-link-url');
+    if (elLink && cdp) elLink.textContent = `clubedopalpite.app.br/login.html?ref=${cdp}`;
   } catch (err) {
     console.error('[Usuário] erro ao carregar dados:', err);
     window.location.href = 'login.html';
@@ -1639,6 +1644,25 @@ async function meusPalpitesInit(forcar = false) {
 
 // Init
 renderSelecoes();
+
+// Carrega KPIs de indicação em background ao iniciar
+(async function carregarKpisIndicacao() {
+  try {
+    const r = await fetch(`${API_BASE}/indicacao/minha-conta`, { headers: authHeaders() });
+    if (!r.ok) return;
+    const data = await r.json();
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set('ind-kpi-saldo',  `R$ ${parseFloat(data.conta?.saldo || 0).toFixed(2)}`);
+    set('ind-kpi-ganho',  `R$ ${parseFloat(data.conta?.totalGanho || 0).toFixed(2)}`);
+    set('ind-kpi-ind',    (data.indicados || []).length);
+    set('ind-kpi-com',    `R$ ${parseFloat(data.totalComissoes || 0).toFixed(2)}`);
+    set('ind-modal-saldo',`R$ ${parseFloat(data.conta?.saldo || 0).toFixed(2)}`);
+    // Atualiza IND_SALDO para uso no resgate
+    IND_SALDO = parseFloat(data.conta?.saldo || 0);
+  } catch (err) {
+    console.error('[KPIs Indicação]', err);
+  }
+})();
 </script>
 </body>
 </html>
