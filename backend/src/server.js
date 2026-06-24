@@ -33,7 +33,7 @@ const PORT = process.env.PORT || 3333;
 app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
 
 // Webhook Mercado Pago exige body RAW antes do json()
-app.use('/api/pagamentos/webhook', express.raw({ type: 'application/json' }));
+app.use('/api/pagamentos/webhook', express.raw({ type: '*/*' }));
 app.use(express.json());
 
 // ── Health check ────────────────────────────────────────────────
@@ -45,12 +45,6 @@ app.get('/health', (_, res) => res.json({
   wpp:     process.env.EVOLUTION_API_KEY    ? '✅' : '⚠️ não configurado',
   uptime:  Math.floor(process.uptime()) + 's',
 }));
-
-// ── Webhook Evolution (público, sem autenticação) ──────────────
-const wctrl = require('./controllers/whatsapp.controller');
-app.post('/api/whatsapp/qrcode-webhook',   wctrl.qrcodeWebhook);
-app.post('/api/whatsapp/qrcode-webhook/*', wctrl.qrcodeWebhook);
-app.get('/api/whatsapp/qrcode-show',       wctrl.qrcodeShow);
 
 // ── Rotas principais ────────────────────────────────────────────
 app.use('/api/auth',       authRoutes);
