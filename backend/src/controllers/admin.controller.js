@@ -134,6 +134,7 @@ async function listarUsuarios(req, res) {
       select: {
         id: true, codigoCdp: true, nomeCompleto: true,
         apelido: true, telefone: true, perfil: true, bloqueado: true, criadoEm: true,
+        cep: true, endereco: true, bairro: true, cidade: true, estado: true,
         _count: { select: { palpites: true, pagamentos: true } },
       },
       orderBy: { id: 'asc' },
@@ -268,4 +269,87 @@ async function excluirUsuario(req, res) {
   }
 }
 
-module.exports = { apurar, financeiro, listarUsuarios, editarUsuario, alternarBloqueio, resetarSenha, excluirUsuario };
+module.exports = { apurar, financeiro, listarUsuarios, editarUsuario, alternarBloqueio, resetarSenha, excluirUsuario, listarTodosPalpites, excluirPalpite, confirmarPalpiteManual, reenviarPalpite };
+
+// ── GET /api/admin/palpites — Lista todos os palpites ───────────
+async function listarTodosPalpites(req, res) {
+  try {
+    const palpites = await prisma.palpiteCampanha.findMany({
+      orderBy: { criadoEm: 'desc' },
+      include: {
+        usuario:      { select: { id: true, codigoCdp: true, nomeCompleto: true, apelido: true, telefone: true } },
+        campanha:     { select: { nome: true, fase: true } },
+        selecaoCampea:{ select: { nome: true, bandeiraCss: true } },
+        selecaoVice:  { select: { nome: true, bandeiraCss: true } },
+      },
+    });
+    return res.json(palpites);
+  } catch (err) {
+    console.error('[Admin] listarTodosPalpites:', err);
+    return res.status(500).json({ error: 'Erro ao listar palpites.' });
+  }
+}
+
+// ── DELETE /api/admin/palpites/:id — Exclui palpite ────────────
+async function excluirPalpite(req, res) {
+  const { id } = req.params;
+  try {
+    const p = await prisma.palpiteCampanha.findUnique({ where: { id: Number(id) } });
+    if (!p) return res.status(404).json({ error: 'Palpite não encontrado.' });
+    if (p.pagamentoConfirmado) {
+      return res.status(400).json({ error: 'Não é possível excluir palpites com pagamento confirmado.' });
+    }
+    await prisma.palpiteCampanha.delete({ where: { id: Number(id) } });
+    return res.json({ mensagem: `Palpite #${id} excluído com sucesso.` });
+  } catch (err) {
+    console.error('[Admin] excluirPalpite:', err);
+    return res.status(500).json({ error: 'Erro ao excluir palpite.' });
+  }
+}
+
+// ── PATCH /api/admin/palpites/:id/confirmar — Confirma pagamento ─
+async function confirmarPalpiteManual(req, res) {
+  const { id } = req.params;
+  try {
+    const p = await prisma.palpiteCampanha.findUnique({ where: { id: Number(id) } });
+    if (!p) return res.status(404).json({ error: 'Palpite não encontrado.' });
+    if (p.pagamentoConfirmado) return res.status(400).json({ error: 'Pagamento já confirmado.' });
+
+    await prisma.palpiteCampanha.update({
+      where: { id: Number(id) },
+      data:  { pagamentoConfirmado: true },
+    });
+    return res.json({ mensagem: `Pagamento do palpite #${id} confirmado manualmente.` });
+  } catch (err) {
+    console.error('[Admin] confirmarPalpiteManual:', err);
+    return res.status(500).json({ error: 'Erro ao confirmar pagamento.' });
+  }
+}
+
+// ── POST /api/admin/palpites/:id/reenviar — Reenvia WhatsApp ────
+async function reenviarPalpite(req, res) {
+  const { id } = req.params;
+  try {
+    const p = await prisma.palpiteCampanha.findUnique({
+      where:   { id: Number(id) },
+      include: { usuario: { select: { telefone: true, nomeCompleto: true, codigoCdp: true } } },
+    });
+    if (!p) return res.status(404).json({ error: 'Palpite não encontrado.' });
+    if (!p.pagamentoConfirmado) return res.status(400).json({ error: 'Pagamento ainda não confirmado.' });
+
+    // Reutiliza o serviço de notificação existente
+    const notif = require('../services/notificacao.service');
+    // Busca o pagamento mais recente deste usuário para reenviar
+    const pagamento = await prisma.pagamento.findFirst({
+      where:   { usuarioId: p.usuarioId, status: 'APROVADO' },
+      orderBy: { criadoEm: 'desc' },
+    });
+    if (pagamento) {
+      await notif.notificarPalpiteConfirmado(pagamento.id);
+    }
+    return res.json({ mensagem: 'Confirmação reenviada via WhatsApp.' });
+  } catch (err) {
+    console.error('[Admin] reenviarPalpite:', err);
+    return res.status(500).json({ error: 'Erro ao reenviar.' });
+  }
+}
