@@ -108,6 +108,7 @@ async function financeiro(req, res) {
         const lucroClube  = total * (Number(c.percClube)  / 100);
 
         return {
+          id:                 c.id,
           campanha:           c.nome,
           fase:               c.fase,
           ativa:              c.ativa,
@@ -134,6 +135,7 @@ async function listarUsuarios(req, res) {
       select: {
         id: true, codigoCdp: true, nomeCompleto: true,
         apelido: true, telefone: true, perfil: true, bloqueado: true, criadoEm: true,
+        cep: true, endereco: true, bairro: true, cidade: true, estado: true,
         _count: { select: { palpites: true, pagamentos: true } },
       },
       orderBy: { id: 'asc' },
