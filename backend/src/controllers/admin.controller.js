@@ -14,68 +14,53 @@ async function apurar(req, res) {
     const campanha = await prisma.campanha.findUnique({ where: { id: Number(campanhaId) } });
     if (!campanha) return res.status(404).json({ error: 'Campanha não encontrada.' });
 
-    // Busca todos os palpites desta campanha
     const todosPalpites = await prisma.palpiteCampanha.findMany({
-      where: { campanhaId: campanha.id },
+      where: { campanhaId: campanha.id, pagamentoConfirmado: true },
+      include: {
+        usuario: { select: { id: true, codigoCdp: true, nomeCompleto: true, telefone: true } },
+      },
     });
 
     if (todosPalpites.length === 0) {
       return res.status(400).json({ error: 'Nenhum palpite registrado nesta campanha.' });
     }
 
-    // Identifica acertadores
+    // Identifica acertadores (SEM salvar no banco ainda)
     const acertadores = todosPalpites.filter(p => {
       if (campanha.tipo === 'CAMPEA') {
         return p.selecaoCampeaId === Number(selecaoCampeaId);
       }
-      // CAMPEA_VICE: ordem importa
       return (
         p.selecaoCampeaId === Number(selecaoCampeaId) &&
         p.selecaoViceId   === Number(selecaoViceId)
       );
     });
 
-    // Cálculo financeiro
-    const totalArrecadado = todosPalpites.reduce((s, p) => s + Number(p.valorPago), 0);
-    const fundoPremio     = totalArrecadado * (Number(campanha.percPremio) / 100);
-    const lucroClube      = totalArrecadado * (Number(campanha.percClube)  / 100);
-    const premioPorAcertador = acertadores.length > 0
-      ? fundoPremio / acertadores.length
-      : 0;
+    const totalArrecadado    = todosPalpites.reduce((s, p) => s + Number(p.valorPago), 0);
+    const fundoPremio        = totalArrecadado * (Number(campanha.percPremio) / 100);
+    const lucroClube         = totalArrecadado * (Number(campanha.percClube)  / 100);
+    const premioPorAcertador = acertadores.length > 0 ? fundoPremio / acertadores.length : 0;
 
-    // Atualiza todos os palpites: acertou true/false + prêmio
-    await prisma.$transaction([
-      // Marca erros
-      prisma.palpiteCampanha.updateMany({
-        where: {
-          campanhaId: campanha.id,
-          id: { notIn: acertadores.map(a => a.id) },
-        },
-        data: { acertou: false, premioRecebido: 0 },
-      }),
-      // Marca acertos com prêmio
-      ...acertadores.map(a =>
-        prisma.palpiteCampanha.update({
-          where: { id: a.id },
-          data:  { acertou: true, premioRecebido: premioPorAcertador },
-        })
-      ),
-      // Encerra a campanha
-      prisma.campanha.update({
-        where: { id: campanha.id },
-        data:  { ativa: false },
-      }),
-    ]);
-
+    // Retorna resultado SEM salvar — admin decide se confirma
     return res.json({
-      mensagem:            'Campanha apurada com sucesso!',
+      mensagem:            'Apuração calculada! Confirme os dados antes de encerrar.',
       campanha:            campanha.nome,
+      campanhaId:          campanha.id,
+      selecaoCampeaId:     Number(selecaoCampeaId),
+      selecaoViceId:       selecaoViceId ? Number(selecaoViceId) : null,
       totalPalpites:       todosPalpites.length,
       totalArrecadado:     `R$ ${totalArrecadado.toFixed(2)}`,
       lucroClube:          `R$ ${lucroClube.toFixed(2)}`,
       fundoPremio:         `R$ ${fundoPremio.toFixed(2)}`,
       qtdAcertadores:      acertadores.length,
       premioPorAcertador:  `R$ ${premioPorAcertador.toFixed(2)}`,
+      acertadores: acertadores.map(a => ({
+        palpiteId:    a.id,
+        codigoCdp:    a.usuario?.codigoCdp || '—',
+        nomeCompleto: a.usuario?.nomeCompleto || '—',
+        telefone:     a.usuario?.telefone || '—',
+        premio:       `R$ ${premioPorAcertador.toFixed(2)}`,
+      })),
     });
 
   } catch (err) {
@@ -108,6 +93,7 @@ async function financeiro(req, res) {
         const lucroClube  = total * (Number(c.percClube)  / 100);
 
         return {
+          id:                 c.id,
           campanha:           c.nome,
           fase:               c.fase,
           ativa:              c.ativa,
@@ -134,7 +120,6 @@ async function listarUsuarios(req, res) {
       select: {
         id: true, codigoCdp: true, nomeCompleto: true,
         apelido: true, telefone: true, perfil: true, bloqueado: true, criadoEm: true,
-        cep: true, endereco: true, bairro: true, cidade: true, estado: true,
         _count: { select: { palpites: true, pagamentos: true } },
       },
       orderBy: { id: 'asc' },
@@ -269,7 +254,58 @@ async function excluirUsuario(req, res) {
   }
 }
 
-module.exports = { apurar, financeiro, listarUsuarios, editarUsuario, alternarBloqueio, resetarSenha, excluirUsuario, listarTodosPalpites, excluirPalpite, confirmarPalpiteManual, reenviarPalpite };
+// ── POST /api/admin/campanhas/:id/encerrar — Confirma apuração e encerra ──
+async function encerrarCampanha(req, res) {
+  const { id } = req.params;
+  const { selecaoCampeaId, selecaoViceId } = req.body;
+
+  try {
+    const campanha = await prisma.campanha.findUnique({ where: { id: Number(id) } });
+    if (!campanha) return res.status(404).json({ error: 'Campanha não encontrada.' });
+
+    const todosPalpites = await prisma.palpiteCampanha.findMany({
+      where: { campanhaId: Number(id), pagamentoConfirmado: true },
+    });
+
+    const acertadores = todosPalpites.filter(p => {
+      if (campanha.tipo === 'CAMPEA') return p.selecaoCampeaId === Number(selecaoCampeaId);
+      return p.selecaoCampeaId === Number(selecaoCampeaId) && p.selecaoViceId === Number(selecaoViceId);
+    });
+
+    const totalArrecadado    = todosPalpites.reduce((s, p) => s + Number(p.valorPago), 0);
+    const fundoPremio        = totalArrecadado * (Number(campanha.percPremio) / 100);
+    const premioPorAcertador = acertadores.length > 0 ? fundoPremio / acertadores.length : 0;
+
+    // Agora sim salva no banco e encerra a campanha
+    await prisma.$transaction([
+      prisma.palpiteCampanha.updateMany({
+        where: { campanhaId: Number(id), id: { notIn: acertadores.map(a => a.id) } },
+        data:  { acertou: false, premioRecebido: 0 },
+      }),
+      ...acertadores.map(a =>
+        prisma.palpiteCampanha.update({
+          where: { id: a.id },
+          data:  { acertou: true, premioRecebido: premioPorAcertador },
+        })
+      ),
+      prisma.campanha.update({
+        where: { id: Number(id) },
+        data:  { ativa: false },
+      }),
+    ]);
+
+    return res.json({
+      mensagem: `Campanha "${campanha.nome}" encerrada e prêmios distribuídos!`,
+      qtdAcertadores: acertadores.length,
+      premioPorAcertador: `R$ ${premioPorAcertador.toFixed(2)}`,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'Erro ao encerrar campanha.' });
+  }
+}
+
+module.exports = { apurar, financeiro, listarUsuarios, editarUsuario, alternarBloqueio, resetarSenha, excluirUsuario, listarTodosPalpites, excluirPalpite, confirmarPalpiteManual, reenviarPalpite, encerrarCampanha };
 
 // ── GET /api/admin/palpites — Lista todos os palpites ───────────
 async function listarTodosPalpites(req, res) {
