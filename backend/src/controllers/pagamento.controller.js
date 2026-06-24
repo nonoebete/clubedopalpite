@@ -213,10 +213,16 @@ async function webhook(req, res) {
     const requestId  = req.headers['x-request-id']  || '';
     const secret     = process.env.MP_WEBHOOK_SECRET || '';
 
-    // O body chega como Buffer (raw) — parseia para objeto
+    // O body pode chegar como Buffer (raw) ou objeto (json) dependendo do Content-Type
     let body;
     try {
-      body = JSON.parse(req.body.toString());
+      if (Buffer.isBuffer(req.body)) {
+        body = JSON.parse(req.body.toString());
+      } else if (typeof req.body === 'string') {
+        body = JSON.parse(req.body);
+      } else {
+        body = req.body;
+      }
     } catch {
       return res.status(400).json({ error: 'Body inválido.' });
     }
