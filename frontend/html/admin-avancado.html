@@ -1864,33 +1864,44 @@ function showSec(id, navEl) {
 document.getElementById('rel-data').textContent = 'Gerado em: '+new Date().toLocaleString('pt-BR');
 
 // ── Administrar Indicadores ──────────────────────────────────────
-const IND_ADM_INDICADORES = [
-  {cdp:'CDP1', ap:'Mariazinha',tel:'(48) 99000-0001',ind:12,ganho:'R$ 48,00',saldo:'R$ 23,50'},
-  {cdp:'CDP3', ap:'Aninha',    tel:'(48) 99000-0003',ind:9, ganho:'R$ 36,00',saldo:'R$ 11,00'},
-  {cdp:'CDP15',ap:'Joãozinho', tel:'(48) 99999-0000',ind:7, ganho:'R$ 38,00',saldo:'R$ 28,50'},
-  {cdp:'CDP4', ap:'Carlão',    tel:'(48) 99000-0004',ind:5, ganho:'R$ 22,00',saldo:'R$ 7,00'},
-  {cdp:'CDP7', ap:'Paulinha',  tel:'(48) 99000-0007',ind:4, ganho:'R$ 18,00',saldo:'R$ 18,00'},
-];
-const IND_ADM_RESGATES_ALL = [
-  {id:1,cdp:'CDP1', ap:'Mariazinha',tipo:'PIX',    val:'R$ 14,50',pix:'(48) 99000-0001',data:'10/06/2026',status:'PENDENTE'},
-  {id:2,cdp:'CDP3', ap:'Aninha',    tipo:'PALPITE',val:'R$ 10,00',pix:'—',              data:'09/06/2026',status:'PENDENTE'},
-  {id:3,cdp:'CDP15',ap:'Joãozinho', tipo:'PIX',    val:'R$ 14,50',pix:'(48) 99999-0000',data:'07/06/2026',status:'PAGO'},
-  {id:4,cdp:'CDP7', ap:'Paulinha',  tipo:'PIX',    val:'R$ 18,00',pix:'paulinha@email.com',data:'06/06/2026',status:'PENDENTE'},
-  {id:5,cdp:'CDP4', ap:'Carlão',    tipo:'PALPITE',val:'R$ 7,00', pix:'—',              data:'05/06/2026',status:'REJEITADO'},
-];
 let indAdmJaInit = false;
 let indAdmFiltroRes = 'PENDENTE';
 let indAdmAtivoConfig = true;
+let IND_ADM_RESGATES_CACHE = [];
+let IND_ADM_INDICADORES_CACHE = [];
 
-function indAdmInit() {
+async function indAdmInit() {
   if (indAdmJaInit) return;
   indAdmJaInit = true;
-  indAdmRenderIndicadores();
-  indAdmRenderResgates();
+  await Promise.all([indAdmCarregarIndicadores(), indAdmCarregarResgates()]);
   indAdmAtualizarSim();
   document.getElementById('ind-cfg-pct').addEventListener('input', indAdmAtualizarSim);
   document.getElementById('ind-cfg-marco-qtd').addEventListener('input', indAdmAtualizarSim);
   document.getElementById('ind-cfg-marco-val').addEventListener('input', indAdmAtualizarSim);
+}
+
+async function indAdmCarregarIndicadores() {
+  try {
+    const r = await fetch(`${API_BASE}/indicacao/admin/indicadores`, { headers: authHeadersAdmin() });
+    if (!r.ok) throw new Error();
+    IND_ADM_INDICADORES_CACHE = await r.json();
+    indAdmRenderIndicadores();
+  } catch {
+    document.getElementById('ind-adm-tbody').innerHTML =
+      '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted)">Erro ao carregar indicadores.</td></tr>';
+  }
+}
+
+async function indAdmCarregarResgates() {
+  try {
+    const r = await fetch(`${API_BASE}/indicacao/admin/resgates`, { headers: authHeadersAdmin() });
+    if (!r.ok) throw new Error();
+    IND_ADM_RESGATES_CACHE = await r.json();
+    indAdmRenderResgates();
+  } catch {
+    document.getElementById('ind-adm-res-tbody').innerHTML =
+      '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted)">Erro ao carregar resgates.</td></tr>';
+  }
 }
 
 function indAdmSetSec(id, btn) {
@@ -1899,19 +1910,25 @@ function indAdmSetSec(id, btn) {
   document.querySelectorAll('.ind-stab').forEach(b => { b.style.background='transparent'; b.style.color='var(--muted)'; });
   btn.style.background = 'rgba(240,165,0,.12)';
   btn.style.color = 'var(--gold)';
-  if (id === 'indicadores') indAdmRenderIndicadores();
-  if (id === 'resgates') indAdmRenderResgates();
+  if (id === 'indicadores') indAdmCarregarIndicadores();
+  if (id === 'resgates') indAdmCarregarResgates();
 }
 
 function indAdmRenderIndicadores() {
-  document.getElementById('ind-adm-tbody').innerHTML = IND_ADM_INDICADORES.map(i => `
+  const lista = IND_ADM_INDICADORES_CACHE;
+  if (!lista.length) {
+    document.getElementById('ind-adm-tbody').innerHTML =
+      '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted)">Nenhum indicador cadastrado ainda.</td></tr>';
+    return;
+  }
+  document.getElementById('ind-adm-tbody').innerHTML = lista.map(i => `
     <tr>
-      <td style="padding:10px 14px;border-bottom:1px solid var(--border)"><span class="badge badge-gold">${i.cdp}</span></td>
-      <td style="padding:10px 14px;border-bottom:1px solid var(--border);font-weight:500">${i.ap}</td>
-      <td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--muted)">${i.tel}</td>
-      <td style="padding:10px 14px;border-bottom:1px solid var(--border);text-align:center">${i.ind}</td>
-      <td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--gold)">${i.ganho}</td>
-      <td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--green)">${i.saldo}</td>
+      <td style="padding:10px 14px;border-bottom:1px solid var(--border)"><span class="badge badge-gold">${i.codigoCdp || i.cdp || '—'}</span></td>
+      <td style="padding:10px 14px;border-bottom:1px solid var(--border);font-weight:500">${i.apelido || i.ap || '—'}</td>
+      <td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--muted)">${i.telefone || i.tel || '—'}</td>
+      <td style="padding:10px 14px;border-bottom:1px solid var(--border);text-align:center">${i.totalIndicados ?? i.ind ?? 0}</td>
+      <td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--gold)">R$ ${parseFloat(i.totalGanho || i.ganho?.replace('R$ ','') || 0).toFixed(2)}</td>
+      <td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--green)">R$ ${parseFloat(i.saldo || 0).toFixed(2)}</td>
     </tr>`).join('');
 }
 
@@ -1927,34 +1944,70 @@ function indAdmFiltrarRes(f, btn) {
 }
 
 function indAdmRenderResgates() {
-  const lista = indAdmFiltroRes === 'todos' ? IND_ADM_RESGATES_ALL : IND_ADM_RESGATES_ALL.filter(r => r.status === indAdmFiltroRes);
-  const statusMap = { PENDENTE:'badge-gold', PAGO:'badge-green', REJEITADO:'badge-red' };
-  document.getElementById('ind-adm-res-tbody').innerHTML = lista.map(r => `
+  const lista = indAdmFiltroRes === 'todos'
+    ? IND_ADM_RESGATES_CACHE
+    : IND_ADM_RESGATES_CACHE.filter(r => r.status === indAdmFiltroRes);
+  const statusMap = { PENDENTE:'badge-gold', PAGO:'badge-green', APROVADO:'badge-green', REJEITADO:'badge-red', CANCELADO:'badge-red' };
+
+  if (!lista.length) {
+    document.getElementById('ind-adm-res-tbody').innerHTML =
+      '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted)">Nenhum resgate encontrado.</td></tr>';
+    return;
+  }
+
+  document.getElementById('ind-adm-res-tbody').innerHTML = lista.map(r => {
+    const status = r.status || 'PENDENTE';
+    const data = r.criadoEm ? new Date(r.criadoEm).toLocaleDateString('pt-BR') : r.data || '—';
+    const valor = r.valor ? `R$ ${parseFloat(r.valor).toFixed(2)}` : r.val || '—';
+    const chave = r.chavePix || r.pix || '—';
+    const tipo  = r.tipo || 'PIX';
+    const cdp   = r.usuario?.codigoCdp || r.cdp || '—';
+    const ap    = r.usuario?.apelido   || r.ap  || '—';
+    return `
     <tr>
-      <td style="padding:10px 14px;border-bottom:1px solid var(--border)"><span class="badge badge-gold">${r.cdp}</span></td>
-      <td style="padding:10px 14px;border-bottom:1px solid var(--border);font-weight:500">${r.ap}</td>
-      <td style="padding:10px 14px;border-bottom:1px solid var(--border)"><span class="badge badge-blue">${r.tipo}</span></td>
-      <td style="padding:10px 14px;border-bottom:1px solid var(--border);font-weight:500">${r.val}</td>
-      <td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--muted);font-size:11px">${r.pix}</td>
-      <td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--muted)">${r.data}</td>
-      <td style="padding:10px 14px;border-bottom:1px solid var(--border)"><span class="badge ${statusMap[r.status]}">${r.status}</span></td>
+      <td style="padding:10px 14px;border-bottom:1px solid var(--border)"><span class="badge badge-gold">${cdp}</span></td>
+      <td style="padding:10px 14px;border-bottom:1px solid var(--border);font-weight:500">${ap}</td>
+      <td style="padding:10px 14px;border-bottom:1px solid var(--border)"><span class="badge badge-blue">${tipo}</span></td>
+      <td style="padding:10px 14px;border-bottom:1px solid var(--border);font-weight:500">${valor}</td>
+      <td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--muted);font-size:11px">${chave}</td>
+      <td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--muted)">${data}</td>
+      <td style="padding:10px 14px;border-bottom:1px solid var(--border)"><span class="badge ${statusMap[status]||'badge-muted'}">${status}</span></td>
       <td style="padding:10px 14px;border-bottom:1px solid var(--border)">
-        ${r.status === 'PENDENTE' ? `
+        ${status === 'PENDENTE' ? `
         <div style="display:flex;gap:4px">
           <button style="background:rgba(29,185,84,.15);border:1px solid rgba(29,185,84,.3);color:var(--green);font-size:11px;padding:4px 8px;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif" onclick="indAdmAprovarResgate(${r.id})">✅ Pagar</button>
           <button style="background:rgba(224,82,82,.12);border:1px solid rgba(224,82,82,.3);color:var(--red);font-size:11px;padding:4px 8px;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif" onclick="indAdmRejeitarResgate(${r.id})">✕</button>
         </div>` : '—'}
       </td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 }
 
-function indAdmAprovarResgate(id) {
-  const r = IND_ADM_RESGATES_ALL.find(x => x.id === id);
-  if (r) { r.status = 'PAGO'; indAdmRenderResgates(); showToast(`✅ Resgate de ${r.ap} (${r.val}) marcado como pago!`); }
+async function indAdmAprovarResgate(id) {
+  try {
+    const r = await fetch(`${API_BASE}/indicacao/admin/resgates/${id}`, {
+      method: 'PATCH', headers: authHeadersAdmin(),
+      body: JSON.stringify({ status: 'APROVADO' }),
+    });
+    const data = await r.json();
+    if (!r.ok) { showToast(`❌ ${data.error || 'Erro ao aprovar.'}`); return; }
+    showToast(`✅ Resgate aprovado!`);
+    indAdmJaInit = false;
+    await indAdmCarregarResgates();
+  } catch { showToast('❌ Erro ao conectar.'); }
 }
-function indAdmRejeitarResgate(id) {
-  const r = IND_ADM_RESGATES_ALL.find(x => x.id === id);
-  if (r) { r.status = 'REJEITADO'; indAdmRenderResgates(); showToast(`❌ Resgate de ${r.ap} rejeitado. Saldo estornado.`); }
+
+async function indAdmRejeitarResgate(id) {
+  try {
+    const r = await fetch(`${API_BASE}/indicacao/admin/resgates/${id}`, {
+      method: 'PATCH', headers: authHeadersAdmin(),
+      body: JSON.stringify({ status: 'REJEITADO' }),
+    });
+    const data = await r.json();
+    if (!r.ok) { showToast(`❌ ${data.error || 'Erro ao rejeitar.'}`); return; }
+    showToast(`❌ Resgate rejeitado.`);
+    await indAdmCarregarResgates();
+  } catch { showToast('❌ Erro ao conectar.'); }
 }
 
 function indAdmToggleAtivo() {
