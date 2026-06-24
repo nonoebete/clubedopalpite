@@ -44,6 +44,7 @@ async function apurar(req, res) {
       : 0;
 
     // Atualiza todos os palpites: acertou true/false + prêmio
+    // ⚠️ NÃO encerra a campanha automaticamente — admin decide quando encerrar
     await prisma.$transaction([
       // Marca erros
       prisma.palpiteCampanha.updateMany({
@@ -60,16 +61,12 @@ async function apurar(req, res) {
           data:  { acertou: true, premioRecebido: premioPorAcertador },
         })
       ),
-      // Encerra a campanha
-      prisma.campanha.update({
-        where: { id: campanha.id },
-        data:  { ativa: false },
-      }),
     ]);
 
     return res.json({
       mensagem:            'Campanha apurada com sucesso!',
       campanha:            campanha.nome,
+      campanhaId:          campanha.id,
       totalPalpites:       todosPalpites.length,
       totalArrecadado:     `R$ ${totalArrecadado.toFixed(2)}`,
       lucroClube:          `R$ ${lucroClube.toFixed(2)}`,
@@ -270,7 +267,21 @@ async function excluirUsuario(req, res) {
   }
 }
 
-module.exports = { apurar, financeiro, listarUsuarios, editarUsuario, alternarBloqueio, resetarSenha, excluirUsuario, listarTodosPalpites, excluirPalpite, confirmarPalpiteManual, reenviarPalpite };
+// ── POST /api/admin/campanhas/:id/encerrar — Encerra campanha ──
+async function encerrarCampanha(req, res) {
+  const { id } = req.params;
+  try {
+    const campanha = await prisma.campanha.findUnique({ where: { id: Number(id) } });
+    if (!campanha) return res.status(404).json({ error: 'Campanha não encontrada.' });
+    await prisma.campanha.update({ where: { id: Number(id) }, data: { ativa: false } });
+    return res.json({ mensagem: `Campanha "${campanha.nome}" encerrada com sucesso.` });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'Erro ao encerrar campanha.' });
+  }
+}
+
+module.exports = { apurar, financeiro, listarUsuarios, editarUsuario, alternarBloqueio, resetarSenha, excluirUsuario, listarTodosPalpites, excluirPalpite, confirmarPalpiteManual, reenviarPalpite, encerrarCampanha };
 
 // ── GET /api/admin/palpites — Lista todos os palpites ───────────
 async function listarTodosPalpites(req, res) {
