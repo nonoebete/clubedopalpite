@@ -162,6 +162,9 @@
     <div class="sidebar-item" onclick="showSection('senha')">
       <span class="icon">🔒</span> <span class="label">Trocar Senha</span>
     </div>
+    <div class="sidebar-item" onclick="abrirFaleConosco()" style="color:#25D366">
+      <span class="icon">📲</span> <span class="label">Fale Conosco</span>
+    </div>
     <div style="flex:1"></div>
     <a href="login.html" class="sidebar-item" style="color:#ff8080">
       <span class="icon">↩</span> <span class="label">Sair do Sistema</span>
@@ -1622,8 +1625,17 @@ async function meusPalpitesInit(forcar = false) {
       const totalPremio = premiosGanhos.reduce((s, p) => s + p.premio, 0);
       const bannerEl = document.getElementById('meus-banner-premio');
       if (bannerEl) {
+        const u = USUARIO_LOGADO || obterUsuarioLogado();
+        const msg = encodeURIComponent(
+          `Olá! Sou o(a) ${u.nomeCompleto || u.apelido} (${u.codigoCdp}) e ganhei R$ ${totalPremio.toFixed(2)} em prêmios no Clube de Palpites. Gostaria de receber meu prêmio. Telefone: ${u.telefone || '—'}`
+        );
+        const wppUrl = `https://api.whatsapp.com/send?phone=5548991526161&text=${msg}`;
         bannerEl.style.display = 'block';
-        bannerEl.innerHTML = `🏆 Parabéns! Você ganhou <strong>R$ ${totalPremio.toFixed(2)}</strong> em prêmios! Entre em contato com o administrador para receber.`;
+        bannerEl.innerHTML = `
+          <div style="margin-bottom:10px">🏆 Parabéns! Você ganhou <strong>R$ ${totalPremio.toFixed(2)}</strong> em prêmios!</div>
+          <a href="${wppUrl}" target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:#25D366;color:#fff;border-radius:20px;padding:8px 20px;text-decoration:none;font-weight:600;font-size:13px">
+            📲 Falar com o Administrador para receber
+          </a>`;
       }
     } // compartilha com Meu Extrato
 
@@ -1640,6 +1652,15 @@ async function meusPalpitesInit(forcar = false) {
     console.error('[Meus Palpites]', err);
     container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Erro ao carregar palpites. Tente novamente.</div>';
   }
+}
+
+// ── Fale Conosco via WhatsApp ────────────────────────────────────
+function abrirFaleConosco() {
+  const u = USUARIO_LOGADO || obterUsuarioLogado();
+  const msg = encodeURIComponent(
+    `Olá! Sou membro do Clube de Palpites.\nNome: ${u.nomeCompleto || u.apelido || '—'}\nCDP: ${u.codigoCdp || '—'}\nTelefone: ${u.telefone || '—'}\n\nGostaria de falar com o administrador.`
+  );
+  window.open(`https://api.whatsapp.com/send?phone=5548991526161&text=${msg}`, '_blank');
 }
 
 // Init
