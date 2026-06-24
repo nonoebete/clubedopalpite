@@ -453,11 +453,11 @@ input[type=text]::placeholder{color:var(--muted)}
             <div style="max-height:340px;overflow-y:auto" id="lista-sel-f1"></div>
             <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:14px">
               <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted)">
-                <span>Total arrecadado 1ª fase</span><strong style="color:#dce8f5">R$ 1.640,00</strong>
+                <span>Total arrecadado 1ª fase</span><strong style="color:#dce8f5" id="ap-total-f1">—</strong>
               </div>
               <div class="rateio-visual" style="margin:10px 0 6px">
-                <div class="rv-clube" style="font-size:12px">40% · R$ 656</div>
-                <div class="rv-premio" style="font-size:12px">60% · R$ 984</div>
+                <div class="rv-clube" style="font-size:12px" id="ap-clube-f1">40% · —</div>
+                <div class="rv-premio" style="font-size:12px" id="ap-fundo-f1">60% · —</div>
               </div>
             </div>
             <button class="btn-export btn-export-primary" style="width:100%;padding:12px;font-size:14px;margin-top:4px" onclick="apurar('f1')">
@@ -500,6 +500,29 @@ input[type=text]::placeholder{color:var(--muted)}
                 <div><div style="font-size:11px;color:var(--muted)">Prêmio / acertador</div><div class="big-num" id="ap-premio-f2">—</div></div>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista de Ganhadores (aparece após apurar) -->
+      <div id="sec-ganhadores" style="display:none;margin-top:20px">
+        <div class="card" style="padding:0">
+          <div class="card-header" style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+            <span style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700" id="ganhadores-titulo">🏆 Ganhadores</span>
+            <button class="btn-export" onclick="exportCSV('ganhadores')">⬇ Exportar CSV</button>
+          </div>
+          <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse;font-size:13px">
+              <thead><tr>
+                <th style="text-align:left;padding:9px 16px;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Campanha</th>
+                <th style="text-align:left;padding:9px 16px;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">CDP</th>
+                <th style="text-align:left;padding:9px 16px;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Nome</th>
+                <th style="text-align:left;padding:9px 16px;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Telefone</th>
+                <th style="text-align:left;padding:9px 16px;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Prêmio</th>
+                <th style="text-align:left;padding:9px 16px;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Situação</th>
+              </tr></thead>
+              <tbody id="tbody-ganhadores"></tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -1023,10 +1046,14 @@ async function admCarregarDadosReais() {
     console.log('[Admin] financeiro:', financeiro.length, 'campanhas | usuarios:', usuarios.length);
 
     // ── KPIs do Painel Geral ─────────────────────────────────
-    // Declara f1/f2/f3 PRIMEIRO para uso em todos os blocos abaixo
-    const f1 = financeiro.find(c => c.fase === 1);
-    const f2 = financeiro.find(c => c.fase === 2);
-    const f3 = financeiro.find(c => c.fase === 3);
+    // Declara f1/f2/f3 — se houver mais de uma campanha por fase, pega a com mais palpites
+    const porFase = (fase) => financeiro
+      .filter(c => c.fase === fase)
+      .sort((a, b) => b.totalPalpites - a.totalPalpites)[0];
+
+    const f1 = porFase(1);
+    const f2 = porFase(2);
+    const f3 = porFase(3);
 
     // parseVal: a API retorna "R$ 40.00" (ponto decimal) — basta remover "R$ "
     const parseVal = str => parseFloat((str || 'R$ 0').replace('R$ ', '')) || 0;
@@ -1137,15 +1164,12 @@ async function admCarregarDadosReais() {
 
     // ── Rateio na seção Apurar (1ª fase) ────────────────────
     if (f1) {
-      const t1 = parseFloat(f1.totalArrecadado.replace('R$ ',''));
-      const l1 = parseFloat(f1.lucroClube.replace('R$ ',''));
-      const p1 = parseFloat(f1.fundoPremio.replace('R$ ',''));
-      const elApTotal = document.querySelector('#sec-apurar .rv-clube');
-      const elApPremio = document.querySelector('#sec-apurar .rv-premio');
-      const elApLabel  = document.querySelector('#sec-apurar .rateio-visual')?.previousElementSibling?.querySelector('strong');
-      if (elApLabel)  elApLabel.textContent  = `R$ ${t1.toFixed(2)}`;
-      if (elApTotal)  elApTotal.textContent  = `40% · R$ ${l1.toFixed(2)}`;
-      if (elApPremio) elApPremio.textContent = `60% · R$ ${p1.toFixed(2)}`;
+      const t1 = parseVal(f1.totalArrecadado);
+      const l1 = parseVal(f1.lucroClube);
+      const p1 = parseVal(f1.fundoPremio);
+      set('ap-total-f1', `R$ ${t1.toFixed(2)}`);
+      set('ap-clube-f1', `40% · R$ ${l1.toFixed(2)}`);
+      set('ap-fundo-f1', `60% · R$ ${p1.toFixed(2)}`);
     }
 
     // ── Tabela Resumo do Relatório ───────────────────────────
@@ -1794,16 +1818,112 @@ function pickSel(v,i){
 }
 function filtrarSelApuracao(v){ buildListaApuracao('lista-sel-'+v, v); }
 
-function apurar(fase) {
+async function confirmarEncerrarCampanha(campanhaId, nomeCampanha, selecaoCampeaId, selecaoViceId, btn) {
+  if (!confirm(`⚠️ Deseja encerrar definitivamente a campanha:\n\n"${nomeCampanha}"?\n\nEsta ação salvará os prêmios e impedirá novos palpites.`)) return;
+  try {
+    const r = await fetch(`${API_BASE}/admin/campanhas/${campanhaId}/encerrar`, {
+      method: 'POST', headers: authHeadersAdmin(),
+      body: JSON.stringify({ selecaoCampeaId, selecaoViceId }),
+    });
+    const data = await r.json();
+    if (!r.ok) { showToast(`❌ ${data.error}`); return; }
+    showToast(`🔒 ${data.mensagem}`);
+    btn.textContent = '🔒 Campanha encerrada';
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    btn.style.cursor = 'not-allowed';
+  } catch { showToast('❌ Erro ao encerrar campanha.'); }
+}
+
+let GANHADORES_CACHE = [];
+
+async function apurar(fase) {
   if (fase==='f1' && pickedF1===null) { showToast('⚠️ Selecione a seleção campeã primeiro!'); return; }
   if (fase==='f2' && (pickedF2c===null||pickedF2v===null)) { showToast('⚠️ Selecione campeã e vice!'); return; }
   if (fase==='f2' && pickedF2c===pickedF2v) { showToast('⚠️ Campeã e vice não podem ser iguais!'); return; }
-  const acert = Math.floor(Math.random()*8)+1;
-  const premio = fase==='f1' ? (984/acert).toFixed(2) : (468/acert).toFixed(2);
-  document.getElementById('ap-acert-'+fase).textContent = acert;
-  document.getElementById('ap-premio-'+fase).textContent = 'R$ '+Number(premio).toLocaleString('pt-BR');
-  document.getElementById('ok-'+fase).classList.add('show');
-  showToast('✅ Campanha apurada! '+acert+' acertador(es) · R$ '+Number(premio).toLocaleString('pt-BR')+' cada.');
+
+  // Pega os IDs reais das seleções escolhidas
+  const selCampea = SELECOES[fase==='f1' ? pickedF1 : pickedF2c];
+  const selVice   = fase==='f2' ? SELECOES[pickedF2v] : null;
+
+  // Busca o ID real da seleção no backend
+  const campanhaFase = fase==='f1' ? 1 : 2;
+
+  try {
+    // Busca campanhas — pega a com mais palpites para evitar pegar campanha vazia
+    const rCamp = await fetch(`${API_BASE}/admin/financeiro`, { headers: authHeadersAdmin() });
+    const campanhas = rCamp.ok ? await rCamp.json() : [];
+    const campanha = campanhas
+      .filter(c => c.fase === campanhaFase)
+      .sort((a, b) => b.totalPalpites - a.totalPalpites)[0];
+    if (!campanha) { showToast('⚠️ Campanha não encontrada.'); return; }
+
+    // Busca ID real da seleção pelo nome
+    const rSel = await fetch(`${API_BASE}/selecoes`);
+    const selecoes = rSel.ok ? await rSel.json() : [];
+    const selCampeaId = selecoes.find(s => s.nome === selCampea.n)?.id;
+    const selViceId   = selVice ? selecoes.find(s => s.nome === selVice.n)?.id : undefined;
+
+    if (!selCampeaId) { showToast(`⚠️ Seleção "${selCampea.n}" não encontrada no banco.`); return; }
+    if (fase==='f2' && !selViceId) { showToast(`⚠️ Seleção "${selVice.n}" não encontrada no banco.`); return; }
+
+    // Chama a API de apuração
+    const body = { campanhaId: campanha.id, selecaoCampeaId: selCampeaId };
+    if (selViceId) body.selecaoViceId = selViceId;
+
+    const r = await fetch(`${API_BASE}/admin/apurar`, {
+      method: 'POST', headers: authHeadersAdmin(),
+      body: JSON.stringify(body),
+    });
+    const data = await r.json();
+    if (!r.ok) { showToast(`❌ ${data.error || 'Erro ao apurar.'}`); return; }
+
+    // Exibe resultado
+    document.getElementById('ap-acert-'+fase).textContent = data.qtdAcertadores;
+    document.getElementById('ap-premio-'+fase).textContent = data.premioPorAcertador;
+    document.getElementById('ok-'+fase).classList.add('show');
+
+    // Adiciona botão para encerrar campanha (decisão do admin)
+    const okEl = document.getElementById('ok-'+fase);
+    if (!okEl.querySelector('.btn-encerrar')) {
+      const btnEncerrar = document.createElement('button');
+      btnEncerrar.className = 'btn-export btn-encerrar';
+      btnEncerrar.style.cssText = 'width:100%;padding:10px;font-size:13px;margin-top:12px;background:rgba(224,82,82,.15);border:1px solid rgba(224,82,82,.3);color:var(--red)';
+      btnEncerrar.textContent = '🔒 Encerrar campanha definitivamente';
+      btnEncerrar.onclick = () => confirmarEncerrarCampanha(data.campanhaId, data.campanha, data.selecaoCampeaId, data.selecaoViceId, btnEncerrar);
+      okEl.appendChild(btnEncerrar);
+    }
+
+    showToast(`✅ ${data.mensagem} · ${data.qtdAcertadores} acertador(es) · ${data.premioPorAcertador} cada`);
+
+    // Exibe lista de ganhadores usando dados da resposta (sem segunda chamada à API)
+    exibirGanhadores(data);
+
+  } catch (err) {
+    console.error('[Apurar]', err);
+    showToast('❌ Erro ao conectar com o servidor.');
+  }
+}
+
+function exibirGanhadores(data) {
+  const acertadores = data.acertadores || [];
+  document.getElementById('ganhadores-titulo').textContent = `🏆 Ganhadores — ${data.campanha}`;
+  document.getElementById('sec-ganhadores').style.display = 'block';
+
+  document.getElementById('tbody-ganhadores').innerHTML = acertadores.length
+    ? acertadores.map(p => `
+      <tr>
+        <td style="padding:11px 16px;border-bottom:1px solid var(--border)">${data.campanha}</td>
+        <td style="padding:11px 16px;border-bottom:1px solid var(--border)"><span class="badge badge-gold">${p.codigoCdp}</span></td>
+        <td style="padding:11px 16px;border-bottom:1px solid var(--border);font-weight:500">${p.nomeCompleto}</td>
+        <td style="padding:11px 16px;border-bottom:1px solid var(--border)">${p.telefone}</td>
+        <td style="padding:11px 16px;border-bottom:1px solid var(--border);color:var(--gold);font-weight:600">${p.premio}</td>
+        <td style="padding:11px 16px;border-bottom:1px solid var(--border)"><span class="badge badge-gold">⏳ Aguardando encerramento</span></td>
+      </tr>`)
+      .join('')
+    : '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted)">Nenhum acertador encontrado para a seleção escolhida.</td></tr>';
+
+  document.getElementById('sec-ganhadores').scrollIntoView({ behavior: 'smooth' });
 }
 
 // ── Exportar CSV ──────────────────────────────────────────────
