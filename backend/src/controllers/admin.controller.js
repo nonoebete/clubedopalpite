@@ -44,7 +44,6 @@ async function apurar(req, res) {
       : 0;
 
     // Atualiza todos os palpites: acertou true/false + prêmio
-    // ⚠️ NÃO encerra a campanha automaticamente — admin decide quando encerrar
     await prisma.$transaction([
       // Marca erros
       prisma.palpiteCampanha.updateMany({
@@ -61,12 +60,16 @@ async function apurar(req, res) {
           data:  { acertou: true, premioRecebido: premioPorAcertador },
         })
       ),
+      // Encerra a campanha
+      prisma.campanha.update({
+        where: { id: campanha.id },
+        data:  { ativa: false },
+      }),
     ]);
 
     return res.json({
       mensagem:            'Campanha apurada com sucesso!',
       campanha:            campanha.nome,
-      campanhaId:          campanha.id,
       totalPalpites:       todosPalpites.length,
       totalArrecadado:     `R$ ${totalArrecadado.toFixed(2)}`,
       lucroClube:          `R$ ${lucroClube.toFixed(2)}`,
@@ -105,7 +108,6 @@ async function financeiro(req, res) {
         const lucroClube  = total * (Number(c.percClube)  / 100);
 
         return {
-          id:                 c.id,
           campanha:           c.nome,
           fase:               c.fase,
           ativa:              c.ativa,
@@ -132,6 +134,7 @@ async function listarUsuarios(req, res) {
       select: {
         id: true, codigoCdp: true, nomeCompleto: true,
         apelido: true, telefone: true, perfil: true, bloqueado: true, criadoEm: true,
+        cep: true, endereco: true, bairro: true, cidade: true, estado: true,
         _count: { select: { palpites: true, pagamentos: true } },
       },
       orderBy: { id: 'asc' },
@@ -266,21 +269,7 @@ async function excluirUsuario(req, res) {
   }
 }
 
-// ── POST /api/admin/campanhas/:id/encerrar — Encerra campanha ──
-async function encerrarCampanha(req, res) {
-  const { id } = req.params;
-  try {
-    const campanha = await prisma.campanha.findUnique({ where: { id: Number(id) } });
-    if (!campanha) return res.status(404).json({ error: 'Campanha não encontrada.' });
-    await prisma.campanha.update({ where: { id: Number(id) }, data: { ativa: false } });
-    return res.json({ mensagem: `Campanha "${campanha.nome}" encerrada com sucesso.` });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: 'Erro ao encerrar campanha.' });
-  }
-}
-
-module.exports = { apurar, financeiro, listarUsuarios, editarUsuario, alternarBloqueio, resetarSenha, excluirUsuario, listarTodosPalpites, excluirPalpite, confirmarPalpiteManual, reenviarPalpite, encerrarCampanha };
+module.exports = { apurar, financeiro, listarUsuarios, editarUsuario, alternarBloqueio, resetarSenha, excluirUsuario, listarTodosPalpites, excluirPalpite, confirmarPalpiteManual, reenviarPalpite };
 
 // ── GET /api/admin/palpites — Lista todos os palpites ───────────
 async function listarTodosPalpites(req, res) {
