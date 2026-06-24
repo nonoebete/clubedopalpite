@@ -6,6 +6,7 @@ const { autenticar, apenasAdmin } = require('../middleware/auth.middleware');
 router.use(autenticar, apenasAdmin); // todas as rotas admin protegidas
 
 router.post('/apurar',                           ctrl.apurar);
+router.post('/campanhas/:id/encerrar',           ctrl.encerrarCampanha);
 router.get('/financeiro',                        ctrl.financeiro);
 router.get('/usuarios',                          ctrl.listarUsuarios);
 router.put('/usuarios/:id',                      ctrl.editarUsuario);
