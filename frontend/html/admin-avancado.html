@@ -636,23 +636,23 @@ input[type=text]::placeholder{color:var(--muted)}
       <!-- VISÃO GERAL -->
       <div class="ind-sec" id="ind-sec-visao">
         <div class="kpi-grid">
-          <div class="kpi gold"><div class="kpi-label">Total comissões pagas</div><div class="kpi-value">R$ 186</div></div>
-          <div class="kpi blue"><div class="kpi-label">Indicadores ativos</div><div class="kpi-value">23</div></div>
-          <div class="kpi green"><div class="kpi-label">Novos via indicação</div><div class="kpi-value">41</div></div>
-          <div class="kpi red"><div class="kpi-label">Resgates pendentes</div><div class="kpi-value">R$ 67</div></div>
+          <div class="kpi gold"><div class="kpi-label">Total comissões pagas</div><div class="kpi-value" id="ind-vg-comissoes">—</div></div>
+          <div class="kpi blue"><div class="kpi-label">Indicadores ativos</div><div class="kpi-value" id="ind-vg-indicadores">—</div></div>
+          <div class="kpi green"><div class="kpi-label">Novos via indicação</div><div class="kpi-value" id="ind-vg-novos">—</div></div>
+          <div class="kpi red"><div class="kpi-label">Resgates pendentes</div><div class="kpi-value" id="ind-vg-resgates">—</div></div>
         </div>
         <div class="card">
-          <div class="card-header" style="padding:12px 18px;border-bottom:1px solid var(--border);font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700">Top 5 indicadores do mês</div>
+          <div class="card-header" style="padding:12px 18px;border-bottom:1px solid var(--border);font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700">Top 5 indicadores</div>
           <div style="overflow-x:auto">
             <table style="width:100%;border-collapse:collapse;font-size:12px">
-              <thead><tr><th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">CDP</th><th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Apelido</th><th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Indicados</th><th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Comissão gerada</th><th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Saldo atual</th></tr></thead>
-              <tbody>
-                <tr><td style="padding:10px 14px;border-bottom:1px solid var(--border)"><span class="badge badge-gold">CDP1</span></td><td style="padding:10px 14px;border-bottom:1px solid var(--border)">Mariazinha</td><td style="padding:10px 14px;border-bottom:1px solid var(--border);text-align:center">12</td><td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--gold)">R$ 48,00</td><td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--green)">R$ 23,50</td></tr>
-                <tr><td style="padding:10px 14px;border-bottom:1px solid var(--border)"><span class="badge badge-gold">CDP3</span></td><td style="padding:10px 14px;border-bottom:1px solid var(--border)">Aninha</td><td style="padding:10px 14px;border-bottom:1px solid var(--border);text-align:center">9</td><td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--gold)">R$ 36,00</td><td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--green)">R$ 11,00</td></tr>
-                <tr><td style="padding:10px 14px;border-bottom:1px solid var(--border)"><span class="badge badge-gold">CDP15</span></td><td style="padding:10px 14px;border-bottom:1px solid var(--border)">Joãozinho</td><td style="padding:10px 14px;border-bottom:1px solid var(--border);text-align:center">7</td><td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--gold)">R$ 38,00</td><td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--green)">R$ 28,50</td></tr>
-                <tr><td style="padding:10px 14px;border-bottom:1px solid var(--border)"><span class="badge badge-gold">CDP4</span></td><td style="padding:10px 14px;border-bottom:1px solid var(--border)">Carlão</td><td style="padding:10px 14px;border-bottom:1px solid var(--border);text-align:center">5</td><td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--gold)">R$ 22,00</td><td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--green)">R$ 7,00</td></tr>
-                <tr><td style="padding:10px 14px;border-bottom:1px solid var(--border)"><span class="badge badge-gold">CDP7</span></td><td style="padding:10px 14px;border-bottom:1px solid var(--border)">Paulinha</td><td style="padding:10px 14px;border-bottom:1px solid var(--border);text-align:center">4</td><td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--gold)">R$ 18,00</td><td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--green)">R$ 18,00</td></tr>
-              </tbody>
+              <thead><tr>
+                <th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">CDP</th>
+                <th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Apelido</th>
+                <th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Indicados</th>
+                <th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Comissão gerada</th>
+                <th style="text-align:left;padding:9px 14px;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">Saldo atual</th>
+              </tr></thead>
+              <tbody id="ind-vg-top5"></tbody>
             </table>
           </div>
         </div>
@@ -1874,10 +1874,46 @@ async function indAdmInit() {
   if (indAdmJaInit) return;
   indAdmJaInit = true;
   await Promise.all([indAdmCarregarIndicadores(), indAdmCarregarResgates()]);
+  indAdmRenderVisaoGeral();
   indAdmAtualizarSim();
   document.getElementById('ind-cfg-pct').addEventListener('input', indAdmAtualizarSim);
   document.getElementById('ind-cfg-marco-qtd').addEventListener('input', indAdmAtualizarSim);
   document.getElementById('ind-cfg-marco-val').addEventListener('input', indAdmAtualizarSim);
+}
+
+function indAdmRenderVisaoGeral() {
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+
+  // KPIs
+  const totalComissoes = IND_ADM_INDICADORES_CACHE.reduce((s, i) => s + parseFloat(i.totalGanho || 0), 0);
+  const totalIndicadores = IND_ADM_INDICADORES_CACHE.length;
+  const totalNovos = IND_ADM_INDICADORES_CACHE.reduce((s, i) => s + (i.totalIndicados || 0), 0);
+  const resgatesPendentes = IND_ADM_RESGATES_CACHE
+    .filter(r => r.status === 'PENDENTE')
+    .reduce((s, r) => s + parseFloat(r.valor || 0), 0);
+
+  set('ind-vg-comissoes',   `R$ ${totalComissoes.toFixed(2)}`);
+  set('ind-vg-indicadores', totalIndicadores);
+  set('ind-vg-novos',       totalNovos);
+  set('ind-vg-resgates',    `R$ ${resgatesPendentes.toFixed(2)}`);
+
+  // Top 5
+  const top5 = [...IND_ADM_INDICADORES_CACHE]
+    .sort((a, b) => (b.totalIndicados || 0) - (a.totalIndicados || 0))
+    .slice(0, 5);
+
+  const tbody = document.getElementById('ind-vg-top5');
+  if (tbody) {
+    tbody.innerHTML = top5.length ? top5.map(i => `
+      <tr>
+        <td style="padding:10px 14px;border-bottom:1px solid var(--border)"><span class="badge badge-gold">${i.codigoCdp || '—'}</span></td>
+        <td style="padding:10px 14px;border-bottom:1px solid var(--border)">${i.apelido || '—'}</td>
+        <td style="padding:10px 14px;border-bottom:1px solid var(--border);text-align:center">${i.totalIndicados || 0}</td>
+        <td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--gold)">R$ ${parseFloat(i.totalGanho || 0).toFixed(2)}</td>
+        <td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--green)">R$ ${parseFloat(i.saldo || 0).toFixed(2)}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--muted)">Nenhum indicador ainda.</td></tr>';
+  }
 }
 
 async function indAdmCarregarIndicadores() {
@@ -1910,6 +1946,7 @@ function indAdmSetSec(id, btn) {
   document.querySelectorAll('.ind-stab').forEach(b => { b.style.background='transparent'; b.style.color='var(--muted)'; });
   btn.style.background = 'rgba(240,165,0,.12)';
   btn.style.color = 'var(--gold)';
+  if (id === 'visao') indAdmRenderVisaoGeral();
   if (id === 'indicadores') indAdmCarregarIndicadores();
   if (id === 'resgates') indAdmCarregarResgates();
 }
