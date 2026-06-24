@@ -463,6 +463,28 @@
   if (window.location.search.includes('login') || window.location.pathname.includes('login')) {
     showForm('login');
   }
+
+  // Modo indicador: veio do botão "Quero ser Indicador Oficial"
+  if (window.location.search.includes('modo=indicador')) {
+    // Mostra banner informativo
+    const banner = document.createElement('div');
+    banner.style.cssText = `
+      position:fixed;top:0;left:0;right:0;z-index:999;
+      background:linear-gradient(90deg,#f0a500,#d4890a);
+      color:#07101d;font-size:13px;font-weight:600;
+      padding:10px 20px;text-align:center;
+      display:flex;align-items:center;justify-content:center;gap:12px;
+    `;
+    banner.innerHTML = `
+      <span>🤝 Para se tornar um Indicador Oficial, faça login ou crie sua conta gratuita!</span>
+      <button onclick="showForm('cadastro');this.parentElement.remove()" style="background:#07101d;color:#f0a500;border:none;border-radius:20px;padding:4px 14px;font-size:12px;font-weight:700;cursor:pointer">Criar Conta</button>
+      <button onclick="showForm('login');this.parentElement.remove()" style="background:rgba(7,16,29,.3);color:#07101d;border:1px solid #07101d;border-radius:20px;padding:4px 14px;font-size:12px;font-weight:700;cursor:pointer">Já tenho conta</button>
+    `;
+    document.body.prepend(banner);
+
+    // Abre formulário de cadastro automaticamente
+    showForm('cadastro');
+  }
 </script>
 </body>
 </html>
