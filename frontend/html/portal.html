@@ -1665,6 +1665,82 @@ function abrirFaleConosco() {
   window.open(`https://api.whatsapp.com/send?phone=5548991526161&text=${msg}`, '_blank');
 }
 
+// ── Polling de pagamento pendente ao voltar do PIX ──────────────
+(function verificarPagamentoPendente() {
+  const dadosPagamento = sessionStorage.getItem('cdp_pagamento_atual');
+  if (!dadosPagamento) return;
+
+  let dados;
+  try { dados = JSON.parse(dadosPagamento); } catch { return; }
+  if (!dados.pagamentoId) return;
+
+  // Mostra banner de pagamento aguardando
+  const banner = document.createElement('div');
+  banner.id = 'banner-pix-pendente';
+  banner.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:999;background:var(--navy);border:1px solid rgba(240,165,0,.4);border-radius:12px;padding:14px 18px;max-width:300px;box-shadow:0 4px 24px rgba(0,0,0,.4)';
+  banner.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+      <div style="width:16px;height:16px;border:2px solid var(--gold);border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;flex-shrink:0"></div>
+      <span style="font-size:13px;font-weight:600;color:#dce8f5">Aguardando confirmação do PIX</span>
+    </div>
+    <div style="font-size:11px;color:var(--muted)">Verificando pagamento automaticamente…</div>
+    <button onclick="document.getElementById('banner-pix-pendente').remove();clearInterval(window._pixPolling)" style="margin-top:8px;font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer;padding:0">✕ Dispensar</button>
+  `;
+
+  // Adiciona animação de spin
+  if (!document.getElementById('spin-style')) {
+    const style = document.createElement('style');
+    style.id = 'spin-style';
+    style.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
+    document.head.appendChild(style);
+  }
+
+  document.body.appendChild(banner);
+
+  // Polling a cada 5 segundos
+  window._pixPolling = setInterval(async () => {
+    try {
+      const r = await fetch(`/api/pagamentos/${dados.pagamentoId}/status`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token') || ''}` }
+      });
+      if (!r.ok) return;
+      const status = await r.json();
+
+      if (status.pago) {
+        clearInterval(window._pixPolling);
+        sessionStorage.removeItem('cdp_pagamento_atual');
+        banner.innerHTML = `
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:20px">✅</span>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#1db954">PIX Confirmado!</div>
+              <div style="font-size:11px;color:var(--muted)">Seus palpites foram registrados</div>
+            </div>
+          </div>`;
+        setTimeout(() => {
+          banner.remove();
+          // Recarrega Meus Palpites
+          meusPalpitesJaInit = false;
+          meusPalpitesInit();
+          showSection('meus');
+        }, 2500);
+      } else if (status.status === 'EXPIRADO') {
+        clearInterval(window._pixPolling);
+        sessionStorage.removeItem('cdp_pagamento_atual');
+        banner.innerHTML = `
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:20px">⏰</span>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--red)">PIX expirado</div>
+              <div style="font-size:11px;color:var(--muted)">Gere um novo palpite</div>
+            </div>
+          </div>`;
+        setTimeout(() => banner.remove(), 4000);
+      }
+    } catch {}
+  }, 5000);
+})();
+
 // Init
 renderSelecoes();
 
