@@ -181,14 +181,17 @@ tbody tr:hover td { background: rgba(240,244,255,0.03); }
 .sel-card.selected .check { opacity: 1; }
 
 /* ── Sidebar layout ─────────────────────────────────────────── */
-.app-layout { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 64px); transition: grid-template-columns .2s ease; }
+.app-layout { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 64px); height: calc(100vh - 64px); transition: grid-template-columns .2s ease; }
 .app-layout.sidebar-collapsed { grid-template-columns: 64px 1fr; }
 .sidebar {
   background: var(--navy);
   border-right: 1px solid var(--border2);
   padding: 24px 12px;
   display: flex; flex-direction: column; gap: 4px;
-  position: relative;
+  position: sticky; top: 0;
+  height: calc(100vh - 64px);
+  overflow: hidden;
+  overflow-y: auto;
   transition: padding .2s ease;
 }
 .sidebar-toggle {
