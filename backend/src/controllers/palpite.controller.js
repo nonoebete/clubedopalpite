@@ -199,8 +199,17 @@ async function rankingPorFase(req, res) {
       // ── Fases 1, 2 ou Geral (0): usa palpitesCampanha ────────
       const where = { pagamentoConfirmado: true };
       if (fase && fase !== 0) {
-        const campanha = await prisma.campanha.findFirst({ where: { fase } });
-        if (campanha) where.campanhaId = campanha.id;
+        // Pega a campanha com mais palpites (evita pegar campanha vazia quando há duplicatas de fase)
+        const campanhas = await prisma.campanha.findMany({ where: { fase } });
+        if (campanhas.length > 0) {
+          // Conta palpites por campanha e pega a com mais
+          const conts = await Promise.all(campanhas.map(async c => ({
+            id: c.id,
+            total: await prisma.palpiteCampanha.count({ where: { campanhaId: c.id, pagamentoConfirmado: true } })
+          })));
+          const melhor = conts.sort((a,b) => b.total - a.total)[0];
+          where.campanhaId = melhor.id;
+        }
       }
 
       const dados = await prisma.palpiteCampanha.groupBy({
