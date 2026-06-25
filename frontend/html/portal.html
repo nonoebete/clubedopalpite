@@ -796,7 +796,7 @@ function setFase(f) {
   document.getElementById('pill-f2').classList.toggle('active', f===2);
   document.getElementById('pill-f3').classList.toggle('active', f===3);
   sel1.clear(); campea=null; vice=null; campeaData=null; viceData=null; duplas=[];
-  if (f===3) { palpitesF3 = {}; renderPartidasF3(); }
+  if (f===3) { palpitesF3 = {}; if (PARTIDAS_F3.length) renderPartidasF3(); else carregarPartidasF3(); }
   renderSelecoes(); updateResumo();
 }
 
@@ -937,26 +937,42 @@ async function reenviarConfirmacao(pagamentoId, btnEl) {
     setTimeout(() => { btnEl.textContent = textoOriginal; btnEl.disabled = false; }, 2500);
   }
 }
-// Exemplo de partidas (em produção: buscar via GET /api/partidas?campanhaId=3)
-const PARTIDAS_F3 = [
-  { id: 1, casa: 'Brasil',     cb: 'https://flagcdn.com/w40/br.png',     fora: 'Marrocos',  fb: 'https://flagcdn.com/w40/ma.png',     data: '16/06 16:00', dataISO: '2026-06-16T16:00:00-03:00' },
-  { id: 2, casa: 'Argentina',  cb: 'https://flagcdn.com/w40/ar.png',     fora: 'Argélia',   fb: 'https://flagcdn.com/w40/dz.png',     data: '16/06 19:00', dataISO: '2026-06-16T19:00:00-03:00' },
-  { id: 3, casa: 'Espanha',    cb: 'https://flagcdn.com/w40/es.png',     fora: 'Uruguai',   fb: 'https://flagcdn.com/w40/uy.png',     data: '17/06 13:00', dataISO: '2026-06-17T13:00:00-03:00' },
-  { id: 4, casa: 'França',     cb: 'https://flagcdn.com/w40/fr.png',     fora: 'Senegal',   fb: 'https://flagcdn.com/w40/sn.png',     data: '17/06 16:00', dataISO: '2026-06-17T16:00:00-03:00' },
-  { id: 5, casa: 'Inglaterra', cb: 'https://flagcdn.com/w40/gb-eng.png', fora: 'Croácia',   fb: 'https://flagcdn.com/w40/hr.png',     data: '17/06 19:00', dataISO: '2026-06-17T19:00:00-03:00' },
-  { id: 6, casa: 'Portugal',   cb: 'https://flagcdn.com/w40/pt.png',     fora: 'Colômbia',  fb: 'https://flagcdn.com/w40/co.png',     data: '18/06 13:00', dataISO: '2026-06-18T13:00:00-03:00' },
-  { id: 7, casa: 'Alemanha',   cb: 'https://flagcdn.com/w40/de.png',     fora: 'Equador',   fb: 'https://flagcdn.com/w40/ec.png',     data: '18/06 16:00', dataISO: '2026-06-18T16:00:00-03:00' },
-  { id: 8, casa: 'Holanda',    cb: 'https://flagcdn.com/w40/nl.png',     fora: 'Japão',     fb: 'https://flagcdn.com/w40/jp.png',     data: '18/06 19:00', dataISO: '2026-06-18T19:00:00-03:00' },
-];
+// ── FASE 3 — dados carregados da API ─────────────────────────────
+let PARTIDAS_F3 = [];
 let palpitesF3 = {};
 
-const MARGEM_FECHAMENTO_MIN_F3 = 10; // palpites bloqueados a partir de 10min antes do jogo
-
-// Retorna true se a partida ainda aceita palpites (faltam mais de 30min para o início)
 function f3AbertaParaPalpite(p) {
   if (p.encerrada || p.resultado) return false;
-  const limite = new Date(new Date(p.dataISO).getTime() - MARGEM_FECHAMENTO_MIN_F3 * 60 * 1000);
+  const limite = new Date(new Date(p.dataHora).getTime() - 10 * 60 * 1000);
   return new Date() < limite;
+}
+
+async function carregarPartidasF3() {
+  const el = document.getElementById('partidas-f3');
+  if (!el) return;
+  el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted)">⏳ Carregando partidas…</div>';
+  try {
+    const r = await fetch('/api/partidas?campanhaId=3');
+    if (!r.ok) throw new Error('Erro ' + r.status);
+    const dados = await r.json();
+    PARTIDAS_F3 = dados.map(p => ({
+      id:        p.id,
+      casa:      p.casa.nome,
+      cb:        p.casa.bandeira,
+      fora:      p.fora.nome,
+      fb:        p.fora.bandeira,
+      grupo:     p.grupo,
+      dataHora:  p.dataHora,
+      data:      new Date(p.dataHora).toLocaleString('pt-BR', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:'America/Sao_Paulo'}).replace(', ',' '),
+      encerrada: p.encerrada,
+      resultado: p.resultado,
+    }));
+    renderPartidasF3();
+    updateResumoF3();
+  } catch(err) {
+    console.error('[F3]', err);
+    if (el) el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--red)">❌ Erro ao carregar partidas. <button onclick="carregarPartidasF3()" style="background:none;border:1px solid var(--border);color:var(--muted);padding:4px 12px;border-radius:8px;cursor:pointer;margin-left:8px">↻ Tentar novamente</button></div>';
+  }
 }
 
 // ── FASE 3 — Palpite por Resultado ──────────────────────────────
