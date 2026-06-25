@@ -16,6 +16,7 @@ router.delete('/usuarios/:id',                   ctrl.excluirUsuario);
 router.get('/palpites',                          ctrl.listarTodosPalpites);
 router.delete('/palpites/:id',                   ctrl.excluirPalpite);
 router.patch('/palpites/:id/confirmar',          ctrl.confirmarPalpiteManual);
+router.patch('/palpites/:id/cancelar',           ctrl.cancelarPalpiteAdmin);
 router.post('/palpites/:id/reenviar',            ctrl.reenviarPalpite);
 
 module.exports = router;
