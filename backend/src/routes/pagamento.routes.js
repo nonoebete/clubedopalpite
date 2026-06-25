@@ -7,8 +7,10 @@ const { autenticar } = require('../middleware/auth.middleware');
 router.post('/webhook', ctrl.webhook);
 
 // Rotas autenticadas
-router.post('/',            autenticar, ctrl.iniciarPagamento);
-router.get('/meus',         autenticar, ctrl.meusPagamentos);
-router.get('/:id/status',   autenticar, ctrl.consultarStatus);
+router.post('/',                          autenticar, ctrl.iniciarPagamento);
+router.get('/meus',                       autenticar, ctrl.meusPagamentos);
+router.get('/:id/status',                 autenticar, ctrl.consultarStatus);
+router.post('/:id/reenviar-whatsapp',     autenticar, ctrl.reenviarConfirmacao);
+router.post('/:id/cancelar',              autenticar, ctrl.cancelarPagamento);
 
 module.exports = router;
