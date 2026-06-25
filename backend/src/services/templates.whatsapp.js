@@ -38,30 +38,49 @@ function palpiteConfirmado({ apelido, codigoCdp, fase, faseLabel: faseLabelCusto
     ? new Date(pagoEm).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })
     : new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
 
+  // Mapa de países para emojis de bandeira
+  const flagEmojis = {
+    'Brasil': '🇧🇷', 'Argentina': '🇦🇷', 'França': '🇫🇷', 'Inglaterra': '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
+    'Alemanha': '🇩🇪', 'Espanha': '🇪🇸', 'Portugal': '🇵🇹', 'Holanda': '🇳🇱',
+    'Bélgica': '🇧🇪', 'Uruguai': '🇺🇾', 'Colômbia': '🇨🇴', 'México': '🇲🇽',
+    'Estados Unidos': '🇺🇸', 'Canadá': '🇨🇦', 'Japão': '🇯🇵', 'Coreia do Sul': '🇰🇷',
+    'Marrocos': '🇲🇦', 'Senegal': '🇸🇳', 'Egito': '🇪🇬', 'Nigéria': '🇳🇬',
+    'Austrália': '🇦🇺', 'Arábia Saudita': '🇸🇦', 'Irã': '🇮🇷', 'Equador': '🇪🇨',
+    'Croácia': '🇭🇷', 'Suíça': '🇨🇭', 'Polônia': '🇵🇱', 'Dinamarca': '🇩🇰',
+    'Sérvia': '🇷🇸', 'Camarões': '🇨🇲', 'Gana': '🇬🇭', 'Tunísia': '🇹🇳',
+    'Costa Rica': '🇨🇷', 'Paraguai': '🇵🇾', 'Venezuela': '🇻🇪', 'Chile': '🇨🇱',
+    'Peru': '🇵🇪', 'Bolívia': '🇧🇴', 'Panamá': '🇵🇦', 'Qatar': '🇶🇦',
+  };
+
   const listaSelecoes = Array.isArray(palpites)
-    ? palpites.map(p => `  • ${p.bandeiraCss || '⚽'} ${p.nome}`).join('\n')
-    : `  • ${palpites}`;
+    ? palpites.map(p => {
+        const emoji = flagEmojis[p.nome] || '⚽';
+        return `  ${emoji} ${p.nome}`;
+      }).join('\n')
+    : `  ⚽ ${palpites}`;
 
   const faseLabel = faseLabelCustom || (fase === 1
     ? '1ª Fase — Seleção Campeã'
     : '2ª Fase — Campeã + Vice-Campeã');
 
-  return `✅ *Palpite confirmado, ${apelido}!*
+  return `🏆 *PALPITE CONFIRMADO!*
+━━━━━━━━━━━━━━━━━━━━━
 
-Seu pagamento PIX foi aprovado e seu(s) palpite(s) estão registrados.
+Olá, *${apelido}*! Seu pagamento PIX foi aprovado ✅
 
-📋 *Resumo:*
-👤 ${codigoCdp} · ${apelido}
-🏆 ${faseLabel}
-⚽ *Palpite(s):*
+📋 *Resumo do Palpite:*
+👤 *Palpiteiro:* ${codigoCdp} · ${apelido}
+🏆 *Fase:* ${faseLabel}
+
+⚽ *Seleções palpitadas:*
 ${listaSelecoes}
 
 💰 *Valor pago:* R$ ${Number(valorPago).toFixed(2)}
 🕐 *Confirmado em:* ${dataHora}
 
 ━━━━━━━━━━━━━━━━━━━━━
-Torça muito! 🇧🇷🏆
-Acompanhe seus palpites em:
+🍀 Boa sorte na Copa 2026!
+Acompanhe seus palpites:
 👉 https://clubedopalpite.app.br/portal.html`;
 }
 
