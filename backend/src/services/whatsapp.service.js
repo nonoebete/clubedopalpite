@@ -64,8 +64,8 @@ async function enviarMensagem(telefone, mensagem) {
   const numero = formatarTelefone(telefone);
   try {
     const resp = await evoRequest('POST', `/message/sendText/${EVO_INSTANCE}`, {
-      number: numero,
-      text:   mensagem,
+      number:      numero,
+      textMessage: { text: mensagem },
     });
     console.log(`[WPP] ✅ Enviado para ${numero}`);
     return { ok: true, numero, resp };
