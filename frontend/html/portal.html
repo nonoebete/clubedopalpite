@@ -1513,6 +1513,20 @@ function meusFiltrarAba(status, btn) {
   meusRenderPagamentos();
 }
 
+function meusAtualizarContadores() {
+  const total      = MEUS_PAGAMENTOS_CACHE.length;
+  const ativos     = MEUS_PAGAMENTOS_CACHE.filter(p => p.status === 'APROVADO').length;
+  const expirados  = MEUS_PAGAMENTOS_CACHE.filter(p => p.status === 'EXPIRADO').length;
+  const cancelados = MEUS_PAGAMENTOS_CACHE.filter(p => p.status === 'CANCELADO').length;
+  const labels = { 'APROVADO':'Ativos', 'todos':'Todos', 'EXPIRADO':'Expirados', 'CANCELADO':'Cancelados' };
+  const conts  = { 'APROVADO': ativos, 'todos': total, 'EXPIRADO': expirados, 'CANCELADO': cancelados };
+  document.querySelectorAll('.meus-tab-btn').forEach(btn => {
+    const s = btn.dataset.status;
+    const cnt = conts[s] || 0;
+    btn.textContent = cnt > 0 ? `${labels[s]} (${cnt})` : labels[s];
+  });
+}
+
 function meusRenderPagamentos() {
   const container = document.getElementById('meus-palpites-container');
   let dados = MEUS_PAGAMENTOS_CACHE;
@@ -1612,6 +1626,7 @@ async function meusPalpitesInit(forcar = false) {
     if (!r.ok) { container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Não foi possível carregar seus palpites.</div>'; return; }
     MEUS_PAGAMENTOS_CACHE = await r.json();
     EXT_PAGAMENTOS_CACHE = MEUS_PAGAMENTOS_CACHE;
+    meusAtualizarContadores();
 
     // Verifica se há prêmios ganhos para mostrar banner
     const premiosGanhos = [];

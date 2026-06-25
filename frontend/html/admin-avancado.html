@@ -2333,6 +2333,18 @@ async function admPalpitesCarregar() {
     const r = await fetch(`${API_BASE}/admin/palpites`, { headers: authHeadersAdmin() });
     if (!r.ok) throw new Error();
     ADM_PALPITES_CACHE = await r.json();
+    // Atualiza contadores nas abas
+    const totTodos  = ADM_PALPITES_CACHE.length;
+    const totConf   = ADM_PALPITES_CACHE.filter(p => p.pagamentoConfirmado).length;
+    const totPend   = ADM_PALPITES_CACHE.filter(p => !p.pagamentoConfirmado).length;
+    const totSemSel = ADM_PALPITES_CACHE.filter(p => !p.selecaoCampeaId).length;
+    document.querySelectorAll('.adm-pal-tab').forEach(btn => {
+      const s = btn.dataset.s;
+      const mapa = { 'todos': totTodos, 'confirmado': totConf, 'pendente': totPend, 'sem-selecao': totSemSel };
+      const labels = { 'todos': 'Todos', 'confirmado': '✅ Confirmados', 'pendente': '⏳ Pendentes', 'sem-selecao': '⚠️ Sem seleção' };
+      const cnt = mapa[s] || 0;
+      btn.textContent = cnt > 0 ? `${labels[s]} (${cnt})` : labels[s];
+    });
     admPalpitesRender();
   } catch {
     document.getElementById('adm-palpites-tbody').innerHTML =
