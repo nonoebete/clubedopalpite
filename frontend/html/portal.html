@@ -1539,7 +1539,7 @@ function meusRenderPagamentos() {
     const acaoBotao = pag.status === 'APROVADO'
       ? `<button class="btn-reenviar" onclick="reenviarConfirmacao(${pag.id}, this)">📲 Reenviar confirmação</button>`
       : pag.status === 'PENDENTE'
-      ? `<button class="btn btn-gold" style="font-size:12px;padding:8px 14px" onclick="window.location.href='pix.html?pagamentoId=${pag.id}'">💳 Pagar agora</button>`
+      ? `<span class="badge badge-gold">⏳ Aguardando pagamento</span>`
       : '';
 
     const linhasPalpites = (pag.palpites || []).map(p => {
@@ -1714,16 +1714,20 @@ function abrirFaleConosco() {
             <span style="font-size:20px">✅</span>
             <div>
               <div style="font-size:13px;font-weight:600;color:#1db954">PIX Confirmado!</div>
-              <div style="font-size:11px;color:var(--muted)">Seus palpites foram registrados</div>
+              <div style="font-size:11px;color:var(--muted)">Seus palpites foram registrados — indo para Meus Palpites em 10s…</div>
             </div>
           </div>`;
         setTimeout(() => {
           banner.remove();
-          // Recarrega Meus Palpites
+          // Força reload completo dos palpites e vai para a seção
+          MEUS_PAGAMENTOS_CACHE = [];
+          EXT_PAGAMENTOS_CACHE = [];
           meusPalpitesJaInit = false;
-          meusPalpitesInit();
+          extJaInit = false;
           showSection('meus');
-        }, 2500);
+          meusPalpitesFiltro = 'todos';
+          meusPalpitesInit(true);
+        }, 10000);
       } else if (status.status === 'EXPIRADO') {
         clearInterval(window._pixPolling);
         sessionStorage.removeItem('cdp_pagamento_atual');
