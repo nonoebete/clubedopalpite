@@ -270,8 +270,8 @@
       <div id="meus-banner-premio" style="display:none;background:linear-gradient(90deg,rgba(240,165,0,.15),rgba(29,185,84,.15));border:1px solid rgba(240,165,0,.3);border-radius:var(--radius);padding:14px 18px;margin-top:16px;font-size:14px;color:#dce8f5;text-align:center"></div>
 
       <div style="display:flex;gap:6px;margin-top:16px;border-bottom:1px solid var(--border2);padding-bottom:0">
-        <button class="meus-tab-btn" data-status="todos" onclick="meusFiltrarAba('todos',this)" style="padding:9px 18px;border:none;border-bottom:2px solid var(--gold);background:transparent;color:var(--gold);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">Todos</button>
-        <button class="meus-tab-btn" data-status="APROVADO" onclick="meusFiltrarAba('APROVADO',this)" style="padding:9px 18px;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">Ativos</button>
+        <button class="meus-tab-btn" data-status="APROVADO" onclick="meusFiltrarAba('APROVADO',this)" style="padding:9px 18px;border:none;border-bottom:2px solid var(--gold);background:transparent;color:var(--gold);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">Ativos</button>
+        <button class="meus-tab-btn" data-status="todos" onclick="meusFiltrarAba('todos',this)" style="padding:9px 18px;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">Todos</button>
         <button class="meus-tab-btn" data-status="EXPIRADO" onclick="meusFiltrarAba('EXPIRADO',this)" style="padding:9px 18px;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">Expirados</button>
         <button class="meus-tab-btn" data-status="CANCELADO" onclick="meusFiltrarAba('CANCELADO',this)" style="padding:9px 18px;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">Cancelados</button>
       </div>
@@ -1499,7 +1499,7 @@ function extRenderPalpites() {
 
 // ── Meus Palpites: dados reais via API ──────────────────────────
 let meusPalpitesJaInit = false;
-let meusPalpitesFiltro = 'todos';
+let meusPalpitesFiltro = 'APROVADO';
 let MEUS_PAGAMENTOS_CACHE = [];
 
 function meusFiltrarAba(status, btn) {
@@ -1725,7 +1725,7 @@ function abrirFaleConosco() {
           meusPalpitesJaInit = false;
           extJaInit = false;
           showSection('meus');
-          meusPalpitesFiltro = 'todos';
+          meusPalpitesFiltro = 'APROVADO';
           meusPalpitesInit(true);
         }, 10000);
       } else if (status.status === 'EXPIRADO') {
