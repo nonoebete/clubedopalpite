@@ -19,7 +19,7 @@ Aqui estão seus dados de acesso — *guarde esta mensagem:*
 🔑 *Senha:* \`${senhaAcesso}\`
 
 📱 Acesse o portal e faça seus palpites:
-👉 https://seudominio.com.br/login.html
+👉 https://clubedopalpite.app.br/login.html
 
 ━━━━━━━━━━━━━━━━━━━━━
 🌍 *Copa do Mundo 2026*
@@ -33,7 +33,7 @@ Boa sorte, *${apelido}*! 🍀`;
 // ═════════════════════════════════════════════════════════════
 //  2. PALPITE CONFIRMADO — disparado após PIX aprovado
 // ═════════════════════════════════════════════════════════════
-function palpiteConfirmado({ apelido, codigoCdp, fase, palpites, valorPago, pagoEm }) {
+function palpiteConfirmado({ apelido, codigoCdp, fase, faseLabel: faseLabelCustom, palpites, valorPago, pagoEm }) {
   const dataHora = pagoEm
     ? new Date(pagoEm).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })
     : new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
@@ -42,9 +42,9 @@ function palpiteConfirmado({ apelido, codigoCdp, fase, palpites, valorPago, pago
     ? palpites.map(p => `  • ${p.bandeiraCss || '⚽'} ${p.nome}`).join('\n')
     : `  • ${palpites}`;
 
-  const faseLabel = fase === 1
+  const faseLabel = faseLabelCustom || (fase === 1
     ? '1ª Fase — Seleção Campeã'
-    : '2ª Fase — Campeã + Vice-Campeã';
+    : '2ª Fase — Campeã + Vice-Campeã');
 
   return `✅ *Palpite confirmado, ${apelido}!*
 
@@ -62,7 +62,7 @@ ${listaSelecoes}
 ━━━━━━━━━━━━━━━━━━━━━
 Torça muito! 🇧🇷🏆
 Acompanhe seus palpites em:
-👉 https://seudominio.com.br/portal.html`;
+👉 https://clubedopalpite.app.br/portal.html`;
 }
 
 // ═════════════════════════════════════════════════════════════
@@ -83,7 +83,7 @@ A *${faseNum} Fase* do Clube de Palpites abre hoje!
 
 Não perca tempo — faça seu palpite antes que feche!
 
-👉 https://seudominio.com.br/portal.html
+👉 https://clubedopalpite.app.br/portal.html
 
 _Boa sorte!_ 🍀`;
 }
@@ -108,7 +108,7 @@ A *${faseNum} Fase* encerra em breve!
 
 Após esse horário, *não será mais possível* registrar novos palpites nesta fase.
 
-👉 *Faça agora:* https://seudominio.com.br/portal.html
+👉 *Faça agora:* https://clubedopalpite.app.br/portal.html
 
 _Não deixe para a última hora!_ ⚡`;
 }
@@ -183,7 +183,7 @@ Você tem um palpite aguardando pagamento.
 Se não pagar até lá, o palpite será cancelado automaticamente.
 
 👉 Acesse e finalize o pagamento:
-https://seudominio.com.br/portal.html
+https://clubedopalpite.app.br/portal.html
 
 _${CLUBE}_ ⚽`;
 }
@@ -210,4 +210,17 @@ Acesse seu portal para ver o extrato e resgatar:
 👉 ${process.env.APP_URL}/indicacoes.html`;
 }
 
-module.exports = { ...module.exports, notificarBonus };
+// ── Bônus de indicação por marco de palpites ────────────────────
+function notificarBonusMarco(usuario, valor, apelidoIndicado, totalPalpites) {
+  const nome = usuario.nomeCompleto.split(' ')[0];
+  return `🎉 *${nome}, você ganhou R$ ${Number(valor).toFixed(2)} de bônus!*
+
+Seu indicado *${apelidoIndicado}* atingiu *${totalPalpites} palpites pagos*! 🏆
+
+A cada 100 palpites realizados por um indicado seu, você ganha R$ 100,00 extra na sua conta corrente do Clube.
+
+Acesse seu portal para ver o extrato e resgatar:
+👉 ${process.env.APP_URL}/indicacoes.html`;
+}
+
+module.exports = { ...module.exports, notificarBonus, notificarBonusMarco };
