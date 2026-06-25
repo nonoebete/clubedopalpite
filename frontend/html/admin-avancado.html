@@ -2372,8 +2372,8 @@ function admPalpitesRender() {
   let dados = ADM_PALPITES_CACHE;
 
   if (admPalTab === 'confirmado')  dados = dados.filter(p => p.pagamentoConfirmado);
-  if (admPalTab === 'pendente')    dados = dados.filter(p => !p.pagamentoConfirmado && p.selecaoCampeaId);
-  if (admPalTab === 'sem-selecao') dados = dados.filter(p => !p.selecaoCampeaId);
+  if (admPalTab === 'pendente')    dados = dados.filter(p => !p.pagamentoConfirmado);
+  if (admPalTab === 'sem-selecao') dados = dados.filter(p => !p.selecaoCampea && !p.selecaoCampeaId);
 
   if (admPalBusca) {
     dados = dados.filter(p =>
@@ -2407,7 +2407,8 @@ function admPalpitesRender() {
       <div style="display:flex;gap:4px;flex-wrap:wrap">
         ${!p.pagamentoConfirmado && p.selecaoCampeaId ? `<button class="btn-icon success" onclick="admConfirmarPalpite(${p.id})" title="Confirmar pagamento">✅</button>` : ''}
         ${p.pagamentoConfirmado ? `<button class="btn-icon" onclick="admReenviarPalpite(${p.id})" title="Reenviar WhatsApp">📲</button>` : ''}
-        ${!p.pagamentoConfirmado ? `<button class="btn-icon danger" onclick="admExcluirPalpite(${p.id}, '${p.usuario?.codigoCdp}')" title="Excluir palpite">🗑️</button>` : ''}
+        <button class="btn-icon danger" onclick="admCancelarPalpite(${p.id}, '${p.usuario?.codigoCdp}')" title="Cancelar palpite">🚫</button>
+        ${(!p.pagamentoConfirmado || p.status === 'CANCELADO') ? `<button class="btn-icon danger" onclick="admExcluirPalpite(${p.id}, '${p.usuario?.codigoCdp}')" title="Excluir palpite">🗑️</button>` : ''}
       </div>`;
 
     return `<tr>
@@ -2448,15 +2449,29 @@ async function admReenviarPalpite(id) {
 }
 
 async function admExcluirPalpite(id, cdp) {
-  if (!confirm(`Excluir palpite #${id} de ${cdp}?\n\nEsta ação é irreversível.`)) return;
+  if (!confirm(`Excluir palpite #${id} do membro ${cdp}? Esta ação não pode ser desfeita.`)) return;
   try {
     const r = await fetch(`${API_BASE}/admin/palpites/${id}`, { method: 'DELETE', headers: authHeadersAdmin() });
     const data = await r.json();
-    if (!r.ok) { showToast(`❌ ${data.error}`); return; }
-    showToast(`🗑️ ${data.mensagem}`);
+    if (!r.ok) { showToast(`❌ ${data.error || 'Erro ao excluir.'}`); return; }
+    showToast(`🗑️ Palpite #${id} excluído.`);
     ADM_PALPITES_CACHE = ADM_PALPITES_CACHE.filter(p => p.id !== id);
     admPalpitesRender();
-  } catch { showToast('❌ Erro ao excluir.'); }
+  } catch { showToast('❌ Erro ao conectar.'); }
+}
+
+async function admCancelarPalpite(id, cdp) {
+  if (!confirm(`Cancelar palpite #${id} do membro ${cdp}?\n\nO pagamento será marcado como CANCELADO e os valores não serão mais somados nos totais.`)) return;
+  try {
+    const r = await fetch(`${API_BASE}/admin/palpites/${id}/cancelar`, {
+      method: 'PATCH', headers: authHeadersAdmin(),
+    });
+    const data = await r.json();
+    if (!r.ok) { showToast(`❌ ${data.error || 'Erro ao cancelar.'}`); return; }
+    showToast(`🚫 Palpite #${id} cancelado.`);
+    ADM_PALPITES_CACHE = ADM_PALPITES_CACHE.filter(p => p.id !== id);
+    admPalpitesRender();
+  } catch { showToast('❌ Erro ao conectar.'); }
 }
 </script>
 <!-- ── MODAL EDITAR / NOVO MEMBRO ── -->
