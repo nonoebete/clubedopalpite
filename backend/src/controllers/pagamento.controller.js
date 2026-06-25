@@ -489,4 +489,38 @@ async function reenviarConfirmacao(req, res) {
   }
 }
 
-module.exports = { iniciarPagamento, webhook, consultarStatus, meusPagamentos, reenviarConfirmacao };
+// ── POST /api/pagamentos/:id/cancelar — Membro cancela próprio pagamento ──
+async function cancelarPagamento(req, res) {
+  try {
+    const { id } = req.params;
+    const usuarioId = req.user.id;
+
+    const pagamento = await prisma.pagamento.findUnique({
+      where: { id: Number(id) },
+      include: { campanha: { select: { tipo: true } } },
+    });
+
+    if (!pagamento) return res.status(404).json({ error: 'Pagamento não encontrado.' });
+    if (pagamento.usuarioId !== usuarioId) return res.status(403).json({ error: 'Sem permissão.' });
+    if (pagamento.status !== 'PENDENTE') return res.status(400).json({ error: 'Pagamento não pode ser cancelado.' });
+
+    const isPalpiteResultado = pagamento.campanha?.tipo === 'PALPITE_RESULTADO';
+    const palpiteIds = JSON.parse(pagamento.palpiteIds || '[]');
+
+    // Remove palpites da tabela correta e cancela o pagamento
+    await prisma.$transaction([
+      isPalpiteResultado
+        ? prisma.palpitePartida.deleteMany({ where: { id: { in: palpiteIds }, pagamentoConfirmado: false } })
+        : prisma.palpiteCampanha.deleteMany({ where: { id: { in: palpiteIds }, pagamentoConfirmado: false } }),
+      prisma.pagamento.update({ where: { id: pagamento.id }, data: { status: 'CANCELADO' } }),
+    ]);
+
+    console.log(`[PIX] 🗑️ Pagamento ${pagamento.id} cancelado pelo usuário. Palpites removidos.`);
+    return res.json({ mensagem: 'Pagamento cancelado e palpites removidos.' });
+  } catch (err) {
+    console.error('[cancelarPagamento]', err);
+    return res.status(500).json({ error: 'Erro ao cancelar pagamento.' });
+  }
+}
+
+module.exports = { iniciarPagamento, webhook, consultarStatus, meusPagamentos, reenviarConfirmacao, cancelarPagamento };
