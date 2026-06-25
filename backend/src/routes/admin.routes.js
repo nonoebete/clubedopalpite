@@ -1,9 +1,8 @@
-// src/routes/admin.routes.js
 const router = require('express').Router();
 const ctrl   = require('../controllers/admin.controller');
 const { autenticar, apenasAdmin } = require('../middleware/auth.middleware');
 
-router.use(autenticar, apenasAdmin); // todas as rotas admin protegidas
+router.use(autenticar, apenasAdmin);
 
 router.post('/apurar',                           ctrl.apurar);
 router.post('/campanhas/:id/encerrar',           ctrl.encerrarCampanha);
