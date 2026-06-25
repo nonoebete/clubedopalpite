@@ -305,7 +305,36 @@ async function encerrarCampanha(req, res) {
   }
 }
 
-module.exports = { apurar, financeiro, listarUsuarios, editarUsuario, alternarBloqueio, resetarSenha, excluirUsuario, listarTodosPalpites, excluirPalpite, confirmarPalpiteManual, reenviarPalpite, encerrarCampanha };
+// ── PATCH /api/admin/palpites/:id/cancelar — Admin cancela palpite ──
+async function cancelarPalpiteAdmin(req, res) {
+  const { id } = req.params;
+  try {
+    const palpite = await prisma.palpiteCampanha.findUnique({
+      where: { id: Number(id) },
+      include: { pagamento: true },
+    });
+    if (!palpite) return res.status(404).json({ error: 'Palpite não encontrado.' });
+
+    // Marca o palpite como cancelado e o pagamento também
+    await prisma.$transaction([
+      prisma.palpiteCampanha.update({
+        where: { id: Number(id) },
+        data: { pagamentoConfirmado: false, acertou: false, premioRecebido: 0 },
+      }),
+      ...(palpite.pagamento ? [prisma.pagamento.update({
+        where: { id: palpite.pagamento.id },
+        data: { status: 'CANCELADO' },
+      })] : []),
+    ]);
+
+    return res.json({ mensagem: `Palpite #${id} cancelado com sucesso.` });
+  } catch (err) {
+    console.error('[cancelarPalpiteAdmin]', err);
+    return res.status(500).json({ error: 'Erro ao cancelar palpite.' });
+  }
+}
+
+module.exports = { apurar, financeiro, listarUsuarios, editarUsuario, alternarBloqueio, resetarSenha, excluirUsuario, listarTodosPalpites, excluirPalpite, confirmarPalpiteManual, reenviarPalpite, encerrarCampanha, cancelarPalpiteAdmin };
 
 // ── GET /api/admin/palpites — Lista todos os palpites ───────────
 async function listarTodosPalpites(req, res) {
