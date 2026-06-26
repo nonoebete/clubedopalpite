@@ -16,6 +16,7 @@ model Usuario {
   cpf          String?
   cep          String?
   endereco     String?
+  bairro       String?
   cidade       String?
   estado       String?
   senhaHash    String    @map("senha_hash")
