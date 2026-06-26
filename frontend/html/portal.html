@@ -981,39 +981,69 @@ const VALOR_BILHETE_F3 = 10.00;
 
 function renderPartidasF3() {
   const el = document.getElementById('partidas-f3');
-  el.innerHTML = PARTIDAS_F3.map(p => {
-    const aberta = f3AbertaParaPalpite(p);
-    const statusBadge = p.resultado
-      ? `<span style="font-size:10px;font-weight:700;color:var(--green);background:rgba(29,185,84,.12);border:1px solid rgba(29,185,84,.3);border-radius:20px;padding:2px 10px">Encerrado</span>`
-      : !aberta
-      ? `<span style="font-size:10px;font-weight:700;color:var(--red, #e05252);background:rgba(224,82,82,.12);border:1px solid rgba(224,82,82,.3);border-radius:20px;padding:2px 10px">Palpites encerrados</span>`
-      : '';
-    const disabledAttr = aberta ? '' : 'disabled';
-    const cardOpacity  = aberta ? '1' : '.55';
+  if (!el) return;
 
-    return `
-    <div style="background:var(--navy2);border:1px solid var(--border2);border-radius:12px;padding:14px 16px;margin-bottom:10px;opacity:${cardOpacity}">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px">
-        <div style="font-size:11px;color:var(--muted)">🗓️ ${p.data} · Grupo</div>
-        ${statusBadge}
+  const abertas = PARTIDAS_F3.filter(p => f3AbertaParaPalpite(p));
+
+  if (!abertas.length) {
+    el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted);font-size:13px">Nenhuma partida disponível para palpite no momento.</div>';
+    return;
+  }
+
+  const grupos = {};
+  abertas.forEach(p => {
+    const dt = new Date(p.dataHora);
+    const chave = dt.toLocaleDateString('pt-BR', {weekday:'long',day:'2-digit',month:'2-digit',timeZone:'America/Sao_Paulo'});
+    if (!grupos[chave]) grupos[chave] = [];
+    grupos[chave].push(p);
+  });
+
+  const GL = {A:'Grupo A',B:'Grupo B',C:'Grupo C',D:'Grupo D',E:'Grupo E',F:'Grupo F',G:'Grupo G',H:'Grupo H',I:'Grupo I',J:'Grupo J',K:'Grupo K',L:'Grupo L',O:'Oitavas de Final',Q:'Quartas de Final',S:'Semifinal',T:'3\u00ba Lugar',N:'Final'};
+
+  el.innerHTML = Object.entries(grupos).map(([dataLabel, partidas]) => `
+    <div style="margin-bottom:24px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--gold);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border2)">
+        \u{1F4C5} ${dataLabel}
       </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-        <div style="display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;min-width:110px">
-          <img src="${p.cb}" alt="${p.casa}" style="width:38px;height:27px;object-fit:cover;border-radius:3px">
-          <span>${p.casa}</span>
-        </div>
-        <div style="display:flex;gap:6px">
-          <button class="btn-f3 ${palpitesF3[p.id]==='CASA'?'active':''}"   onclick="palpitarF3(${p.id},'CASA')"   ${disabledAttr}><img src="${p.cb}" alt="" style="width:20px;height:14px;object-fit:cover;border-radius:2px"> ${p.casa}</button>
-          <button class="btn-f3 ${palpitesF3[p.id]==='EMPATE'?'active':''}" onclick="palpitarF3(${p.id},'EMPATE')" ${disabledAttr}>Empate</button>
-          <button class="btn-f3 ${palpitesF3[p.id]==='FORA'?'active':''}"   onclick="palpitarF3(${p.id},'FORA')"   ${disabledAttr}>${p.fora} <img src="${p.fb}" alt="" style="width:20px;height:14px;object-fit:cover;border-radius:2px"></button>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;min-width:110px;justify-content:flex-end">
-          <span>${p.fora}</span>
-          <img src="${p.fb}" alt="${p.fora}" style="width:38px;height:27px;object-fit:cover;border-radius:3px">
-        </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px">
+        ${partidas.map(p => {
+          const hora = new Date(p.dataHora).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',timeZone:'America/Sao_Paulo'});
+          const gl = GL[p.grupo] || ('Grupo ' + p.grupo);
+          const selCasa = palpitesF3[p.id] === 'CASA';
+          const selEmp  = palpitesF3[p.id] === 'EMPATE';
+          const selFora = palpitesF3[p.id] === 'FORA';
+          const borda = palpitesF3[p.id] ? 'rgba(240,165,0,.4)' : 'var(--border2)';
+          return `
+          <div style="background:var(--navy2);border:1px solid ${borda};border-radius:12px;padding:14px;transition:border-color .15s">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+              <span style="font-size:10px;color:var(--muted);font-weight:600">${gl}</span>
+              <span style="font-size:11px;color:var(--muted)">\u23F0 ${hora}</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;cursor:pointer" onclick="palpitarF3(${p.id},'CASA')">
+                <div style="width:52px;height:52px;border-radius:10px;overflow:hidden;border:2px solid ${selCasa ? 'var(--gold)' : 'var(--border2)'};background:var(--navy)">
+                  <img src="${p.cb}" alt="${p.casa}" style="width:100%;height:100%;object-fit:cover">
+                </div>
+                <span style="font-size:11px;font-weight:600;text-align:center;color:${selCasa ? 'var(--gold)' : '#dce8f5'}">${p.casa}</span>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+                <button onclick="palpitarF3(${p.id},'EMPATE')" style="background:${selEmp ? 'rgba(240,165,0,.15)' : 'var(--navy)'};border:1px solid ${selEmp ? 'var(--gold)' : 'var(--border2)'};color:${selEmp ? 'var(--gold)' : 'var(--muted)'};font-size:13px;font-weight:700;padding:8px 14px;border-radius:8px;cursor:pointer;font-family:inherit;line-height:1.2">X<br><span style="font-size:9px;font-weight:400">Empate</span></button>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;cursor:pointer" onclick="palpitarF3(${p.id},'FORA')">
+                <div style="width:52px;height:52px;border-radius:10px;overflow:hidden;border:2px solid ${selFora ? 'var(--gold)' : 'var(--border2)'};background:var(--navy)">
+                  <img src="${p.fb}" alt="${p.fora}" style="width:100%;height:100%;object-fit:cover">
+                </div>
+                <span style="font-size:11px;font-weight:600;text-align:center;color:${selFora ? 'var(--gold)' : '#dce8f5'}">${p.fora}</span>
+              </div>
+            </div>
+            <div style="text-align:center;font-size:11px;font-weight:600;color:${palpitesF3[p.id] ? 'var(--gold)' : 'var(--muted)'}">
+              ${palpitesF3[p.id] ? ('\u2713 ' + (palpitesF3[p.id]==='CASA' ? p.casa : palpitesF3[p.id]==='FORA' ? p.fora : '\uD83E\uDD1D Empate')) : 'Clique em uma sele\u00e7\u00e3o para palpitar'}
+            </div>
+          </div>`;
+        }).join('')}
       </div>
-    </div>`;
-  }).join('');
+    </div>
+  `).join('');
 }
 
 function palpitarF3(partidaId, resultado) {
