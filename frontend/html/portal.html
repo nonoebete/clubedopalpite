@@ -1203,7 +1203,7 @@ async function indInit() {
     if (kpiSaldo) kpiSaldo.textContent = `R$ ${IND_SALDO.toFixed(2)}`;
     if (kpiGanho) kpiGanho.textContent = `R$ ${parseFloat(data.conta?.totalGanho || 0).toFixed(2)}`;
     if (kpiInd)   kpiInd.textContent   = (data.indicados || []).length;
-    if (kpiCom)   kpiCom.textContent   = `R$ ${(data.totalComissoes || 0).toFixed(2)}`;
+    if (kpiCom)   kpiCom.textContent   = `R$ ${parseFloat(data.totalComissoes || 0).toFixed(2)}`;
 
     // Link de indicação
     const linkUrl = data.linkIndicacao || `https://${IND_APP_URL}/login.html?ref=${IND_CDP}`;
@@ -1237,11 +1237,8 @@ function indRenderIndicados(lista) {
     // Suporta tanto formato mock antigo quanto formato real da API
     const cdp     = i.codigoCdp || i.cdp || '—';
     const apelido = i.apelido || i.ap || '—';
-    const desde   = i.desde
-      ? i.desde
-      : i.criadoEm
-      ? new Date(i.criadoEm).toLocaleDateString('pt-BR')
-      : '—';
+    const desde = (i.desde ? new Date(i.desde) : i.criadoEm ? new Date(i.criadoEm) : null);
+    const desdeStr = desde ? desde.toLocaleDateString('pt-BR') : '—';
     const palpites = i.palpitesPagos ?? i.palpites ?? 0;
     const marcos   = i.marcosAtingidos ?? Math.floor(palpites / IND_PALPITES_POR_MARCO);
     const faltam   = i.faltamParaProximoMarco ?? (IND_PALPITES_POR_MARCO - (palpites % IND_PALPITES_POR_MARCO));
@@ -1261,7 +1258,7 @@ function indRenderIndicados(lista) {
     <tr>
       <td style="padding:11px 16px;border-bottom:1px solid var(--border2)"><span style="display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(240,165,0,.12);color:var(--gold);border:1px solid rgba(240,165,0,.3)">${cdp}</span></td>
       <td style="padding:11px 16px;border-bottom:1px solid var(--border2);font-weight:500">${apelido}</td>
-      <td style="padding:11px 16px;border-bottom:1px solid var(--border2);color:var(--muted)">${desde}</td>
+      <td style="padding:11px 16px;border-bottom:1px solid var(--border2);color:var(--muted)">${desdeStr}</td>
       <td style="padding:11px 16px;border-bottom:1px solid var(--border2);text-align:center">${palpites}</td>
       <td style="padding:11px 16px;border-bottom:1px solid var(--border2)">${progressoHtml}</td>
       <td style="padding:11px 16px;border-bottom:1px solid var(--border2);color:#1db954;font-weight:500">${com}</td>
@@ -1800,7 +1797,7 @@ renderSelecoes();
     set('ind-kpi-saldo',  `R$ ${parseFloat(data.conta?.saldo || 0).toFixed(2)}`);
     set('ind-kpi-ganho',  `R$ ${parseFloat(data.conta?.totalGanho || 0).toFixed(2)}`);
     set('ind-kpi-ind',    (data.indicados || []).length);
-    set('ind-kpi-com',    `R$ ${parseFloat(data.totalComissoes || 0).toFixed(2)}`);
+    set('ind-kpi-com',    `R$ ${parseFloatparseFloat(data.totalComissoes || 0).toFixed(2)}`);
     set('ind-modal-saldo',`R$ ${parseFloat(data.conta?.saldo || 0).toFixed(2)}`);
     // Atualiza IND_SALDO para uso no resgate
     IND_SALDO = parseFloat(data.conta?.saldo || 0);

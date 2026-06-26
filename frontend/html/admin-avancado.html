@@ -1484,7 +1484,7 @@ function fecharModalMembro(id) { document.getElementById(id).classList.remove('s
 // ── Editar ──
 function abrirEditarMembro(id) {
   const m = MEMBROS.find(x => x.id === id);
-  if (modal_start = next(i for i,l in enumerate(lines) if i > 2400 and '<div class="modal-overlay"' in l)) return;
+  if (!m) return;
   membroSelecionado = m;
   document.getElementById('modal-membro-titulo').textContent = 'Editar membro - ' + m.codigoCdp;
   document.getElementById('mb-nome').value    = m.nomeCompleto || '';
@@ -2502,6 +2502,9 @@ async function admCancelarPalpite(id, cdp, tipo) {
   } catch { showToast('❌ Erro ao conectar.'); }
 }
 </script>
+<!-- MODAL EDITAR MEMBRO -->
+<div class="modal-overlay" id="modal-editar-membro">
+  <div class="modal-box" style="max-width:780px;max-height:90vh;overflow-y:auto;width:95vw">
     <div class="modal-box-title" id="modal-membro-titulo">Editar membro</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       <div class="form-group" style="grid-column:1/-1"><label>Nome completo</label><input type="text" id="mb-nome" placeholder="Nome completo"></div>
@@ -2531,8 +2534,8 @@ async function admCancelarPalpite(id, cdp, tipo) {
       <button class="btn-icon" onclick="fecharModalMembro('modal-editar-membro')">Cancelar</button>
       <button class="btn-export btn-export-primary" onclick="salvarEdicaoMembro()">Salvar alteracoes</button>
     </div>
-
-<!-- ── MODAL RESETAR SENHA ── -->
+  </div>
+</div>
 <div class="modal-overlay" id="modal-senha-membro">
   <div class="modal-box">
     <div class="modal-box-title">🔑 Resetar senha</div>
