@@ -821,6 +821,7 @@ input[type=text]::placeholder{color:var(--muted)}
         <button class="adm-pal-tab" data-s="confirmado" onclick="admPalpitesSetTab('confirmado',this)" style="padding:9px 16px;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">✅ Confirmados</button>
         <button class="adm-pal-tab" data-s="pendente" onclick="admPalpitesSetTab('pendente',this)" style="padding:9px 16px;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">⏳ Pendentes</button>
         <button class="adm-pal-tab" data-s="sem-selecao" onclick="admPalpitesSetTab('sem-selecao',this)" style="padding:9px 16px;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">⚠️ Sem seleção</button>
+        <button class="adm-pal-tab" data-s="cancelado" onclick="admPalpitesSetTab('cancelado',this)" style="padding:9px 16px;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">🚫 Cancelados</button>
       </div>
 
       <div class="card" style="padding:0">
@@ -2370,10 +2371,10 @@ function admPalpitesFiltrar() {
 
 function admPalpitesRender() {
   let dados = ADM_PALPITES_CACHE;
-
   if (admPalTab === 'confirmado')  dados = dados.filter(p => p.pagamentoConfirmado);
+  if (admPalTab === 'pendente')    dados = dados.filter(p => !p.pagamentoConfirmado && p.statusPagamento !== 'CANCELADO');
+  if (admPalTab === 'sem-selecao') dados = dados.filter(p => !p.selecaoCampea && p._tipo !== 'partida');
   if (admPalTab === 'cancelado')   dados = dados.filter(p => p.statusPagamento === 'CANCELADO');
-
   if (admPalBusca) {
     dados = dados.filter(p =>
       (p.usuario?.nomeCompleto || '').toLowerCase().includes(admPalBusca) ||
@@ -2384,45 +2385,41 @@ function admPalpitesRender() {
       (p._foraNome || '').toLowerCase().includes(admPalBusca)
     );
   }
-
   document.getElementById('adm-palpites-count').textContent = dados.length + ' de ' + ADM_PALPITES_CACHE.length + ' palpites';
-
+  if (!dados.length) {
     document.getElementById('adm-palpites-tbody').innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--muted)">Nenhum palpite encontrado.</td></tr>';
     return;
   }
-
   document.getElementById('adm-palpites-tbody').innerHTML = dados.map(p => {
     const pgto = p.pagamentoConfirmado
       ? '<span class="badge badge-green">Pago</span>'
       : p.statusPagamento === 'CANCELADO'
       ? '<span class="badge badge-red">Cancelado</span>'
       : '<span class="badge badge-gold">Pendente</span>';
-
     const isF3 = p._tipo === 'partida';
     const selecao = isF3
-      ? '<span class="badge badge-blue">3ª Fase</span> ' + (p._casaNome || '?') + ' x ' + (p._foraNome || '?') + ' → <strong>' + (p.palpiteResultado === 'CASA' ? p._casaNome : p.palpiteResultado === 'FORA' ? p._foraNome : '🤝 Empate') + '</strong>'
+      ? '<span class="badge badge-blue">3ª</span> ' + (p._casaNome||'?') + ' x ' + (p._foraNome||'?') + ' &rarr; <b>' + (p.palpiteResultado==='CASA'?p._casaNome:p.palpiteResultado==='FORA'?p._foraNome:'Empate') + '</b>'
       : p.selecaoCampea
         ? '<img src="' + p.selecaoCampea.bandeiraCss + '" style="height:14px;border-radius:2px"> ' + p.selecaoCampea.nome + (p.selecaoVice ? ' + ' + p.selecaoVice.nome : '')
-        : '<span style="color:var(--red)">⚠️ Sem seleção</span>';
-
-    const fase = isF3
-      ? '<span class="badge badge-blue">3ª</span>'
+        : '<span style="color:var(--red)">Sem selecao</span>';
+    const fase = isF3 ? '<span class="badge badge-blue">3ª</span>'
       : p.campanha?.fase === 2 ? '<span class="badge badge-gold">2ª</span>' : '<span class="badge badge-green">1ª</span>';
-
     const data = new Date(p.criadoEm).toLocaleDateString('pt-BR');
-
-    const acoes = '<div style="display:flex;gap:4px;flex-wrap:wrap">'
-      + (p.pagamentoConfirmado ? '<button class="btn-icon" onclick="admReenviarPalpite(' + p.id + ')" title="Reenviar WhatsApp">📲</button>' : '')
-      + '<button class="btn-icon danger" onclick="admCancelarPalpite(' + p.id + ','' + (p.usuario?.codigoCdp || '') + '','' + (isF3 ? 'f3' : 'f12') + '')" title="Cancelar">🚫</button>'
-      + '</div>';
-
+    const btnConfirmar = (!p.pagamentoConfirmado && p.statusPagamento !== 'CANCELADO')
+      ? '<button class="btn-icon success" onclick="admConfirmarPalpite(' + p.id + ',\'' + (isF3?'f3':'f12') + '\')" title="Confirmar pagamento">✅</button>'
+      : '';
+    const btnReenviar = p.pagamentoConfirmado
+      ? '<button class="btn-icon" onclick="admReenviarPalpite(' + p.id + ')" title="Reenviar WhatsApp">📲</button>'
+      : '';
+    const btnCancelar = '<button class="btn-icon danger" onclick="admCancelarPalpite(' + p.id + ',\'' + (p.usuario?.codigoCdp||'') + '\',\'' + (isF3?'f3':'f12') + '\')" title="Cancelar">🚫</button>';
+    const acoes = '<div style="display:flex;gap:4px;flex-wrap:wrap">' + btnConfirmar + btnReenviar + btnCancelar + '</div>';
     return '<tr>'
       + '<td style="padding:10px 14px;border-bottom:1px solid var(--border)">' + p.id + '</td>'
-      + '<td style="padding:10px 14px;border-bottom:1px solid var(--border)"><div style="font-weight:500">' + (p.usuario?.apelido || '—') + '</div><div style="font-size:10px;color:var(--muted)">' + (p.usuario?.codigoCdp || '—') + '</div></td>'
-      + '<td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--muted)">' + (p.usuario?.telefone || '—') + '</td>'
+      + '<td style="padding:10px 14px;border-bottom:1px solid var(--border)"><div style="font-weight:500">' + (p.usuario?.apelido||'—') + '</div><div style="font-size:10px;color:var(--muted)">' + (p.usuario?.codigoCdp||'—') + '</div></td>'
+      + '<td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--muted)">' + (p.usuario?.telefone||'—') + '</td>'
       + '<td style="padding:10px 14px;border-bottom:1px solid var(--border)">' + selecao + '</td>'
       + '<td style="padding:10px 14px;border-bottom:1px solid var(--border)">' + fase + '</td>'
-      + '<td style="padding:10px 14px;border-bottom:1px solid var(--border)">R$ ' + Number(p.valorPago || 10).toFixed(2) + '</td>'
+      + '<td style="padding:10px 14px;border-bottom:1px solid var(--border)">R$ ' + Number(p.valorPago||10).toFixed(2) + '</td>'
       + '<td style="padding:10px 14px;border-bottom:1px solid var(--border)">' + pgto + '</td>'
       + '<td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--muted)">' + data + '</td>'
       + '<td style="padding:10px 14px;border-bottom:1px solid var(--border)">' + acoes + '</td>'
@@ -2470,6 +2467,7 @@ async function admCancelarPalpite(id, cdp, tipo) {
     admPalpitesRender();
   } catch { showToast('❌ Erro ao conectar.'); }
 }
+</script>
     <div class="modal-box-title" id="modal-membro-titulo">Editar membro</div>
     <div class="form-group"><label>Nome completo</label><input type="text" id="mb-nome" placeholder="Nome completo"></div>
     <div class="form-group"><label>Apelido</label><input type="text" id="mb-apelido" placeholder="Apelido"></div>
