@@ -137,7 +137,6 @@ async function editarUsuario(req, res) {
   if (!nomeCompleto || !apelido || !telefone) {
     return res.status(400).json({ error: 'Preencha nome completo, apelido e telefone.' });
   }
-  }
   try {
     const data = {
       nomeCompleto: nomeCompleto.trim(),
