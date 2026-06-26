@@ -167,8 +167,6 @@ async function editarUsuario(req, res) {
     return res.status(500).json({ error: 'Erro ao editar membro.' });
   }
 }
-  }
-}
 
 // ── PATCH /api/admin/usuarios/:id/bloqueio — Bloqueia/desbloqueia ──
 async function alternarBloqueio(req, res) {
