@@ -134,7 +134,9 @@ async function listarUsuarios(req, res) {
 async function editarUsuario(req, res) {
   const { id } = req.params;
   const { nomeCompleto, apelido, telefone, email, cpf, cep, endereco, bairro, cidade, estado, tipoUsuario } = req.body;
+  if (!nomeCompleto || !apelido || !telefone) {
     return res.status(400).json({ error: 'Preencha nome completo, apelido e telefone.' });
+  }
   }
   try {
     const data = {
