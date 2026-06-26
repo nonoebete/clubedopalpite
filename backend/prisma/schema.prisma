@@ -123,7 +123,6 @@ model PalpitePartida {
   criadoEm            DateTime          @default(now()) @map("criado_em")
   usuario  Usuario   @relation(fields: [usuarioId], references: [id])
   partida  Partida   @relation(fields: [partidaId], references: [id])
-  pagamento Pagamento? @relation(fields: [pagamentoId], references: [id])
   @@map("palpites_partida")
 }
 

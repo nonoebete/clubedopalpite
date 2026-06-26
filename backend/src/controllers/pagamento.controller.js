@@ -75,8 +75,8 @@ async function iniciarPagamento(req, res) {
           campanhaId: campanha.id,
           valor:      valorBilhete,
           status:     'PENDENTE',
-          pixCodigo:  '',
-          pixQrCode:  '',
+          palpiteIds: '[]',
+          expiresAt:  new Date(Date.now() + 35 * 60 * 1000), // 35min (atualizado após PIX)
         },
       });
 

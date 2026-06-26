@@ -65,10 +65,9 @@ async function criarCobrancaPix({
       first_name: pagadorNome.split(' ')[0],
       last_name:  pagadorNome.split(' ').slice(1).join(' ') || '-',
       email:      pagadorEmail,
-      identification: {
-        type:   'CPF',
-        number: pagadorCpf.replace(/\D/g, ''),
-      },
+      ...(pagadorCpf && pagadorCpf.replace(/\D/g,'') && pagadorCpf.replace(/\D/g,'') !== '00000000000' ? {
+        identification: { type: 'CPF', number: pagadorCpf.replace(/\D/g, '') }
+      } : {}),
     },
     external_reference: referenciaExterna,
     date_of_expiration: new Date(
