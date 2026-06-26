@@ -998,7 +998,7 @@ function renderPartidasF3() {
     grupos[chave].push(p);
   });
 
-  const GL = {A:'Grupo A',B:'Grupo B',C:'Grupo C',D:'Grupo D',E:'Grupo E',F:'Grupo F',G:'Grupo G',H:'Grupo H',I:'Grupo I',J:'Grupo J',K:'Grupo K',L:'Grupo L',O:'Oitavas de Final',Q:'Quartas de Final',S:'Semifinal',T:'3\u00ba Lugar',N:'Final'};
+  const GL = {A:'Fase Mata-Mata',B:'Fase Mata-Mata',C:'Fase Mata-Mata',D:'Fase Mata-Mata',E:'Fase Mata-Mata',F:'Fase Mata-Mata',G:'Fase Mata-Mata',H:'Fase Mata-Mata',I:'Fase Mata-Mata',J:'Fase Mata-Mata',K:'Fase Mata-Mata',L:'Fase Mata-Mata',O:'Fase Mata-Mata',Q:'Quartas de Final',S:'Semifinal',T:'3º Lugar',N:'Final'};
 
   el.innerHTML = Object.entries(grupos).map(([dataLabel, partidas]) => `
     <div style="margin-bottom:24px">
@@ -1071,43 +1071,24 @@ function updateResumoF3() {
     return;
   }
 
-  // Lista os jogos selecionados
+  // Lista os jogos — sem valor por item (bilhete é fixo R$10)
   const itens = selecionados.map(([pid, res]) => {
     const p = PARTIDAS_F3.find(x => x.id === Number(pid));
-    const label = res === 'CASA'
-      ? `<img src="${p.cb}" alt="" style="width:18px;height:13px;object-fit:cover;border-radius:2px"> ${p.casa}`
-      : res === 'FORA'
-      ? `${p.fora} <img src="${p.fb}" alt="" style="width:18px;height:13px;object-fit:cover;border-radius:2px">`
-      : '🤝 Empate';
+    if (!p) return '';
+    const label = res === 'CASA' ? p.casa : res === 'FORA' ? p.fora : '🤝 Empate';
     return `<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:5px 0;border-bottom:1px solid var(--border2)">
       <span style="color:var(--muted)">${p.casa} x ${p.fora}</span>
-      <span style="color:var(--gold);font-weight:600">${label}</span>
+      <span style="color:var(--gold);font-weight:600">✓ ${label}</span>
     </div>`;
   }).join('');
-
-  // Bilhete único R$10 fixo
   document.getElementById('resumo-list').innerHTML = `
     ${itens}
     <div style="font-size:11px;color:var(--muted);margin-top:8px;padding-top:6px;border-top:1px solid var(--border2);text-align:center">
       ${qtd} jogo${qtd>1?'s':''} no bilhete · até ${qtd*3} pontos possíveis
     </div>`;
-  document.getElementById('total-valor').textContent = 'R$ 10,00'; // sempre fixo
+  document.getElementById('total-valor').textContent = 'R$ 10,00';
 }
 
-function updateResumoF3() {
-  const rl = document.getElementById('resumo-list');
-  const qtd = Object.keys(palpitesF3).length;
-  if (qtd > 0) {
-    rl.innerHTML = Object.entries(palpitesF3).map(([pid, res]) => {
-      const p = PARTIDAS_F3.find(x => x.id === Number(pid));
-      const label = res === 'CASA' ? p.casa : res === 'FORA' ? p.fora : 'Empate';
-      return `<div class="resumo-item">${p.casa} x ${p.fora} → <strong>${label}</strong> <span style="color:var(--muted)">R$ 10,00</span></div>`;
-    }).join('');
-  } else {
-    rl.innerHTML = '<div class="resumo-empty">Nenhum palpite escolhido ainda.</div>';
-  }
-  document.getElementById('total-valor').textContent = `R$ ${(qtd*10).toFixed(2)}`;
-}
 
 // ── Tabela de seleções ─────────────────────────────────────────
 async function buildTabelaSelecoes() {
