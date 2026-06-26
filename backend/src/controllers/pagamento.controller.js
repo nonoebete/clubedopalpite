@@ -423,11 +423,12 @@ async function meusPagamentos(req, res) {
       let palpites = [];
       if (fase === 3) {
         palpites = await prisma.palpitePartida.findMany({
-          where: { id: { in: palpiteIds } },
+          where: { pagamentoId: pag.id },
           select: {
-            id: true, resultado: true, pagamentoConfirmado: true, acertou: true,
+            id: true, palpiteResultado: true, pagamentoConfirmado: true, acertou: true, pontos: true,
             partida: {
               select: {
+                dataHora: true, grupo: true,
                 selecaoCasa: { select: { nome: true, bandeiraCss: true } },
                 selecaoFora: { select: { nome: true, bandeiraCss: true } },
               },
