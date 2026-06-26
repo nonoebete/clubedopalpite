@@ -68,12 +68,30 @@ async function iniciarPagamento(req, res) {
       const valorBilhete = Number(campanha.valorPalpite);
 
       // Cria PalpitePartida como PENDENTE (valorPago no 1º, 0 nos demais)
+      // Cria o pagamento primeiro para ter o pagamentoId e vincular os palpites
+      const pagamentoTemp = await prisma.pagamento.create({
+        data: {
+          usuarioId,
+          campanhaId: campanha.id,
+          valor:      valorBilhete,
+          status:     'PENDENTE',
+          pixCodigo:  '',
+          pixQrCode:  '',
+        },
+      });
+
+      // Cria os palpites vinculados ao pagamento (permite múltiplos bilhetes no mesmo jogo)
       const palpitesCriados = await prisma.$transaction(
         palpites.map((p, idx) =>
-          prisma.palpitePartida.upsert({
-            where:  { usuario_partida_unico: { usuarioId, partidaId: Number(p.partidaId) } },
-            update: { palpiteResultado: p.resultado, valorPago: idx === 0 ? valorBilhete : 0, pagamentoConfirmado: false },
-            create: { usuarioId, partidaId: Number(p.partidaId), palpiteResultado: p.resultado, valorPago: idx === 0 ? valorBilhete : 0, pagamentoConfirmado: false },
+          prisma.palpitePartida.create({
+            data: {
+              usuarioId,
+              partidaId:        Number(p.partidaId),
+              palpiteResultado: p.resultado,
+              valorPago:        idx === 0 ? valorBilhete : 0,
+              pagamentoConfirmado: false,
+              pagamentoId:      pagamentoTemp.id,
+            },
           })
         )
       );
@@ -91,17 +109,14 @@ async function iniciarPagamento(req, res) {
         expiracaoMinutos:  30,
       });
 
-      const pagamento = await prisma.pagamento.create({
+      const pagamento = await prisma.pagamento.update({
+        where: { id: pagamentoTemp.id },
         data: {
-          usuarioId,
-          campanhaId:    campanha.id,
           palpiteIds:    JSON.stringify(palpiteIds),
           mpPaymentId:   String(pixData.mpPaymentId),
           qrCode:        pixData.qrCode,
           qrCodeBase64:  pixData.qrCodeBase64,
           pixCopiaECola: pixData.pixCopiaECola,
-          valor:         valorBilhete,
-          status:        'PENDENTE',
           expiresAt:     new Date(pixData.expiresAt),
         },
       });

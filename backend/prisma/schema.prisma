@@ -114,15 +114,16 @@ model PalpitePartida {
   id                  Int               @id @default(autoincrement())
   usuarioId           Int               @map("usuario_id")
   partidaId           Int               @map("partida_id")
+  pagamentoId         Int?              @map("pagamento_id")
   palpiteResultado    ResultadoPartida  @map("palpite_resultado")
   valorPago           Decimal           @map("valor_pago") @db.Decimal(10,2)
   pagamentoConfirmado Boolean           @default(false) @map("pagamento_confirmado")
   acertou             Boolean?
   pontos              Int               @default(0)
   criadoEm            DateTime          @default(now()) @map("criado_em")
-  usuario Usuario @relation(fields: [usuarioId], references: [id])
-  partida Partida @relation(fields: [partidaId], references: [id])
-  @@unique([usuarioId, partidaId], name: "usuario_partida_unico")
+  usuario  Usuario   @relation(fields: [usuarioId], references: [id])
+  partida  Partida   @relation(fields: [partidaId], references: [id])
+  pagamento Pagamento? @relation(fields: [pagamentoId], references: [id])
   @@map("palpites_partida")
 }
 
