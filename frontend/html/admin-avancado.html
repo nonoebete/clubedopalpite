@@ -1484,38 +1484,72 @@ function fecharModalMembro(id) { document.getElementById(id).classList.remove('s
 // ── Editar ──
 function abrirEditarMembro(id) {
   const m = MEMBROS.find(x => x.id === id);
-  if (!m) return;
+  if (modal_start = next(i for i,l in enumerate(lines) if i > 2400 and '<div class="modal-overlay"' in l)) return;
   membroSelecionado = m;
-  document.getElementById('modal-membro-titulo').textContent = 'Editar membro · ' + m.codigoCdp;
-  document.getElementById('mb-nome').value = m.nomeCompleto;
-  document.getElementById('mb-apelido').value = m.apelido;
-  document.getElementById('mb-tel').value = m.telefone;
-  document.getElementById('mb-cdp').value = m.codigoCdp;
+  document.getElementById('modal-membro-titulo').textContent = 'Editar membro - ' + m.codigoCdp;
+  document.getElementById('mb-nome').value    = m.nomeCompleto || '';
+  document.getElementById('mb-apelido').value = m.apelido || '';
+  document.getElementById('mb-tel').value     = m.telefone || '';
+  document.getElementById('mb-email').value   = m.email || '';
+  document.getElementById('mb-cpf').value     = m.cpf || '';
+  document.getElementById('mb-cdp').value     = m.codigoCdp || '';
+  document.getElementById('mb-cep').value     = m.cep || '';
+  document.getElementById('mb-endereco').value= m.endereco || '';
+  document.getElementById('mb-bairro').value  = m.bairro || '';
+  document.getElementById('mb-cidade').value  = m.cidade || '';
+  document.getElementById('mb-estado').value  = m.estado || '';
+  const tipoSelect = document.getElementById('mb-tipo');
+  if (tipoSelect) tipoSelect.value = m.tipoUsuario || 'NORMAL';
   document.getElementById('modal-editar-membro').classList.add('show');
 }
+
+async function mbBuscarCep() {
+  const cep = document.getElementById('mb-cep').value.replace(/\D/g,'');
+  if (cep.length !== 8) { showToast('CEP invalido.'); return; }
+  try {
+    const r = await fetch('https://viacep.com.br/ws/' + cep + '/json/');
+    const d = await r.json();
+    if (d.erro) { showToast('CEP nao encontrado.'); return; }
+    document.getElementById('mb-endereco').value = d.logradouro || '';
+    document.getElementById('mb-bairro').value   = d.bairro || '';
+    document.getElementById('mb-cidade').value   = d.localidade || '';
+    document.getElementById('mb-estado').value   = d.uf || '';
+    showToast('Endereco preenchido!');
+  } catch { showToast('Erro ao buscar CEP.'); }
+}
+
 async function salvarEdicaoMembro() {
   const nomeCompleto = document.getElementById('mb-nome').value.trim();
-  const apelido = document.getElementById('mb-apelido').value.trim();
-  const telefone = document.getElementById('mb-tel').value.trim();
-  if (!nomeCompleto || !apelido || !telefone) { showToast('⚠️ Preencha todos os campos.'); return; }
-
+  const apelido      = document.getElementById('mb-apelido').value.trim();
+  const telefone     = document.getElementById('mb-tel').value.trim();
+  const body = {
+    nomeCompleto,
+    apelido,
+    telefone,
+    email:       document.getElementById('mb-email').value.trim() || null,
+    cpf:         document.getElementById('mb-cpf').value.trim() || null,
+    cep:         document.getElementById('mb-cep').value.trim() || null,
+    endereco:    document.getElementById('mb-endereco').value.trim() || null,
+    bairro:      document.getElementById('mb-bairro').value.trim() || null,
+    cidade:      document.getElementById('mb-cidade').value.trim() || null,
+    estado:      document.getElementById('mb-estado').value.trim() || null,
+    tipoUsuario: document.getElementById('mb-tipo').value || 'NORMAL',
+  };
   try {
-    const r = await fetch(`${API_BASE}/admin/usuarios/${membroSelecionado.id}`, {
+    const r = await fetch(API_BASE + '/admin/usuarios/' + membroSelecionado.id, {
       method: 'PUT', headers: authHeadersAdmin(),
-      body: JSON.stringify({ nomeCompleto, apelido, telefone }),
+      body: JSON.stringify(body),
     });
     const data = await r.json();
-    if (!r.ok) { showToast(`❌ ${data.error || 'Erro ao salvar.'}`); return; }
-    showToast('✅ Dados de ' + membroSelecionado.codigoCdp + ' atualizados!');
+    showToast('Dados de ' + membroSelecionado.codigoCdp + ' atualizados!');
     fecharModalMembro('modal-editar-membro');
     carregarMembros();
   } catch (err) {
     console.error(err);
-    showToast('❌ Erro ao conectar com o servidor.');
+    showToast('Erro ao conectar com o servidor.');
   }
 }
 
-// ── Resetar senha ──
 function abrirResetSenhaMembro(id) {
   const m = MEMBROS.find(x => x.id === id);
   if (!m) return;
@@ -2469,16 +2503,34 @@ async function admCancelarPalpite(id, cdp, tipo) {
 }
 </script>
     <div class="modal-box-title" id="modal-membro-titulo">Editar membro</div>
-    <div class="form-group"><label>Nome completo</label><input type="text" id="mb-nome" placeholder="Nome completo"></div>
-    <div class="form-group"><label>Apelido</label><input type="text" id="mb-apelido" placeholder="Apelido"></div>
-    <div class="form-group"><label>Telefone</label><input type="tel" id="mb-tel" placeholder="(48) 99999-0000"></div>
-    <div class="form-group"><label>Código CDP</label><input type="text" id="mb-cdp" disabled style="opacity:.5"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="form-group" style="grid-column:1/-1"><label>Nome completo</label><input type="text" id="mb-nome" placeholder="Nome completo"></div>
+      <div class="form-group"><label>Apelido</label><input type="text" id="mb-apelido" placeholder="Apelido"></div>
+      <div class="form-group"><label>Telefone</label><input type="tel" id="mb-tel" placeholder="(48) 99999-0000"></div>
+      <div class="form-group"><label>E-mail</label><input type="email" id="mb-email" placeholder="email@exemplo.com"></div>
+      <div class="form-group"><label>CPF</label><input type="text" id="mb-cpf" placeholder="000.000.000-00" maxlength="14"></div>
+      <div class="form-group"><label>Codigo CDP</label><input type="text" id="mb-cdp" disabled style="opacity:.5"></div>
+      <div class="form-group"><label>Tipo de membro</label>
+        <select id="mb-tipo" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--border2);background:var(--navy);color:#dce8f5;font-family:inherit;font-size:14px">
+          <option value="NORMAL">Normal</option>
+          <option value="CREDENCIADO">Credenciado</option>
+        </select>
+      </div>
+      <div class="form-group"><label>CEP</label>
+        <div style="display:flex;gap:6px">
+          <input type="text" id="mb-cep" placeholder="00000-000" maxlength="9" style="flex:1">
+          <button onclick="mbBuscarCep()" style="background:rgba(240,165,0,.15);border:1px solid rgba(240,165,0,.3);color:var(--gold);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit;white-space:nowrap">Buscar CEP</button>
+        </div>
+      </div>
+      <div class="form-group" style="grid-column:1/-1"><label>Endereco</label><input type="text" id="mb-endereco" placeholder="Rua, numero"></div>
+      <div class="form-group"><label>Bairro</label><input type="text" id="mb-bairro" placeholder="Bairro"></div>
+      <div class="form-group"><label>Cidade</label><input type="text" id="mb-cidade" placeholder="Cidade"></div>
+      <div class="form-group"><label>Estado</label><input type="text" id="mb-estado" placeholder="SC" maxlength="2"></div>
+    </div>
     <div class="modal-footer">
       <button class="btn-icon" onclick="fecharModalMembro('modal-editar-membro')">Cancelar</button>
-      <button class="btn-export btn-export-primary" onclick="salvarEdicaoMembro()">Salvar alterações</button>
+      <button class="btn-export btn-export-primary" onclick="salvarEdicaoMembro()">Salvar alteracoes</button>
     </div>
-  </div>
-</div>
 
 <!-- ── MODAL RESETAR SENHA ── -->
 <div class="modal-overlay" id="modal-senha-membro">

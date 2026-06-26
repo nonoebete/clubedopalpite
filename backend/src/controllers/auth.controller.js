@@ -47,6 +47,7 @@ async function cadastrar(req, res) {
         estado:       estado ? estado.trim().toUpperCase() : null,
         senhaHash,
         perfil:       'PALPITEIRO',
+        tipoUsuario:  'NORMAL',
       },
     });
 

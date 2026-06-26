@@ -21,6 +21,7 @@ model Usuario {
   estado       String?
   senhaHash    String    @map("senha_hash")
   perfil       Perfil    @default(PALPITEIRO)
+  tipoUsuario  TipoUsuario @default(NORMAL) @map("tipo_usuario")
   bloqueado    Boolean   @default(false)
   criadoEm     DateTime  @default(now()) @map("criado_em")
   palpites           PalpiteCampanha[]
@@ -129,6 +130,11 @@ model PalpitePartida {
   usuario  Usuario   @relation(fields: [usuarioId], references: [id])
   partida  Partida   @relation(fields: [partidaId], references: [id])
   @@map("palpites_partida")
+}
+
+enum TipoUsuario {
+  NORMAL
+  CREDENCIADO
 }
 
 enum Perfil {

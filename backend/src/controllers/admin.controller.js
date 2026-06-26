@@ -119,7 +119,7 @@ async function listarUsuarios(req, res) {
     const usuarios = await prisma.usuario.findMany({
       select: {
         id: true, codigoCdp: true, nomeCompleto: true,
-        apelido: true, telefone: true, perfil: true, bloqueado: true, criadoEm: true,
+        apelido: true, telefone: true, email: true, cpf: true, cep: true, endereco: true, bairro: true, cidade: true, estado: true, perfil: true, tipoUsuario: true, bloqueado: true, criadoEm: true,
         _count: { select: { palpites: true, pagamentos: true } },
       },
       orderBy: { id: 'asc' },
@@ -133,25 +133,39 @@ async function listarUsuarios(req, res) {
 // ── PUT /api/admin/usuarios/:id — Edita dados de um membro ────
 async function editarUsuario(req, res) {
   const { id } = req.params;
-  const { nomeCompleto, apelido, telefone } = req.body;
-
-  if (!nomeCompleto || !apelido || !telefone) {
+  const { nomeCompleto, apelido, telefone, email, cpf, cep, endereco, bairro, cidade, estado, tipoUsuario } = req.body;
     return res.status(400).json({ error: 'Preencha nome completo, apelido e telefone.' });
   }
-
   try {
-    const usuario = await prisma.usuario.update({
-      where: { id: Number(id) },
-      data: { nomeCompleto: nomeCompleto.trim(), apelido: apelido.trim(), telefone: telefone.trim() },
-    });
+    const data = {
+      nomeCompleto: nomeCompleto.trim(),
+      apelido:      apelido.trim(),
+      telefone:     telefone.trim(),
+      email:        email ? email.trim() : null,
+      cpf:          cpf ? cpf.replace(/\D/g, '') : null,
+      cep:          cep ? cep.trim() : null,
+      endereco:     endereco ? endereco.trim() : null,
+      bairro:       bairro ? bairro.trim() : null,
+      cidade:       cidade ? cidade.trim() : null,
+      estado:       estado ? estado.trim().toUpperCase() : null,
+    };
+    if (tipoUsuario && ['NORMAL','CREDENCIADO'].includes(tipoUsuario)) {
+      data.tipoUsuario = tipoUsuario;
+    }
+    const usuario = await prisma.usuario.update({ where: { id: Number(id) }, data });
     return res.json({ mensagem: 'Dados atualizados com sucesso.', usuario: {
       id: usuario.id, codigoCdp: usuario.codigoCdp, nomeCompleto: usuario.nomeCompleto,
-      apelido: usuario.apelido, telefone: usuario.telefone,
+      apelido: usuario.apelido, telefone: usuario.telefone, email: usuario.email,
+      cpf: usuario.cpf, cep: usuario.cep, endereco: usuario.endereco,
+      bairro: usuario.bairro, cidade: usuario.cidade, estado: usuario.estado,
+      tipoUsuario: usuario.tipoUsuario,
     }});
   } catch (err) {
     if (err.code === 'P2025') return res.status(404).json({ error: 'Membro não encontrado.' });
     console.error(err);
     return res.status(500).json({ error: 'Erro ao editar membro.' });
+  }
+}
   }
 }
 
