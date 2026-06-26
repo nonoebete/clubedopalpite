@@ -2372,111 +2372,104 @@ function admPalpitesRender() {
   let dados = ADM_PALPITES_CACHE;
 
   if (admPalTab === 'confirmado')  dados = dados.filter(p => p.pagamentoConfirmado);
-  if (admPalTab === 'pendente')    dados = dados.filter(p => !p.pagamentoConfirmado);
-  if (admPalTab === 'sem-selecao') dados = dados.filter(p => !p.selecaoCampea && !p.selecaoCampeaId);
+  if (admPalTab === 'cancelado')   dados = dados.filter(p => p.statusPagamento === 'CANCELADO');
 
   if (admPalBusca) {
     dados = dados.filter(p =>
       (p.usuario?.nomeCompleto || '').toLowerCase().includes(admPalBusca) ||
       (p.usuario?.apelido || '').toLowerCase().includes(admPalBusca) ||
       (p.usuario?.codigoCdp || '').toLowerCase().includes(admPalBusca) ||
-      (p.selecaoCampea?.nome || '').toLowerCase().includes(admPalBusca)
+      (p.selecaoCampea?.nome || '').toLowerCase().includes(admPalBusca) ||
+      (p._casaNome || '').toLowerCase().includes(admPalBusca) ||
+      (p._foraNome || '').toLowerCase().includes(admPalBusca)
     );
   }
 
-  document.getElementById('adm-palpites-count').textContent =
-    `${dados.length} de ${ADM_PALPITES_CACHE.length} palpites`;
+  document.getElementById('adm-palpites-count').textContent = dados.length + ' de ' + ADM_PALPITES_CACHE.length + ' palpites';
 
-  if (!dados.length) {
-    document.getElementById('adm-palpites-tbody').innerHTML =
-      '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--muted)">Nenhum palpite encontrado.</td></tr>';
+    document.getElementById('adm-palpites-tbody').innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--muted)">Nenhum palpite encontrado.</td></tr>';
     return;
   }
 
   document.getElementById('adm-palpites-tbody').innerHTML = dados.map(p => {
     const pgto = p.pagamentoConfirmado
       ? '<span class="badge badge-green">Pago</span>'
+      : p.statusPagamento === 'CANCELADO'
+      ? '<span class="badge badge-red">Cancelado</span>'
       : '<span class="badge badge-gold">Pendente</span>';
-    const selecao = p.selecaoCampea
-      ? `<div style="display:flex;align-items:center;gap:6px"><img src="${p.selecaoCampea.bandeiraCss}" style="height:14px;border-radius:2px"> ${p.selecaoCampea.nome}${p.selecaoVice ? ` + ${p.selecaoVice.nome}` : ''}</div>`
-      : '<span style="color:var(--red)">⚠️ Sem seleção</span>';
-    const fase = p.campanha?.fase === 2 ? '<span class="badge badge-gold">2ª</span>' : '<span class="badge badge-green">1ª</span>';
+
+    const isF3 = p._tipo === 'partida';
+    const selecao = isF3
+      ? '<span class="badge badge-blue">3ª Fase</span> ' + (p._casaNome || '?') + ' x ' + (p._foraNome || '?') + ' → <strong>' + (p.palpiteResultado === 'CASA' ? p._casaNome : p.palpiteResultado === 'FORA' ? p._foraNome : '🤝 Empate') + '</strong>'
+      : p.selecaoCampea
+        ? '<img src="' + p.selecaoCampea.bandeiraCss + '" style="height:14px;border-radius:2px"> ' + p.selecaoCampea.nome + (p.selecaoVice ? ' + ' + p.selecaoVice.nome : '')
+        : '<span style="color:var(--red)">⚠️ Sem seleção</span>';
+
+    const fase = isF3
+      ? '<span class="badge badge-blue">3ª</span>'
+      : p.campanha?.fase === 2 ? '<span class="badge badge-gold">2ª</span>' : '<span class="badge badge-green">1ª</span>';
+
     const data = new Date(p.criadoEm).toLocaleDateString('pt-BR');
 
-    const acoes = `
-      <div style="display:flex;gap:4px;flex-wrap:wrap">
-        ${!p.pagamentoConfirmado && p.selecaoCampeaId ? `<button class="btn-icon success" onclick="admConfirmarPalpite(${p.id})" title="Confirmar pagamento">✅</button>` : ''}
-        ${p.pagamentoConfirmado ? `<button class="btn-icon" onclick="admReenviarPalpite(${p.id})" title="Reenviar WhatsApp">📲</button>` : ''}
-        <button class="btn-icon danger" onclick="admCancelarPalpite(${p.id}, '${p.usuario?.codigoCdp}')" title="Cancelar palpite">🚫</button>
-        ${(!p.pagamentoConfirmado || p.status === 'CANCELADO') ? `<button class="btn-icon danger" onclick="admExcluirPalpite(${p.id}, '${p.usuario?.codigoCdp}')" title="Excluir palpite">🗑️</button>` : ''}
-      </div>`;
+    const acoes = '<div style="display:flex;gap:4px;flex-wrap:wrap">'
+      + (p.pagamentoConfirmado ? '<button class="btn-icon" onclick="admReenviarPalpite(' + p.id + ')" title="Reenviar WhatsApp">📲</button>' : '')
+      + '<button class="btn-icon danger" onclick="admCancelarPalpite(' + p.id + ','' + (p.usuario?.codigoCdp || '') + '','' + (isF3 ? 'f3' : 'f12') + '')" title="Cancelar">🚫</button>'
+      + '</div>';
 
-    return `<tr>
-      <td style="padding:10px 14px;border-bottom:1px solid var(--border)">${p.id}</td>
-      <td style="padding:10px 14px;border-bottom:1px solid var(--border)">
-        <div style="font-weight:500">${p.usuario?.apelido || '—'}</div>
-        <div style="font-size:10px;color:var(--muted)">${p.usuario?.codigoCdp || '—'}</div>
-      </td>
-      <td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--muted)">${p.usuario?.telefone || '—'}</td>
-      <td style="padding:10px 14px;border-bottom:1px solid var(--border)">${selecao}</td>
-      <td style="padding:10px 14px;border-bottom:1px solid var(--border)">${fase}</td>
-      <td style="padding:10px 14px;border-bottom:1px solid var(--border)">R$ ${parseFloat(p.valorPago).toFixed(2)}</td>
-      <td style="padding:10px 14px;border-bottom:1px solid var(--border)">${pgto}</td>
-      <td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--muted)">${data}</td>
-      <td style="padding:10px 14px;border-bottom:1px solid var(--border)">${acoes}</td>
-    </tr>`;
+    return '<tr>'
+      + '<td style="padding:10px 14px;border-bottom:1px solid var(--border)">' + p.id + '</td>'
+      + '<td style="padding:10px 14px;border-bottom:1px solid var(--border)"><div style="font-weight:500">' + (p.usuario?.apelido || '—') + '</div><div style="font-size:10px;color:var(--muted)">' + (p.usuario?.codigoCdp || '—') + '</div></td>'
+      + '<td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--muted)">' + (p.usuario?.telefone || '—') + '</td>'
+      + '<td style="padding:10px 14px;border-bottom:1px solid var(--border)">' + selecao + '</td>'
+      + '<td style="padding:10px 14px;border-bottom:1px solid var(--border)">' + fase + '</td>'
+      + '<td style="padding:10px 14px;border-bottom:1px solid var(--border)">R$ ' + Number(p.valorPago || 10).toFixed(2) + '</td>'
+      + '<td style="padding:10px 14px;border-bottom:1px solid var(--border)">' + pgto + '</td>'
+      + '<td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--muted)">' + data + '</td>'
+      + '<td style="padding:10px 14px;border-bottom:1px solid var(--border)">' + acoes + '</td>'
+      + '</tr>';
   }).join('');
 }
 
-async function admConfirmarPalpite(id) {
-  if (!confirm(`Confirmar pagamento do palpite #${id} manualmente?`)) return;
+async function admConfirmarPalpite(id, tipo) {
+  const url = tipo === 'f3'
+    ? API_BASE + '/admin/palpites-partida/' + id + '/confirmar'
+    : API_BASE + '/admin/palpites/' + id + '/confirmar';
   try {
-    const r = await fetch(`${API_BASE}/admin/palpites/${id}/confirmar`, { method: 'PATCH', headers: authHeadersAdmin() });
+    const r = await fetch(url, { method: 'PATCH', headers: authHeadersAdmin() });
     const data = await r.json();
-    if (!r.ok) { showToast(`❌ ${data.error}`); return; }
-    showToast(`✅ ${data.mensagem}`);
+    showToast('✅ ' + data.mensagem);
     admPalJaInit = false;
     admPalpitesCarregar();
   } catch { showToast('❌ Erro ao confirmar.'); }
 }
-
 async function admReenviarPalpite(id) {
   try {
-    const r = await fetch(`${API_BASE}/admin/palpites/${id}/reenviar`, { method: 'POST', headers: authHeadersAdmin() });
+    const r = await fetch(API_BASE + '/admin/palpites/' + id + '/reenviar', { method: 'POST', headers: authHeadersAdmin() });
     const data = await r.json();
-    showToast(r.ok ? `📲 ${data.mensagem}` : `❌ ${data.error}`);
+    showToast(r.ok ? '📲 ' + data.mensagem : '❌ ' + data.error);
   } catch { showToast('❌ Erro ao reenviar.'); }
 }
-
 async function admExcluirPalpite(id, cdp) {
-  if (!confirm(`Excluir palpite #${id} do membro ${cdp}? Esta ação não pode ser desfeita.`)) return;
   try {
-    const r = await fetch(`${API_BASE}/admin/palpites/${id}`, { method: 'DELETE', headers: authHeadersAdmin() });
+    const r = await fetch(API_BASE + '/admin/palpites/' + id, { method: 'DELETE', headers: authHeadersAdmin() });
     const data = await r.json();
-    if (!r.ok) { showToast(`❌ ${data.error || 'Erro ao excluir.'}`); return; }
-    showToast(`🗑️ Palpite #${id} excluído.`);
+    showToast('🗑️ Palpite #' + id + ' excluído.');
     ADM_PALPITES_CACHE = ADM_PALPITES_CACHE.filter(p => p.id !== id);
     admPalpitesRender();
   } catch { showToast('❌ Erro ao conectar.'); }
 }
-
-async function admCancelarPalpite(id, cdp) {
-  if (!confirm(`Cancelar palpite #${id} do membro ${cdp}?\n\nO pagamento será marcado como CANCELADO e os valores não serão mais somados nos totais.`)) return;
+async function admCancelarPalpite(id, cdp, tipo) {
+  const url = tipo === 'f3'
+    ? API_BASE + '/admin/palpites-partida/' + id + '/cancelar'
+    : API_BASE + '/admin/palpites/' + id + '/cancelar';
   try {
-    const r = await fetch(`${API_BASE}/admin/palpites/${id}/cancelar`, {
-      method: 'PATCH', headers: authHeadersAdmin(),
-    });
+    const r = await fetch(url, { method: 'PATCH', headers: authHeadersAdmin() });
     const data = await r.json();
-    if (!r.ok) { showToast(`❌ ${data.error || 'Erro ao cancelar.'}`); return; }
-    showToast(`🚫 Palpite #${id} cancelado.`);
+    showToast('🚫 Palpite #' + id + ' cancelado.');
     ADM_PALPITES_CACHE = ADM_PALPITES_CACHE.filter(p => p.id !== id);
     admPalpitesRender();
   } catch { showToast('❌ Erro ao conectar.'); }
 }
-</script>
-<!-- ── MODAL EDITAR / NOVO MEMBRO ── -->
-<div class="modal-overlay" id="modal-editar-membro">
-  <div class="modal-box">
     <div class="modal-box-title" id="modal-membro-titulo">Editar membro</div>
     <div class="form-group"><label>Nome completo</label><input type="text" id="mb-nome" placeholder="Nome completo"></div>
     <div class="form-group"><label>Apelido</label><input type="text" id="mb-apelido" placeholder="Apelido"></div>

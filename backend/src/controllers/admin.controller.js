@@ -334,12 +334,13 @@ async function cancelarPalpiteAdmin(req, res) {
   }
 }
 
-module.exports = { apurar, financeiro, listarUsuarios, editarUsuario, alternarBloqueio, resetarSenha, excluirUsuario, listarTodosPalpites, excluirPalpite, confirmarPalpiteManual, reenviarPalpite, encerrarCampanha, cancelarPalpiteAdmin };
+module.exports = { apurar, financeiro, listarUsuarios, editarUsuario, alternarBloqueio, resetarSenha, excluirUsuario, listarTodosPalpites, excluirPalpite, confirmarPalpiteManual, reenviarPalpite, encerrarCampanha, cancelarPalpiteAdmin, confirmarPalpitePartidaManual, cancelarPalpitePartidaAdmin };
 
 // ── GET /api/admin/palpites — Lista todos os palpites ───────────
 async function listarTodosPalpites(req, res) {
   try {
-    const palpites = await prisma.palpiteCampanha.findMany({
+    // Fases 1 e 2
+    const palpitesCampanha = await prisma.palpiteCampanha.findMany({
       orderBy: { criadoEm: 'desc' },
       include: {
         usuario:      { select: { id: true, codigoCdp: true, nomeCompleto: true, apelido: true, telefone: true } },
@@ -348,31 +349,66 @@ async function listarTodosPalpites(req, res) {
         selecaoVice:  { select: { nome: true, bandeiraCss: true } },
       },
     });
-
-    // Busca status dos pagamentos para identificar cancelados
+    // Fase 3
+    const palpitesPartida = await prisma.palpitePartida.findMany({
+      orderBy: { criadoEm: 'desc' },
+      include: {
+        usuario: { select: { id: true, codigoCdp: true, nomeCompleto: true, apelido: true, telefone: true } },
+        partida: {
+          include: {
+            campanha:    { select: { nome: true, fase: true } },
+            selecaoCasa: { select: { nome: true, bandeiraCss: true } },
+            selecaoFora: { select: { nome: true, bandeiraCss: true } },
+          },
+        },
+      },
+    });
+    // Status dos pagamentos
     const pagamentos = await prisma.pagamento.findMany({
-      select: { palpiteIds: true, status: true },
-      where: { status: 'CANCELADO' },
+      select: { id: true, palpiteIds: true, status: true, valor: true },
     });
-
-    // Monta set de IDs de palpites cancelados
+    const mapaPagStatus = Object.fromEntries(pagamentos.map(p => [p.id, p.status]));
     const idsCancelados = new Set();
-    pagamentos.forEach(p => {
-      try { JSON.parse(p.palpiteIds).forEach(id => idsCancelados.add(id)); } catch {}
+    pagamentos.filter(p => p.status === 'CANCELADO').forEach(p => {
+      try { JSON.parse(p.palpiteIds || '[]').forEach(id => idsCancelados.add(id)); } catch {}
     });
 
-    // Adiciona campo statusPagamento em cada palpite
-    const resultado = palpites.map(p => ({
+    // Normaliza fases 1/2
+    const r1 = palpitesCampanha.map(p => ({
       ...p,
+      _tipo: 'campanha',
+      valorPago: Number(p.valorPago),
       statusPagamento: idsCancelados.has(p.id) ? 'CANCELADO' : p.pagamentoConfirmado ? 'APROVADO' : 'PENDENTE',
     }));
 
+    // Normaliza fase 3
+    const r3 = palpitesPartida.map(p => ({
+      id:               p.id,
+      _tipo:            'partida',
+      usuario:          p.usuario,
+      campanha:         p.partida?.campanha,
+      selecaoCampea:    p.partida?.selecaoCasa,
+      selecaoVice:      p.partida?.selecaoFora,
+      palpiteResultado: p.palpiteResultado,
+      valorPago:        Number(p.valorPago),
+      pagamentoConfirmado: p.pagamentoConfirmado,
+      acertou:          p.acertou,
+      pontos:           p.pontos,
+      criadoEm:         p.criadoEm,
+      pagamentoId:      p.pagamentoId,
+      statusPagamento:  p.pagamentoId ? (mapaPagStatus[p.pagamentoId] ?? 'PENDENTE') : 'PENDENTE',
+      _casaNome:        p.partida?.selecaoCasa?.nome,
+      _foraNome:        p.partida?.selecaoFora?.nome,
+    }));
+
+    const resultado = [...r1, ...r3].sort((a, b) => new Date(b.criadoEm) - new Date(a.criadoEm));
     return res.json(resultado);
   } catch (err) {
     console.error('[Admin] listarTodosPalpites:', err);
     return res.status(500).json({ error: 'Erro ao listar palpites.' });
   }
 }
+
 
 // ── DELETE /api/admin/palpites/:id — Exclui palpite ────────────
 async function excluirPalpite(req, res) {
@@ -435,5 +471,60 @@ async function reenviarPalpite(req, res) {
   } catch (err) {
     console.error('[Admin] reenviarPalpite:', err);
     return res.status(500).json({ error: 'Erro ao reenviar.' });
+  }
+}
+
+// ── PATCH /api/admin/palpites-partida/:id/confirmar ─────────────
+async function confirmarPalpitePartidaManual(req, res) {
+  const { id } = req.params;
+  try {
+    const p = await prisma.palpitePartida.findUnique({
+      where: { id: Number(id) },
+      include: { partida: { include: { campanha: true } } },
+    });
+    if (!p) return res.status(404).json({ error: 'Palpite não encontrado.' });
+    if (p.pagamentoConfirmado) return res.status(400).json({ error: 'Palpite já confirmado.' });
+
+    // Confirma o palpite
+    await prisma.palpitePartida.update({
+      where: { id: Number(id) },
+      data:  { pagamentoConfirmado: true },
+    });
+
+    // Confirma o pagamento vinculado também
+    if (p.pagamentoId) {
+      await prisma.pagamento.update({
+        where: { id: p.pagamentoId },
+        data:  { status: 'APROVADO', pagoEm: new Date() },
+      });
+    }
+
+    return res.json({ mensagem: `Palpite #${id} confirmado manualmente!` });
+  } catch (err) {
+    console.error('[Admin] confirmarPalpitePartidaManual:', err);
+    return res.status(500).json({ error: 'Erro ao confirmar palpite.' });
+  }
+}
+
+// ── PATCH /api/admin/palpites-partida/:id/cancelar ──────────────
+async function cancelarPalpitePartidaAdmin(req, res) {
+  const { id } = req.params;
+  try {
+    const p = await prisma.palpitePartida.findUnique({ where: { id: Number(id) } });
+    if (!p) return res.status(404).json({ error: 'Palpite não encontrado.' });
+
+    await prisma.palpitePartida.delete({ where: { id: Number(id) } });
+
+    if (p.pagamentoId) {
+      await prisma.pagamento.update({
+        where: { id: p.pagamentoId },
+        data:  { status: 'CANCELADO' },
+      });
+    }
+
+    return res.json({ mensagem: `Palpite #${id} cancelado.` });
+  } catch (err) {
+    console.error('[Admin] cancelarPalpitePartidaAdmin:', err);
+    return res.status(500).json({ error: 'Erro ao cancelar palpite.' });
   }
 }

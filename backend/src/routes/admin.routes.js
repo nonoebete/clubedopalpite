@@ -16,6 +16,8 @@ router.get('/palpites',                          ctrl.listarTodosPalpites);
 router.delete('/palpites/:id',                   ctrl.excluirPalpite);
 router.patch('/palpites/:id/confirmar',          ctrl.confirmarPalpiteManual);
 router.patch('/palpites/:id/cancelar',           ctrl.cancelarPalpiteAdmin);
+router.patch('/palpites-partida/:id/confirmar',   ctrl.confirmarPalpitePartidaManual);
+router.patch('/palpites-partida/:id/cancelar',    ctrl.cancelarPalpitePartidaAdmin);
 router.post('/palpites/:id/reenviar',            ctrl.reenviarPalpite);
 
 module.exports = router;
