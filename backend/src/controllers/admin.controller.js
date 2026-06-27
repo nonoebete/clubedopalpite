@@ -213,7 +213,20 @@ async function resetarSenha(req, res) {
       data:  { senhaHash: novaSenhaHash },
     });
 
-    // TODO: integrar envio via WhatsApp (Evolution API) com a nova senha
+    // Enviar nova senha via WhatsApp
+    if (usuario.telefone) {
+      try {
+        const wpp = require('../services/whatsapp.service');
+        const templates = require('../services/templates.whatsapp');
+        const msg = templates.boasVindas({
+          nomeCompleto: usuario.nomeCompleto,
+          apelido:      usuario.apelido,
+          codigoCdp:    usuario.codigoCdp,
+          senhaAcesso:  novaSenha,
+        });
+        wpp.enviarMensagem(usuario.telefone, msg).catch(e => console.error('[WPP-RESET]', e));
+      } catch(e) { console.error('[WPP-RESET] erro:', e); }
+    }
     return res.json({ mensagem: 'Senha redefinida com sucesso.', novaSenha });
   } catch (err) {
     console.error(err);
