@@ -2315,7 +2315,7 @@ function rkRenderPodio() {
         <div style="font-size:28px;line-height:1;margin-bottom:6px">${pos[i]}</div>
         <div style="font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.apelido}</div>
         <div style="font-size:11px;color:var(--muted);margin-top:2px">${p.codigoCdp}</div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;color:var(--gold);line-height:1;margin-top:8px">${p.palpites} palpite${p.palpites!==1?'s':''}</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;color:var(--gold);line-height:1;margin-top:8px">${rkFaseSel===3 ? (p.bilhetes||p.palpites) + " bilhete" + ((p.bilhetes||p.palpites)!==1?"s":"") : p.palpites + " palpite" + (p.palpites!==1?"s":"")}</div>
         <div style="font-size:11px;color:var(--muted);margin-top:4px">R$ ${p.investido.toFixed(2)}</div>
       </div>
       <div style="background:var(--navy2);border:1px solid var(--border);border-top:none;padding:6px;text-align:center;font-size:11px;color:var(--muted)">#${p.posicao}</div>
