@@ -161,40 +161,32 @@ body{font-family:'Inter',sans-serif;background:var(--night);color:#dce8f5;min-he
 </div>
 
 <script>
-// ── Dados mock (em produção, busca de GET /api/palpites/ranking) ──
-const RANKING_DATA = {
-  1: [ // 1ª fase
-    {pos:1, apelido:'Mariazinha', cdp:'CDP1',  acertos:0, palpites:5,  investido:50},
-    {pos:2, apelido:'Pedrão',     cdp:'CDP2',  acertos:0, palpites:3,  investido:30},
-    {pos:3, apelido:'Joãozinho',  cdp:'CDP15', acertos:0, palpites:3,  investido:30},
-    {pos:4, apelido:'Aninha',     cdp:'CDP3',  acertos:0, palpites:8,  investido:80},
-    {pos:5, apelido:'Carlão',     cdp:'CDP4',  acertos:0, palpites:4,  investido:40},
-    {pos:6, apelido:'Fernanda',   cdp:'CDP5',  acertos:0, palpites:6,  investido:60},
-    {pos:7, apelido:'Lukinha',    cdp:'CDP6',  acertos:0, palpites:2,  investido:20},
-    {pos:8, apelido:'Bruna',      cdp:'CDP7',  acertos:0, palpites:7,  investido:70},
-    {pos:9, apelido:'Rafa',       cdp:'CDP8',  acertos:0, palpites:1,  investido:10},
-    {pos:10,apelido:'Tati',       cdp:'CDP9',  acertos:0, palpites:4,  investido:40},
-  ],
-  2: [
-    {pos:1, apelido:'Carlão',     cdp:'CDP4',  acertos:0, palpites:4, investido:60},
-    {pos:2, apelido:'Joãozinho',  cdp:'CDP15', acertos:0, palpites:1, investido:15},
-    {pos:3, apelido:'Mariazinha', cdp:'CDP1',  acertos:0, palpites:2, investido:30},
-  ],
-  0: [
-    {pos:1, apelido:'Mariazinha', cdp:'CDP1',  acertos:0, palpites:7,  investido:80},
-    {pos:2, apelido:'Aninha',     cdp:'CDP3',  acertos:0, palpites:9,  investido:110},
-    {pos:3, apelido:'Carlão',     cdp:'CDP4',  acertos:0, palpites:8,  investido:100},
-    {pos:4, apelido:'Joãozinho',  cdp:'CDP15', acertos:0, palpites:4,  investido:45},
-    {pos:5, apelido:'Fernanda',   cdp:'CDP5',  acertos:0, palpites:6,  investido:60},
-  ],
-  3: [ // Palpite por Resultado — pontuação acumulada (3 pts/acerto)
-    {pos:1, apelido:'Aninha',     cdp:'CDP3',  pontos:18, palpites:6, investido:60},
-    {pos:2, apelido:'Carlão',     cdp:'CDP4',  pontos:15, palpites:6, investido:60},
-    {pos:3, apelido:'Mariazinha', cdp:'CDP1',  pontos:12, palpites:5, investido:50},
-    {pos:4, apelido:'Joãozinho',  cdp:'CDP15', pontos:9,  palpites:4, investido:40},
-    {pos:5, apelido:'Fernanda',   cdp:'CDP5',  pontos:6,  palpites:3, investido:30},
-  ]
-};
+// ── Dados da API real ──
+let RANKING_DATA = {1:[],2:[],3:[],0:[]};
+
+async function carregarRanking() {
+  try {
+    const fases = [1, 2, 3, 0];
+    for (const f of fases) {
+      const res = await fetch(`/api/palpites/ranking?fase=${f}`);
+      const json = await res.json();
+      RANKING_DATA[f] = (json.ranking || []).map((p, i) => ({
+        pos:      p.posicao || i + 1,
+        apelido:  p.apelido || '---',
+        cdp:      p.codigoCdp || '---',
+        acertos:  p.acertos || 0,
+        pontos:   (p.acertos || 0) * 3,
+        palpites: f === 3 ? (p.bilhetes || 0) : (p.palpites || 0),
+        bilhetes: p.bilhetes || 0,
+        investido: Number(p.investido || 0).toFixed(2),
+      }));
+    }
+    renderPodio();
+    renderRanking();
+  } catch(e) {
+    console.error('Erro ao carregar ranking:', e);
+  }
+}
 
 const SELECOES_TOP = [
   {f:'🇧🇷',n:'Brasil',   p:38},{f:'🇦🇷',n:'Argentina', p:31},{f:'🇫🇷',n:'França',    p:22},
@@ -254,7 +246,7 @@ function renderRanking(filtro = '') {
   const colLabel = faseSel === 1
     ? ['Palpites', 'Investido']
     : faseSel === 3
-    ? ['Palpites', 'Pontos']
+    ? ['Bilhetes', 'Pontos']
     : ['Duplas', 'Investido'];
 
   const cabecalho = `
@@ -321,8 +313,8 @@ function atualizarHora() {
 setInterval(atualizarHora, 30000);
 
 // Init
-renderPodio();
-renderRanking();
+carregarRanking();
+
 renderSelecoes();
 </script>
 </body>

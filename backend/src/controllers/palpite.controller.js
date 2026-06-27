@@ -173,28 +173,42 @@ async function rankingPorFase(req, res) {
     let resultado = [];
 
     if (fase === 3) {
-      // ── 3ª Fase: usa tabela palpitesPartida ──────────────────
-      const dados = await prisma.palpitePartida.groupBy({
+      // 3a Fase: conta bilhetes (pagamentos APROVADOS) e jogos por usuario
+      const pagamentos3 = await prisma.pagamento.findMany({
+        where: { status: 'APROVADO', campanha: { fase: 3 } },
+        select: { id: true, usuarioId: true, valor: true },
+      });
+      const mapaAgrup = {};
+      for (const p of pagamentos3) {
+        if (!mapaAgrup[p.usuarioId]) mapaAgrup[p.usuarioId] = { bilhetes: 0, investido: 0 };
+        mapaAgrup[p.usuarioId].bilhetes++;
+        mapaAgrup[p.usuarioId].investido += Number(p.valor);
+      }
+      const jogosGrp = await prisma.palpitePartida.groupBy({
         by: ['usuarioId'],
         where: { pagamentoConfirmado: true },
         _count: { id: true },
-        orderBy: { _count: { id: 'desc' } },
-        take: 20,
       });
-      const ids = dados.map(d => d.usuarioId);
-      const usuarios = await prisma.usuario.findMany({
-        where: { id: { in: ids } },
+      const mapaJogos = Object.fromEntries(jogosGrp.map(j => [j.usuarioId, j._count.id]));
+      const ids3 = Object.keys(mapaAgrup).map(Number);
+      const usuarios3 = await prisma.usuario.findMany({
+        where: { id: { in: ids3 } },
         select: { id: true, apelido: true, codigoCdp: true },
       });
-      const mapaUsu = Object.fromEntries(usuarios.map(u => [u.id, u]));
-      resultado = dados.map((d, i) => ({
-        posicao:   i + 1,
-        apelido:   mapaUsu[d.usuarioId]?.apelido   || '—',
-        codigoCdp: mapaUsu[d.usuarioId]?.codigoCdp || '—',
-        palpites:  d._count.id,
-        investido: d._count.id * 10,
-      }));
-
+      const mapaUsu3 = Object.fromEntries(usuarios3.map(u => [u.id, u]));
+      resultado = Object.entries(mapaAgrup)
+        .map(([uid, v]) => ({
+          usuarioId: Number(uid),
+          apelido:   mapaUsu3[uid]?.apelido   || '---',
+          codigoCdp: mapaUsu3[uid]?.codigoCdp || '---',
+          bilhetes:  v.bilhetes,
+          jogos:     mapaJogos[uid] || 0,
+          investido: v.investido,
+          palpites:  v.bilhetes,
+        }))
+        .sort((a, b) => b.bilhetes - a.bilhetes)
+        .slice(0, 20)
+        .map((r, i) => ({ ...r, posicao: i + 1 }));
     } else {
       // ── Fases 1, 2 ou Geral (0): usa palpitesCampanha ────────
       const where = { pagamentoConfirmado: true };
