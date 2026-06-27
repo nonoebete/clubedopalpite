@@ -58,6 +58,19 @@ async function cadastrar(req, res) {
       data:  { codigoCdp },
     });
 
+    // Enviar boas-vindas via WhatsApp (sem bloquear a resposta)
+    try {
+      const wpp = require('../services/whatsapp.service');
+      const templates = require('../services/templates.whatsapp');
+      const msg = templates.boasVindas({
+        nomeCompleto,
+        apelido: apelido.trim(),
+        codigoCdp,
+        senhaAcesso: senhaBase,
+      });
+      wpp.enviarMensagem(telefone.trim(), msg).catch(e => console.error('[WPP-CADASTRO]', e));
+    } catch(e) { console.error('[WPP-CADASTRO] erro:', e); }
+
     return res.status(201).json({
       mensagem:   'Seja bem-vindo ao Clube de Palpites!',
       codigoCdp,
