@@ -2258,7 +2258,7 @@ async function rkInit() {
 }
 
 async function rkCarregarFase(fase) {
-  if (RK_CACHE[fase]) { rkRenderPodio(); rkRenderRanking(); if(fase===1)rkRenderSelecoes(); return; }
+  if (RK_CACHE[fase] !== undefined) { rkRenderPodio(); rkRenderRanking(); if(fase===1)rkRenderSelecoes(); return; }
   document.getElementById('rk-lista').innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted)">Carregando…</div>';
   document.getElementById('rk-podio').innerHTML = '';
   try {
@@ -2504,9 +2504,9 @@ async function admCancelarPalpite(id, cdp, tipo) {
 </script>
 <!-- MODAL EDITAR MEMBRO -->
 <div class="modal-overlay" id="modal-editar-membro">
-  <div class="modal-box" style="max-width:780px;max-height:90vh;overflow-y:auto;width:95vw">
-    <div class="modal-box-title" id="modal-membro-titulo">Editar membro</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+  <div class="modal-box" style="max-width:860px;width:96vw;max-height:92vh;overflow-y:auto">
+    <div id="modal-membro-titulo" style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:var(--gold);background:rgba(240,165,0,.08);border:1px solid rgba(240,165,0,.25);border-radius:10px;padding:10px 18px;margin-bottom:18px;letter-spacing:.03em">Editar membro</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 4px">
       <div class="form-group" style="grid-column:1/-1"><label>Nome completo</label><input type="text" id="mb-nome" placeholder="Nome completo"></div>
       <div class="form-group"><label>Apelido</label><input type="text" id="mb-apelido" placeholder="Apelido"></div>
       <div class="form-group"><label>Telefone</label><input type="tel" id="mb-tel" placeholder="(48) 99999-0000"></div>
@@ -2514,19 +2514,19 @@ async function admCancelarPalpite(id, cdp, tipo) {
       <div class="form-group"><label>CPF</label><input type="text" id="mb-cpf" placeholder="000.000.000-00" maxlength="14"></div>
       <div class="form-group"><label>Codigo CDP</label><input type="text" id="mb-cdp" disabled style="opacity:.5"></div>
       <div class="form-group"><label>Tipo de membro</label>
-        <select id="mb-tipo" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--border2);background:var(--navy);color:#dce8f5;font-family:inherit;font-size:14px">
+        <select id="mb-tipo" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--navy2);color:#dce8f5;font-family:inherit;font-size:13px;outline:none">
           <option value="NORMAL">Normal</option>
           <option value="CREDENCIADO">Credenciado</option>
         </select>
       </div>
+      <div class="form-group" style="grid-column:1/-1"><label>Endereco</label><input type="text" id="mb-endereco" placeholder="Rua, numero"></div>
+      <div class="form-group"><label>Bairro</label><input type="text" id="mb-bairro" placeholder="Bairro"></div>
       <div class="form-group"><label>CEP</label>
         <div style="display:flex;gap:6px">
           <input type="text" id="mb-cep" placeholder="00000-000" maxlength="9" style="flex:1">
           <button onclick="mbBuscarCep()" style="background:rgba(240,165,0,.15);border:1px solid rgba(240,165,0,.3);color:var(--gold);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit;white-space:nowrap">Buscar CEP</button>
         </div>
       </div>
-      <div class="form-group" style="grid-column:1/-1"><label>Endereco</label><input type="text" id="mb-endereco" placeholder="Rua, numero"></div>
-      <div class="form-group"><label>Bairro</label><input type="text" id="mb-bairro" placeholder="Bairro"></div>
       <div class="form-group"><label>Cidade</label><input type="text" id="mb-cidade" placeholder="Cidade"></div>
       <div class="form-group"><label>Estado</label><input type="text" id="mb-estado" placeholder="SC" maxlength="2"></div>
     </div>
