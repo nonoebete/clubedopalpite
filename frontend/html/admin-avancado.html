@@ -583,6 +583,7 @@ input[type=text]::placeholder{color:var(--muted)}
         <button class="filter-btn" onclick="filtroMembros('bloqueado',this)">Bloqueados</button>
         <button class="filter-btn" onclick="filtroMembros('1fase',this)">1ª Fase</button>
         <button class="filter-btn" onclick="filtroMembros('2fase',this)">2ª Fase</button>
+        <button class="filter-btn" onclick="filtroMembros('3fase',this)">Palpite por Resultado</button>
       </div>
       <div class="card" style="padding:0">
         <table>
@@ -1441,7 +1442,18 @@ function buildTblMembros() {
   let dados = MEMBROS.filter(m => m.perfil !== 'ADMIN');
   if (membrosFilter === 'ativo')     dados = dados.filter(m => !m.bloqueado);
   if (membrosFilter === 'bloqueado') dados = dados.filter(m => m.bloqueado);
-  if (membrosFilter === '1fase' || membrosFilter === '2fase') dados = dados.filter(m => (m._count?.palpites || 0) > 0);
+  if (membrosFilter === '1fase') {
+    const ids1 = (RK_CACHE[1]||[]).map(x=>x.usuarioId);
+    dados = dados.filter(m => ids1.includes(m.id));
+  }
+  if (membrosFilter === '2fase') {
+    const ids2 = (RK_CACHE[2]||[]).map(x=>x.usuarioId);
+    dados = dados.filter(m => ids2.includes(m.id));
+  }
+  if (membrosFilter === '3fase') {
+    const ids3 = (RK_CACHE[3]||[]).map(x=>x.usuarioId);
+    dados = dados.filter(m => ids3.includes(m.id));
+  }
   if (membrosSearch) {
     dados = dados.filter(m =>
       m.nomeCompleto.toLowerCase().includes(membrosSearch) ||
@@ -1472,10 +1484,13 @@ function buildTblMembros() {
   document.getElementById('membros-count').textContent = dados.length + ' de ' + MEMBROS.filter(m => m.perfil !== 'ADMIN').length + ' membros';
 }
 
-function filtroMembros(f, btn) {
+async function filtroMembros(f, btn) {
   membrosFilter = f;
   document.querySelectorAll('#sec-membros .filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+  if (f === '1fase' && RK_CACHE[1] === undefined) await rkCarregarFase(1);
+  if (f === '2fase' && RK_CACHE[2] === undefined) await rkCarregarFase(2);
+  if (f === '3fase' && RK_CACHE[3] === undefined) await rkCarregarFase(3);
   buildTblMembros();
 }
 function filtrarMembros() { membrosSearch = document.getElementById('busca-membro').value.toLowerCase(); buildTblMembros(); }
@@ -2255,6 +2270,9 @@ async function rkInit() {
   if (rkJaInit) return;
   rkJaInit = true;
   await rkCarregarFase(1);
+  rkCarregarFase(2);
+  rkCarregarFase(3);
+  rkCarregarFase(0);
 }
 
 async function rkCarregarFase(fase) {
