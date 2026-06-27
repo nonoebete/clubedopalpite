@@ -168,9 +168,9 @@ async function carregarRanking() {
   try {
     const fases = [1, 2, 3, 0];
     for (const f of fases) {
-      const res = await fetch(`/api/palpites/ranking?fase=${f}`);
+      const res = await fetch(`/api/palpites/ranking-por-fase?fase=${f}`);
       const json = await res.json();
-      RANKING_DATA[f] = (json.ranking || []).map((p, i) => ({
+      RANKING_DATA[f] = (Array.isArray(json) ? json : (json.ranking || [])).map((p, i) => ({
         pos:      p.posicao || i + 1,
         apelido:  p.apelido || '---',
         cdp:      p.codigoCdp || '---',
