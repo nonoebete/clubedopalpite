@@ -427,6 +427,18 @@
       </div>
 
       <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">
+      <!-- Card prévia do convite -->
+      <div style="background:var(--navy2);border:1px solid rgba(240,165,0,.25);border-radius:14px;padding:16px 18px;margin-bottom:16px;display:flex;align-items:center;gap:16px">
+        <img src="/logo-clube.png" alt="Clube do Palpite" style="width:70px;height:70px;object-fit:contain;border-radius:10px;flex-shrink:0">
+        <div style="flex:1">
+          <div style="color:var(--gold);font-size:11px;font-weight:700;letter-spacing:3px;margin-bottom:2px">CLUBE DO PALPITE</div>
+          <div style="color:#fff;font-size:18px;font-weight:900;line-height:1.1">COPA 2026 ⚽</div>
+          <div style="margin-top:8px;display:flex;gap:10px;flex-wrap:wrap">
+            <span style="background:rgba(240,165,0,.1);border:1px solid rgba(240,165,0,.3);color:var(--gold);font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px">R$ 10 bilhete</span>
+            <span style="background:rgba(240,165,0,.1);border:1px solid rgba(240,165,0,.3);color:var(--gold);font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px">60% em prêmios</span>
+          </div>
+        </div>
+      </div>
         <button class="btn-nav-pri" style="padding:11px 20px" onclick="indAbrirModal()">💰 Resgatar saldo</button>
         <button class="btn-nav-admin" style="padding:11px 20px" onclick="indCompartilharWpp()">📱 Compartilhar no WhatsApp</button>
       </div>
@@ -1299,9 +1311,15 @@ function indFiltrarExtrato(tipo, btn) {
 }
 
 function indCopiarLink() {
-  const url = `https://${IND_APP_URL}/login.html?ref=${IND_CDP}`;
-  navigator.clipboard?.writeText(url).catch(()=>{});
-  indToast('✅ Link copiado! Compartilhe com seus amigos.');
+  const url = 'https://' + IND_APP_URL + '/login.html?ref=' + IND_CDP;
+  const msg = '🏆 CLUBE DO PALPITE - COPA 2026 🏆' + String.fromCharCode(10) + String.fromCharCode(10) +
+    '⚽ Palpite nos jogos da Copa e concorra a PREMIOS EM DINHEIRO!' + String.fromCharCode(10) + String.fromCharCode(10) +
+    '✅ Bilhete unico: R$ 10,00' + String.fromCharCode(10) +
+    '✅ Escolha quantos jogos quiser' + String.fromCharCode(10) +
+    '✅ 60% do total arrecadado em premios' + String.fromCharCode(10) + String.fromCharCode(10) +
+    '👉 Cadastre-se pelo meu link:' + String.fromCharCode(10) + url;
+  navigator.clipboard?.writeText(msg).catch(()=>{});
+  indToast('✅ Mensagem copiada! Cole no WhatsApp ou onde quiser.');
 }
 
 function indAbrirQrCode() {
@@ -1318,8 +1336,19 @@ function indFecharQrCode() {
 }
 
 function indCompartilharWpp() {
-  const msg = encodeURIComponent(`Ei! Me cadastrei no Clube de Palpites da Copa 2026 e tô adorando 🏆⚽\nSe cadastra pelo meu link e garante seus palpites:\nhttps://${IND_APP_URL}/login.html?ref=${IND_CDP}`);
-  window.open(`https://api.whatsapp.com/send?text=${msg}`, '_blank');
+  const url = 'https://' + IND_APP_URL + '/login.html?ref=' + IND_CDP;
+  const msg = encodeURIComponent(
+    '🏆 *CLUBE DO PALPITE - COPA 2026* 🏆' + String.fromCharCode(10) + String.fromCharCode(10) +
+    '⚽ Palpite nos jogos da Copa e concorra a *PRÊMIOS EM DINHEIRO*!' + String.fromCharCode(10) + String.fromCharCode(10) +
+    '✅ Bilhete único: R$ 10,00' + String.fromCharCode(10) +
+    '✅ Escolha quantos jogos quiser no bilhete' + String.fromCharCode(10) +
+    '✅ 60% do total arrecadado em prêmios' + String.fromCharCode(10) +
+    '✅ Ranking ao vivo com os melhores palpiteiros' + String.fromCharCode(10) + String.fromCharCode(10) +
+    '👉 Se cadastra pelo meu link e já começa a palpitar:' + String.fromCharCode(10) +
+    url + String.fromCharCode(10) + String.fromCharCode(10) +
+    '📱 É rápido, fácil e vale muito!'
+  );
+  window.open('https://api.whatsapp.com/send?text=' + msg, '_blank');
 }
 
 function indSetTab(tab) {
