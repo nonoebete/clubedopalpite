@@ -436,21 +436,26 @@ input[type=text]::placeholder{color:var(--muted)}
           </table>
         </div>
       </div>
-    </div>
       <div class="card" style="margin-top:20px">
         <div class="card-header">
           <span class="card-title">⚙️ Ativar / Desativar Seleções</span>
           <span style="font-size:12px;color:var(--muted)">Seleções desativadas não aparecem para palpite</span>
         </div>
         <div style="padding:16px">
-          <div style="display:flex;gap:8px;margin-bottom:12px">
+          <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
             <input type="text" id="busca-sel-admin" placeholder="🔍 Filtrar seleção…" oninput="filtrarSelesAdmin()" style="flex:1;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--navy2);color:#dce8f5;font-size:13px;outline:none">
             <button onclick="toggleTodasSelecoes(true)" style="background:rgba(29,185,84,.15);border:1px solid rgba(29,185,84,.3);color:#1db954;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit">✅ Ativar todas</button>
             <button onclick="toggleTodasSelecoes(false)" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#ef4444;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit">🚫 Desativar todas</button>
           </div>
+          <div style="display:flex;gap:16px;margin-bottom:12px;font-size:13px">
+            <span>🟢 Ativas: <strong id="cont-ativas" style="color:#1db954">0</strong></span>
+            <span>🔴 Desativadas: <strong id="cont-desativas" style="color:#ef4444">0</strong></span>
+            <span style="color:var(--muted)">Total: <strong id="cont-total" style="color:#dce8f5">0</strong></span>
+          </div>
           <div id="grid-selecoes-admin" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;max-height:400px;overflow-y:auto"></div>
         </div>
       </div>
+    </div>
 
     <!-- ════════════════ APURAR ════════════════ -->
     <div class="section" id="sec-apurar">
@@ -2571,9 +2576,18 @@ function renderSelesAdmin(filtro = '') {
   const lista = filtro
     ? SELECOES_ADMIN.filter(s => s.nome.toLowerCase().includes(filtro.toLowerCase()))
     : SELECOES_ADMIN;
+  // Atualiza contadores
+  const ativas = SELECOES_ADMIN.filter(s => s.ativa).length;
+  const desativas = SELECOES_ADMIN.filter(s => !s.ativa).length;
+  const cA = document.getElementById('cont-ativas');
+  const cD = document.getElementById('cont-desativas');
+  const cT = document.getElementById('cont-total');
+  if (cA) cA.textContent = ativas;
+  if (cD) cD.textContent = desativas;
+  if (cT) cT.textContent = SELECOES_ADMIN.length;
   grid.innerHTML = lista.map(s => `
     <div style="display:flex;align-items:center;justify-content:space-between;background:var(--navy2);border:1px solid ${s.ativa ? 'rgba(29,185,84,.3)' : 'rgba(239,68,68,.3)'};border-radius:8px;padding:8px 10px;gap:8px">
-      <span style="font-size:13px;font-weight:500;color:${s.ativa ? '#dce8f5' : 'var(--muted)'}">${s.bandeiraCss || 'x'} ${s.nome}</span>
+      <span style="font-size:13px;font-weight:500;color:${s.ativa ? '#dce8f5' : 'var(--muted)'}"><img src='${s.bandeiraCss}' style='width:20px;height:14px;object-fit:cover;border-radius:2px;vertical-align:middle;margin-right:4px' onerror='this.style.display="none"'>${s.nome}</span>
       <button onclick="toggleSelecao(${s.id},${!s.ativa})" style="background:${s.ativa ? 'rgba(239,68,68,.15)' : 'rgba(29,185,84,.15)'};border:1px solid ${s.ativa ? 'rgba(239,68,68,.3)' : 'rgba(29,185,84,.3)'};color:${s.ativa ? '#ef4444' : '#1db954'};padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-family:inherit;white-space:nowrap">
         ${s.ativa ? 'Desativar' : 'Ativar'}
       </button>
