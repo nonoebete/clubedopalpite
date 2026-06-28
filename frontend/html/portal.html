@@ -703,49 +703,68 @@ let fase = 1, sel1 = new Set(), campea = null, vice = null, duplas = [];
 
 // Renderiza as seleções por fase
 function renderSelecoes() {
-  // Ordena: ativas alfabeticamente primeiro, inativas depois
-  const ativas = selecoesPorFavoritismo.filter(s => s.ativa !== false);
-  const inativas = selecoesPorFavoritismo.filter(s => s.ativa === false);
-  const ordenadas = [...ativas, ...inativas];
+  const ativas = selecoesPorFavoritismo.filter(function(s){ return s.ativa !== false; });
+  const inativas = selecoesPorFavoritismo.filter(function(s){ return s.ativa === false; });
+  const ordenadas = ativas.concat(inativas);
 
-  // Fase 1 — lista ordenada por chance de ser campea
   const f1 = document.getElementById('selecoes-f1');
-  if (f1) f1.innerHTML = '<div class="selecoes-grid">' + ordenadas.map(s => {
-    const id = s.id;
-    const desativada = s.ativa === false;
-    return '<div class="sel-card ' + (sel1.has(id)?'selected':'') + (desativada?' disabled-sel':'') + '" ' +
-      (desativada ? 'style="opacity:.35;cursor:not-allowed;pointer-events:none"' : 'onclick="toggleSel1('' + id + '','' + s.f + '','' + s.n + '')"') + '>' +
-      '<img src="' + s.f + '" alt="' + s.n + '" style="width:28px;height:20px;object-fit:cover;border-radius:3px;flex-shrink:0">' +
-      '<span style="flex:1">' + s.n + (desativada ? ' <span style="font-size:9px;color:var(--muted)">(eliminada)</span>' : '') + '</span>' +
-      '<span class="check">✓</span></div>';
-  }).join('') + '</div>';
+  if (f1) {
+    var html1 = '<div class="selecoes-grid">';
+    ordenadas.forEach(function(s) {
+      var id = s.id;
+      var des = s.ativa === false;
+      var sel = sel1.has(id) ? 'selected' : '';
+      var st = des ? 'opacity:.35;cursor:not-allowed;pointer-events:none' : '';
+      var click = des ? '' : 'onclick="toggleSel1(' + JSON.stringify(id) + ',' + JSON.stringify(s.f) + ',' + JSON.stringify(s.n) + ')"';
+      var label = s.n + (des ? ' <span style="font-size:9px;color:var(--muted)">(eliminada)</span>' : '');
+      html1 += '<div class="sel-card ' + sel + '" style="' + st + '" ' + click + '>';
+      html1 += '<img src="' + s.f + '" alt="' + s.n + '" style="width:28px;height:20px;object-fit:cover;border-radius:3px;flex-shrink:0">';
+      html1 += '<span style="flex:1">' + label + '</span>';
+      html1 += '<span class="check">✓</span></div>';
+    });
+    html1 += '</div>';
+    f1.innerHTML = html1;
+  }
 
-  // Fase 2 — Campea e Vice: ativas alfabeticamente, inativas desabilitadas por ultimo
-  const ativasAlfa = [...ativas].sort((a,b) => a.n.localeCompare(b.n));
-  const inativasAlfa = [...inativas].sort((a,b) => a.n.localeCompare(b.n));
-  const todasOrdenadas = [...ativasAlfa, ...inativasAlfa];
+  var ativasAlfa = ativas.slice().sort(function(a,b){ return a.n.localeCompare(b.n); });
+  var inativasAlfa = inativas.slice().sort(function(a,b){ return a.n.localeCompare(b.n); });
+  var todasOrdenadas = ativasAlfa.concat(inativasAlfa);
 
-  const gc = document.getElementById('selecoes-campea');
-  if (gc) gc.innerHTML = todasOrdenadas.map((s,i) => {
-    const idx = allSelecoes.findIndex(x => x.n === s.n);
-    const desativada = s.ativa === false;
-    return '<div class="sel-card ' + (campea===idx?'selected':'') + '" style="margin-bottom:6px;' + (desativada?'opacity:.35;cursor:not-allowed;pointer-events:none':'') + '" ' +
-      (desativada ? '' : 'onclick="setCampea(' + idx + ','' + s.f + '','' + s.n + '')"') + '>' +
-      '<img src="' + s.f + '" alt="' + s.n + '" style="width:24px;height:17px;object-fit:cover;border-radius:2px">' +
-      '<span style="font-size:12px">' + s.n + (desativada ? ' <span style="font-size:9px;color:var(--muted)">(elim.)</span>' : '') + '</span>' +
-      '<span class="check">✓</span></div>';
-  }).join('');
+  var gc = document.getElementById('selecoes-campea');
+  if (gc) {
+    var html2 = '';
+    todasOrdenadas.forEach(function(s) {
+      var idx = allSelecoes.findIndex(function(x){ return x.n === s.n; });
+      var des = s.ativa === false;
+      var sel = campea === idx ? 'selected' : '';
+      var st = 'margin-bottom:6px;' + (des ? 'opacity:.35;cursor:not-allowed;pointer-events:none' : '');
+      var click = des ? '' : 'onclick="setCampea(' + idx + ',' + JSON.stringify(s.f) + ',' + JSON.stringify(s.n) + ')"';
+      var label = s.n + (des ? ' <span style="font-size:9px;color:var(--muted)">(elim.)</span>' : '');
+      html2 += '<div class="sel-card ' + sel + '" style="' + st + '" ' + click + '>';
+      html2 += '<img src="' + s.f + '" alt="' + s.n + '" style="width:24px;height:17px;object-fit:cover;border-radius:2px">';
+      html2 += '<span style="font-size:12px">' + label + '</span>';
+      html2 += '<span class="check">✓</span></div>';
+    });
+    gc.innerHTML = html2;
+  }
 
-  const gv = document.getElementById('selecoes-vice');
-  if (gv) gv.innerHTML = todasOrdenadas.map((s,i) => {
-    const idx = allSelecoes.findIndex(x => x.n === s.n);
-    const desativada = s.ativa === false;
-    return '<div class="sel-card ' + (vice===idx?'selected':'') + '" style="margin-bottom:6px;' + (desativada?'opacity:.35;cursor:not-allowed;pointer-events:none':'') + '" ' +
-      (desativada ? '' : 'onclick="setVice(' + idx + ','' + s.f + '','' + s.n + '')"') + '>' +
-      '<img src="' + s.f + '" alt="' + s.n + '" style="width:24px;height:17px;object-fit:cover;border-radius:2px">' +
-      '<span style="font-size:12px">' + s.n + (desativada ? ' <span style="font-size:9px;color:var(--muted)">(elim.)</span>' : '') + '</span>' +
-      '<span class="check">✓</span></div>';
-  }).join('');
+  var gv = document.getElementById('selecoes-vice');
+  if (gv) {
+    var html3 = '';
+    todasOrdenadas.forEach(function(s) {
+      var idx = allSelecoes.findIndex(function(x){ return x.n === s.n; });
+      var des = s.ativa === false;
+      var sel = vice === idx ? 'selected' : '';
+      var st = 'margin-bottom:6px;' + (des ? 'opacity:.35;cursor:not-allowed;pointer-events:none' : '');
+      var click = des ? '' : 'onclick="setVice(' + idx + ',' + JSON.stringify(s.f) + ',' + JSON.stringify(s.n) + ')"';
+      var label = s.n + (des ? ' <span style="font-size:9px;color:var(--muted)">(elim.)</span>' : '');
+      html3 += '<div class="sel-card ' + sel + '" style="' + st + '" ' + click + '>';
+      html3 += '<img src="' + s.f + '" alt="' + s.n + '" style="width:24px;height:17px;object-fit:cover;border-radius:2px">';
+      html3 += '<span style="font-size:12px">' + label + '</span>';
+      html3 += '<span class="check">✓</span></div>';
+    });
+    gv.innerHTML = html3;
+  }
 }
 function toggleSel1(id, flag, nome) {
   sel1.has(id) ? sel1.delete(id) : sel1.add(id);
