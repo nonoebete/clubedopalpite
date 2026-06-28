@@ -715,7 +715,7 @@ function renderSelecoes() {
       var des = s.ativa === false;
       var sel = sel1.has(id) ? 'selected' : '';
       var st = des ? 'opacity:.35;cursor:not-allowed;pointer-events:none' : '';
-      var click = des ? '' : 'onclick="toggleSel1(' + JSON.stringify(id) + ',' + JSON.stringify(s.f) + ',' + JSON.stringify(s.n) + ')"';
+      var sidx = selecoesPorFavoritismo.indexOf(s); var click = des ? '' : 'onclick="_sel1(' + sidx + ')"';
       var label = s.n + (des ? ' <span style="font-size:9px;color:var(--muted)">(eliminada)</span>' : '');
       html1 += '<div class="sel-card ' + sel + '" style="' + st + '" ' + click + '>';
       html1 += '<img src="' + s.f + '" alt="' + s.n + '" style="width:28px;height:20px;object-fit:cover;border-radius:3px;flex-shrink:0">';
@@ -738,7 +738,7 @@ function renderSelecoes() {
       var des = s.ativa === false;
       var sel = campea === idx ? 'selected' : '';
       var st = 'margin-bottom:6px;' + (des ? 'opacity:.35;cursor:not-allowed;pointer-events:none' : '');
-      var click = des ? '' : 'onclick="setCampea(' + idx + ',' + JSON.stringify(s.f) + ',' + JSON.stringify(s.n) + ')"';
+      var click = des ? '' : 'onclick="_campea(' + idx + ')"';
       var label = s.n + (des ? ' <span style="font-size:9px;color:var(--muted)">(elim.)</span>' : '');
       html2 += '<div class="sel-card ' + sel + '" style="' + st + '" ' + click + '>';
       html2 += '<img src="' + s.f + '" alt="' + s.n + '" style="width:24px;height:17px;object-fit:cover;border-radius:2px">';
@@ -756,7 +756,7 @@ function renderSelecoes() {
       var des = s.ativa === false;
       var sel = vice === idx ? 'selected' : '';
       var st = 'margin-bottom:6px;' + (des ? 'opacity:.35;cursor:not-allowed;pointer-events:none' : '');
-      var click = des ? '' : 'onclick="setVice(' + idx + ',' + JSON.stringify(s.f) + ',' + JSON.stringify(s.n) + ')"';
+      var click = des ? '' : 'onclick="_vice(' + idx + ')"';
       var label = s.n + (des ? ' <span style="font-size:9px;color:var(--muted)">(elim.)</span>' : '');
       html3 += '<div class="sel-card ' + sel + '" style="' + st + '" ' + click + '>';
       html3 += '<img src="' + s.f + '" alt="' + s.n + '" style="width:24px;height:17px;object-fit:cover;border-radius:2px">';
@@ -766,6 +766,9 @@ function renderSelecoes() {
     gv.innerHTML = html3;
   }
 }
+function _sel1(sidx) { var s = selecoesPorFavoritismo[sidx]; if(s) toggleSel1(s.id, s.f, s.n); }
+function _campea(idx) { var s = allSelecoes[idx]; if(s) setCampea(idx, s.f, s.n); }
+function _vice(idx) { var s = allSelecoes[idx]; if(s) setVice(idx, s.f, s.n); }
 function toggleSel1(id, flag, nome) {
   sel1.has(id) ? sel1.delete(id) : sel1.add(id);
   renderSelecoes(); updateResumo();
