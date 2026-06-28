@@ -1517,10 +1517,8 @@ function abrirEditarMembro(id) {
   // Carrega lista de indicadores no select
   const selInd = document.getElementById('mb-indicador');
   if (selInd) {
-    selInd.innerHTML = '<option value=>Sem indicador</option>' +
-      MEMBROS.filter(x => x.id !== id).map(x =>
-        '<option value= + x.id + >' + x.apelido + ' (' + x.codigoCdp + ')</option>'
-      ).join('');
+    selInd.innerHTML = "<option value=''>Sem indicador</option>" +
+      MEMBROS.filter(x => x.id !== id).map(x => '<option value="' + x.id + '">' + x.apelido + ' (' + x.codigoCdp + ')</option>').join('');
     // Preenche com o indicador atual do membro
     const indicadorAtual = m.indicadorId || '';
     selInd.value = String(indicadorAtual);
