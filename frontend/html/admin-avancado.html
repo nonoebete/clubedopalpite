@@ -1523,7 +1523,7 @@ function abrirEditarMembro(id) {
       ).join('');
     // Preenche com o indicador atual do membro
     const indicadorAtual = m.indicadorId || '';
-    selInd.value = indicadorAtual;
+    selInd.value = String(indicadorAtual);
   }
   document.getElementById('modal-editar-membro').classList.add('show');
 }
@@ -1567,15 +1567,12 @@ async function salvarEdicaoMembro() {
     });
     const data = await r.json();
     showToast('Dados de ' + membroSelecionado.codigoCdp + ' atualizados!');
-    // Salva indicador se mudou
+    // Salva indicador
     const novoIndicadorId = document.getElementById('mb-indicador').value;
-    const indicadorAtual = String(membroSelecionado.indicadorId || '');
-    if (novoIndicadorId !== indicadorAtual) {
-      await fetch(API_BASE + '/admin/usuarios/' + membroSelecionado.id + '/indicador', {
-        method: 'PATCH', headers: authHeadersAdmin(),
-        body: JSON.stringify({ indicadorId: novoIndicadorId ? Number(novoIndicadorId) : null }),
-      });
-    }
+    await fetch(API_BASE + '/admin/usuarios/' + membroSelecionado.id + '/indicador', {
+      method: 'PATCH', headers: authHeadersAdmin(),
+      body: JSON.stringify({ indicadorId: novoIndicadorId ? Number(novoIndicadorId) : null }),
+    });
     fecharModalMembro('modal-editar-membro');
     carregarMembros();
   } catch (err) {
