@@ -541,6 +541,7 @@
             <button class="ext-filter-btn ext-filter-active" data-f="todos" onclick="extFiltrarPalpites('todos',this)" style="background:rgba(240,165,0,.1);border:1px solid rgba(240,165,0,.3);color:var(--gold);font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;cursor:pointer">Todos</button>
             <button class="ext-filter-btn" data-f="1fase" onclick="extFiltrarPalpites('1fase',this)" style="background:var(--navy2);border:1px solid var(--border2);color:var(--muted);font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;cursor:pointer">1ª Fase</button>
             <button class="ext-filter-btn" data-f="2fase" onclick="extFiltrarPalpites('2fase',this)" style="background:var(--navy2);border:1px solid var(--border2);color:var(--muted);font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;cursor:pointer">2ª Fase</button>
+            <button class="ext-filter-btn" data-f="3fase" onclick="extFiltrarPalpites('3fase',this)" style="background:var(--navy2);border:1px solid var(--border2);color:var(--muted);font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;cursor:pointer">3ª Fase</button>
           </div>
         </div>
         <div style="overflow-x:auto">
@@ -1519,6 +1520,7 @@ function extRenderPalpites() {
   let dados = todos;
   if (extFiltroPalpite === '1fase') dados = todos.filter(p => p.pagamento.campanha?.fase === 1);
   if (extFiltroPalpite === '2fase') dados = todos.filter(p => p.pagamento.campanha?.fase === 2);
+  if (extFiltroPalpite === '3fase') dados = todos.filter(p => p.pagamento.campanha?.fase === 3);
 
   document.getElementById('ext-palpites-tbody').innerHTML = dados.map(p => {
     const pag = p.pagamento;
@@ -1534,7 +1536,7 @@ function extRenderPalpites() {
       selDisplay = `<img src="${p.selecaoCampea.bandeiraCss}" style="height:16px;border-radius:2px"> ${p.selecaoCampea.nome}`;
       if (p.selecaoVice) selDisplay += ` + <img src="${p.selecaoVice.bandeiraCss}" style="height:16px;border-radius:2px"> ${p.selecaoVice.nome}`;
     } else if (p.partida) {
-      selDisplay = `${p.partida.selecaoCasa?.nome} vs ${p.partida.selecaoFora?.nome}`;
+      selDisplay = (p.partida?.selecaoCasa?.nome || '?') + ' x ' + (p.partida?.selecaoFora?.nome || '?') + ' <span style="color:var(--gold);font-weight:700">→ ' + (p.palpiteResultado === 'CASA' ? (p.partida?.selecaoCasa?.nome||'Casa') : p.palpiteResultado === 'FORA' ? (p.partida?.selecaoFora?.nome||'Fora') : 'Empate') + '</span>';
     }
 
     const resultLabel = p.acertou === true ? '✅ Acertou!' : p.acertou === false ? '❌ Não acertou' : '—';
