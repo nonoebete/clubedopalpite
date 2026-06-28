@@ -4,7 +4,7 @@ const prisma = require('../models/prisma');
 
 // Lista todas as seleções (público)
 router.get('/', async (req, res) => {
-  const selecoes = await prisma.selecao.findMany({ orderBy: { nome: 'asc' } });
+  const selecoes = await prisma.selecao.findMany({ orderBy: [{ ativa: 'desc' }, { nome: 'asc' }] });
   res.json(selecoes);
 });
 

@@ -55,6 +55,7 @@ model Selecao {
   sigla       String @unique @db.Char(3)
   grupo       String @db.Char(1)
   bandeiraCss String @map("bandeira_css")
+  ativa       Boolean @default(true)
   palpitesCampea PalpiteCampanha[] @relation("CampeaRelation")
   palpitesVice   PalpiteCampanha[] @relation("ViceRelation")
   partidasCasa     Partida[] @relation("PartidaCasa")
