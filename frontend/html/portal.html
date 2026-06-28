@@ -54,7 +54,9 @@
     .fase-pill.active { border-color: var(--gold); background: rgba(240,165,0,0.08); }
     .fase-pill .fp-num { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
     .fase-pill.active .fp-num { color: var(--gold); }
-    .fase-pill .fp-label { font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 700; margin-top: 2px; }
+    .fase-pill .fp-label { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 700; margin-top: 2px; color: #dce8f5; letter-spacing: .02em; }
+    .fase-pill.active .fp-label { color: var(--gold); text-shadow: 0 0 12px rgba(240,165,0,.3); }
+    .fase-pill .fp-label { text-transform: uppercase; }
     .fase-pill .fp-price { font-size: 12px; color: var(--muted); margin-top: 2px; }
 
     /* ── Fase 2: dupla ───────────────────────────────────── */
@@ -183,7 +185,12 @@
 
       <!-- Fase toggle -->
       <div class="fase-toggle mt-24">
-        <div class="fase-pill active" id="pill-f1" onclick="setFase(1)">
+        <div class="fase-pill active" id="pill-f3" onclick="setFase(3)">
+          <div class="fp-num">Palpite por Resultado · Aberta</div>
+          <div class="fp-label">Vitória / Empate</div>
+          <div class="fp-price">R$ 10,00 / bilhete</div>
+        </div>
+        <div class="fase-pill" id="pill-f1" onclick="setFase(1)">
           <div class="fp-num">1ª Fase · Aberta</div>
           <div class="fp-label">Seleção Campeã</div>
           <div class="fp-price">R$ 10,00 / palpite</div>
@@ -193,11 +200,6 @@
           <div class="fp-label">Campeã + Vice</div>
           <div class="fp-price">R$ 15,00 / dupla</div>
         </div>
-        <div class="fase-pill" id="pill-f3" onclick="setFase(3)">
-          <div class="fp-num">Palpite por Resultado · Abre 16/06</div>
-          <div class="fp-label">Vitória / Empate</div>
-          <div class="fp-price">R$ 10,00 / bilhete</div>
-        </div>
       </div>
 
       <div style="display:grid;grid-template-columns:1fr 300px;gap:24px;align-items:start">
@@ -205,7 +207,7 @@
         <!-- Seleções -->
         <div>
           <!-- FASE 1 -->
-          <div id="fase1-ui">
+          <div id="fase1-ui" style="display:none">
             <p style="font-size:13px;color:var(--muted);margin-bottom:8px">Clique nas seleções para palpitar. Pode escolher quantas quiser.</p>
             <div id="selecoes-f1"></div>
           </div>
@@ -232,7 +234,7 @@
           </div>
 
           <!-- FASE 3 — Palpite por Resultado -->
-          <div id="fase3-ui" style="display:none">
+          <div id="fase3-ui">
             <div id="fase3-aviso" style="background:rgba(240,165,0,.08);border:1px solid rgba(240,165,0,.25);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--gold)">
               ⏳ Esta campanha abre em <strong>16/06/2026</strong>. Os palpites poderão ser feitos a partir dessa data, sobre os jogos da 1ª fase ainda não realizados.
             </div>
@@ -1863,7 +1865,7 @@ function abrirFaleConosco() {
 })();
 
 // Init
-atualizarAtivasSelecoes().then(() => renderSelecoes());
+atualizarAtivasSelecoes().then(() => { renderSelecoes(); setFase(3); });
 
 // Carrega KPIs de indicação em background ao iniciar
 (async function carregarKpisIndicacao() {

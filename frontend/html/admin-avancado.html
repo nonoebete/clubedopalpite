@@ -437,6 +437,20 @@ input[type=text]::placeholder{color:var(--muted)}
         </div>
       </div>
     </div>
+      <div class="card" style="margin-top:20px">
+        <div class="card-header">
+          <span class="card-title">⚙️ Ativar / Desativar Seleções</span>
+          <span style="font-size:12px;color:var(--muted)">Seleções desativadas não aparecem para palpite</span>
+        </div>
+        <div style="padding:16px">
+          <div style="display:flex;gap:8px;margin-bottom:12px">
+            <input type="text" id="busca-sel-admin" placeholder="🔍 Filtrar seleção…" oninput="filtrarSelesAdmin()" style="flex:1;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--navy2);color:#dce8f5;font-size:13px;outline:none">
+            <button onclick="toggleTodasSelecoes(true)" style="background:rgba(29,185,84,.15);border:1px solid rgba(29,185,84,.3);color:#1db954;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit">✅ Ativar todas</button>
+            <button onclick="toggleTodasSelecoes(false)" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#ef4444;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit">🚫 Desativar todas</button>
+          </div>
+          <div id="grid-selecoes-admin" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;max-height:400px;overflow-y:auto"></div>
+        </div>
+      </div>
 
     <!-- ════════════════ APURAR ════════════════ -->
     <div class="section" id="sec-apurar">
@@ -2039,7 +2053,7 @@ function showSec(id, navEl) {
   else document.querySelectorAll('.nav-item').forEach(n=>{ if(n.textContent.trim().toLowerCase().includes(id.substring(0,4))) n.classList.add('active'); });
   if (id==='apurar')      { buildListaApuracao('lista-sel-f1','f1'); buildListaApuracao('lista-sel-f2c','f2c'); buildListaApuracao('lista-sel-f2v','f2v'); buildF3Jogos(); }
   if (id==='arrecadacao') { buildF3JogosArrecadacao(); admCarregarDadosReais(); }
-  if (id==='selecoes')    { admCarregarDadosReais(); }
+  if (id==='selecoes')    { admCarregarDadosReais(); carregarSelesAdmin(); }
   if (id==='indicadores') { indAdmInit(); }
   if (id==='ranking')     { rkInit(); admCarregarDadosReais(); }
   if (id==='palpites')    { admPalpitesInit(); }
@@ -2538,6 +2552,67 @@ async function admCancelarPalpite(id, cdp, tipo) {
     ADM_PALPITES_CACHE = ADM_PALPITES_CACHE.filter(p => p.id !== id);
     admPalpitesRender();
   } catch { showToast('❌ Erro ao conectar.'); }
+}
+
+// ── Gerenciar Seleções ────────────────────────────────────────
+let SELECOES_ADMIN = [];
+
+async function carregarSelesAdmin() {
+  try {
+    const r = await fetch(`${API_BASE}/selecoes`, { headers: authHeadersAdmin() });
+    SELECOES_ADMIN = await r.json();
+    renderSelesAdmin();
+  } catch(e) { console.error('[SelesAdmin]', e); }
+}
+
+function renderSelesAdmin(filtro = '') {
+  const grid = document.getElementById('grid-selecoes-admin');
+  if (!grid) return;
+  const lista = filtro
+    ? SELECOES_ADMIN.filter(s => s.nome.toLowerCase().includes(filtro.toLowerCase()))
+    : SELECOES_ADMIN;
+  grid.innerHTML = lista.map(s => `
+    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--navy2);border:1px solid ${s.ativa ? 'rgba(29,185,84,.3)' : 'rgba(239,68,68,.3)'};border-radius:8px;padding:8px 10px;gap:8px">
+      <span style="font-size:13px;font-weight:500;color:${s.ativa ? '#dce8f5' : 'var(--muted)'}">${s.bandeiraCss || 'x'} ${s.nome}</span>
+      <button onclick="toggleSelecao(${s.id},${!s.ativa})" style="background:${s.ativa ? 'rgba(239,68,68,.15)' : 'rgba(29,185,84,.15)'};border:1px solid ${s.ativa ? 'rgba(239,68,68,.3)' : 'rgba(29,185,84,.3)'};color:${s.ativa ? '#ef4444' : '#1db954'};padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-family:inherit;white-space:nowrap">
+        ${s.ativa ? 'Desativar' : 'Ativar'}
+      </button>
+    </div>`).join('');
+}
+
+function filtrarSelesAdmin() {
+  const v = document.getElementById('busca-sel-admin')?.value || '';
+  renderSelesAdmin(v);
+}
+
+async function toggleSelecao(id, ativa) {
+  try {
+    const r = await fetch(`${API_BASE}/selecoes/${id}/ativa`, {
+      method: 'PATCH',
+      headers: authHeadersAdmin(),
+      body: JSON.stringify({ ativa }),
+    });
+    if (!r.ok) { showToast('Erro ao atualizar selecao.'); return; }
+    const sel = SELECOES_ADMIN.find(s => s.id === id);
+    if (sel) sel.ativa = ativa;
+    filtrarSelesAdmin();
+    showToast(ativa ? 'Selecao ativada!' : 'Selecao desativada!');
+  } catch(e) { showToast('Erro ao conectar.'); }
+}
+
+async function toggleTodasSelecoes(ativa) {
+  const ids = SELECOES_ADMIN.map(s => s.id);
+  try {
+    const r = await fetch(`${API_BASE}/selecoes/lote`, {
+      method: 'PATCH',
+      headers: authHeadersAdmin(),
+      body: JSON.stringify({ ids, ativa }),
+    });
+    if (!r.ok) { showToast('Erro ao atualizar selecoes.'); return; }
+    SELECOES_ADMIN.forEach(s => s.ativa = ativa);
+    filtrarSelesAdmin();
+    showToast(ativa ? 'Todas ativadas!' : 'Todas desativadas!');
+  } catch(e) { showToast('Erro ao conectar.'); }
 }
 </script>
 <!-- MODAL EDITAR MEMBRO -->
