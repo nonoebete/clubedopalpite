@@ -703,36 +703,50 @@ let fase = 1, sel1 = new Set(), campea = null, vice = null, duplas = [];
 
 // Renderiza as seleções por fase
 function renderSelecoes() {
-  // Fase 1 — lista única ordenada por chance de ser campeã (sem divisão por grupo)
+  // Ordena: ativas alfabeticamente primeiro, inativas depois
+  const ativas = selecoesPorFavoritismo.filter(s => s.ativa !== false);
+  const inativas = selecoesPorFavoritismo.filter(s => s.ativa === false);
+  const ordenadas = [...ativas, ...inativas];
+
+  // Fase 1 — lista ordenada por chance de ser campea
   const f1 = document.getElementById('selecoes-f1');
-  f1.innerHTML = `<div class="selecoes-grid">${selecoesPorFavoritismo.map(s => {
+  if (f1) f1.innerHTML = '<div class="selecoes-grid">' + ordenadas.map(s => {
     const id = s.id;
-    return `<div class="sel-card ${sel1.has(id)?'selected':''}" onclick="toggleSel1('${id}','${s.f}','${s.n}')">
-      <img src="${s.f}" alt="${s.n}" style="width:28px;height:20px;object-fit:cover;border-radius:3px;flex-shrink:0">
-      <span style="flex:1">${s.n}</span>
-      <span class="check">✓</span>
-    </div>`;
-  }).join('')}</div>`;
+    const desativada = s.ativa === false;
+    return '<div class="sel-card ' + (sel1.has(id)?'selected':'') + (desativada?' disabled-sel':'') + '" ' +
+      (desativada ? 'style="opacity:.35;cursor:not-allowed;pointer-events:none"' : 'onclick="toggleSel1('' + id + '','' + s.f + '','' + s.n + '')"') + '>' +
+      '<img src="' + s.f + '" alt="' + s.n + '" style="width:28px;height:20px;object-fit:cover;border-radius:3px;flex-shrink:0">' +
+      '<span style="flex:1">' + s.n + (desativada ? ' <span style="font-size:9px;color:var(--muted)">(eliminada)</span>' : '') + '</span>' +
+      '<span class="check">✓</span></div>';
+  }).join('') + '</div>';
 
-  // Fase 2 — Campeã
+  // Fase 2 — Campea e Vice: ativas alfabeticamente, inativas desabilitadas por ultimo
+  const ativasAlfa = [...ativas].sort((a,b) => a.n.localeCompare(b.n));
+  const inativasAlfa = [...inativas].sort((a,b) => a.n.localeCompare(b.n));
+  const todasOrdenadas = [...ativasAlfa, ...inativasAlfa];
+
   const gc = document.getElementById('selecoes-campea');
-  gc.innerHTML = allSelecoes.map((s,i) =>
-    `<div class="sel-card ${campea===i?'selected':''}" style="margin-bottom:6px" onclick="setCampea(${i},'${s.f}','${s.n}')">
-      <img src="${s.f}" alt="${s.n}" style="width:24px;height:17px;object-fit:cover;border-radius:2px"><span style="font-size:12px">${s.n}</span>
-      <span class="check">✓</span>
-    </div>`
-  ).join('');
+  if (gc) gc.innerHTML = todasOrdenadas.map((s,i) => {
+    const idx = allSelecoes.findIndex(x => x.n === s.n);
+    const desativada = s.ativa === false;
+    return '<div class="sel-card ' + (campea===idx?'selected':'') + '" style="margin-bottom:6px;' + (desativada?'opacity:.35;cursor:not-allowed;pointer-events:none':'') + '" ' +
+      (desativada ? '' : 'onclick="setCampea(' + idx + ','' + s.f + '','' + s.n + '')"') + '>' +
+      '<img src="' + s.f + '" alt="' + s.n + '" style="width:24px;height:17px;object-fit:cover;border-radius:2px">' +
+      '<span style="font-size:12px">' + s.n + (desativada ? ' <span style="font-size:9px;color:var(--muted)">(elim.)</span>' : '') + '</span>' +
+      '<span class="check">✓</span></div>';
+  }).join('');
 
-  // Fase 2 — Vice
   const gv = document.getElementById('selecoes-vice');
-  gv.innerHTML = allSelecoes.map((s,i) =>
-    `<div class="sel-card ${vice===i?'selected':''}" style="margin-bottom:6px" onclick="setVice(${i},'${s.f}','${s.n}')">
-      <img src="${s.f}" alt="${s.n}" style="width:24px;height:17px;object-fit:cover;border-radius:2px"><span style="font-size:12px">${s.n}</span>
-      <span class="check">✓</span>
-    </div>`
-  ).join('');
+  if (gv) gv.innerHTML = todasOrdenadas.map((s,i) => {
+    const idx = allSelecoes.findIndex(x => x.n === s.n);
+    const desativada = s.ativa === false;
+    return '<div class="sel-card ' + (vice===idx?'selected':'') + '" style="margin-bottom:6px;' + (desativada?'opacity:.35;cursor:not-allowed;pointer-events:none':'') + '" ' +
+      (desativada ? '' : 'onclick="setVice(' + idx + ','' + s.f + '','' + s.n + '')"') + '>' +
+      '<img src="' + s.f + '" alt="' + s.n + '" style="width:24px;height:17px;object-fit:cover;border-radius:2px">' +
+      '<span style="font-size:12px">' + s.n + (desativada ? ' <span style="font-size:9px;color:var(--muted)">(elim.)</span>' : '') + '</span>' +
+      '<span class="check">✓</span></div>';
+  }).join('');
 }
-
 function toggleSel1(id, flag, nome) {
   sel1.has(id) ? sel1.delete(id) : sel1.add(id);
   renderSelecoes(); updateResumo();
@@ -825,6 +839,17 @@ function authHeaders() {
 
 // Cache de seleções reais do banco (id + nome), buscado uma vez
 let _selecoesBackendCache = null;
+async function atualizarAtivasSelecoes() {
+  try {
+    const r = await fetch(API_BASE + '/selecoes');
+    const data = await r.json();
+    const mapaAtiva = {};
+    data.forEach(s => { mapaAtiva[s.nome] = s.ativa; });
+    selecoesPorFavoritismo.forEach(s => { s.ativa = mapaAtiva[s.n] !== undefined ? mapaAtiva[s.n] : true; });
+    allSelecoes.forEach(s => { s.ativa = mapaAtiva[s.n] !== undefined ? mapaAtiva[s.n] : true; });
+  } catch(e) { console.warn('Nao foi possivel carregar status das selecoes', e); }
+}
+
 async function getSelecoesBackend() {
   if (_selecoesBackendCache) return _selecoesBackendCache;
   const r = await fetch(`${API_BASE}/selecoes`);
@@ -1816,7 +1841,7 @@ function abrirFaleConosco() {
 })();
 
 // Init
-renderSelecoes();
+atualizarAtivasSelecoes().then(() => renderSelecoes());
 
 // Carrega KPIs de indicação em background ao iniciar
 (async function carregarKpisIndicacao() {
