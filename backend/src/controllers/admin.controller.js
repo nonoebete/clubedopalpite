@@ -120,11 +120,12 @@ async function listarUsuarios(req, res) {
       select: {
         id: true, codigoCdp: true, nomeCompleto: true,
         apelido: true, telefone: true, email: true, cpf: true, cep: true, endereco: true, bairro: true, cidade: true, estado: true, perfil: true, tipoUsuario: true, bloqueado: true, criadoEm: true,
+        indicacaoRecebida: { select: { indicadorId: true } },
         _count: { select: { palpites: true, pagamentos: true } },
       },
       orderBy: { id: 'asc' },
     });
-    return res.json(usuarios);
+    return res.json(usuarios.map(u => ({ ...u, indicadorId: u.indicacaoRecebida?.indicadorId || null })));
   } catch {
     return res.status(500).json({ error: 'Erro ao listar usuários.' });
   }
@@ -360,7 +361,7 @@ async function cancelarPalpiteAdmin(req, res) {
   }
 }
 
-module.exports = { apurar, financeiro, listarUsuarios, editarUsuario, alternarBloqueio, resetarSenha, excluirUsuario, listarTodosPalpites, excluirPalpite, confirmarPalpiteManual, reenviarPalpite, encerrarCampanha, cancelarPalpiteAdmin, confirmarPalpitePartidaManual, cancelarPalpitePartidaAdmin };
+module.exports = { apurar, financeiro, listarUsuarios, editarUsuario, alternarBloqueio, resetarSenha, excluirUsuario, listarTodosPalpites, excluirPalpite, confirmarPalpiteManual, reenviarPalpite, encerrarCampanha, cancelarPalpiteAdmin, confirmarPalpitePartidaManual, cancelarPalpitePartidaAdmin, alterarIndicador };
 
 // ── GET /api/admin/palpites — Lista todos os palpites ───────────
 async function listarTodosPalpites(req, res) {
@@ -552,5 +553,31 @@ async function cancelarPalpitePartidaAdmin(req, res) {
   } catch (err) {
     console.error('[Admin] cancelarPalpitePartidaAdmin:', err);
     return res.status(500).json({ error: 'Erro ao cancelar palpite.' });
+  }
+}
+
+// ── PATCH /api/admin/usuarios/:id/indicador — Altera indicador ──
+async function alterarIndicador(req, res) {
+  const { id } = req.params;
+  const { indicadorId } = req.body;
+  try {
+    const usuario = await prisma.usuario.findUnique({ where: { id: Number(id) } });
+    if (!usuario) return res.status(404).json({ error: 'Membro não encontrado.' });
+
+    // Remove indicação atual se existir
+    await prisma.indicacao.deleteMany({ where: { indicadoId: Number(id) } });
+
+    // Se indicadorId foi informado, cria nova indicação
+    if (indicadorId) {
+      const indicador = await prisma.usuario.findUnique({ where: { id: Number(indicadorId) } });
+      if (!indicador) return res.status(404).json({ error: 'Indicador não encontrado.' });
+      if (Number(indicadorId) === Number(id)) return res.status(400).json({ error: 'Membro não pode ser seu próprio indicador.' });
+      await prisma.indicacao.create({ data: { indicadorId: Number(indicadorId), indicadoId: Number(id) } });
+    }
+
+    return res.json({ mensagem: 'Indicador atualizado com sucesso.' });
+  } catch (err) {
+    console.error('[Admin] alterarIndicador:', err);
+    return res.status(500).json({ error: 'Erro ao alterar indicador.' });
   }
 }

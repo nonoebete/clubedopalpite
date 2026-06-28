@@ -18,6 +18,7 @@ router.patch('/palpites/:id/confirmar',          ctrl.confirmarPalpiteManual);
 router.patch('/palpites/:id/cancelar',           ctrl.cancelarPalpiteAdmin);
 router.patch('/palpites-partida/:id/confirmar',   ctrl.confirmarPalpitePartidaManual);
 router.patch('/palpites-partida/:id/cancelar',    ctrl.cancelarPalpitePartidaAdmin);
+router.patch('/usuarios/:id/indicador',            ctrl.alterarIndicador);
 router.post('/palpites/:id/reenviar',            ctrl.reenviarPalpite);
 
 module.exports = router;
