@@ -2054,7 +2054,7 @@ function updateResumoF4() {
 // Lê fase da URL se vier do pix.html
 const urlFase = new URLSearchParams(window.location.search).get('fase');
 const faseInicial = urlFase ? Number(urlFase) : 3;
-atualizarAtivasSelecoes().then(() => { renderSelecoes(); setFase(faseInicial); });
+atualizarAtivasSelecoes().then(() => { renderSelecoes(); setFase(faseInicial); iniciarPopupPlacar(); });
 
 // Carrega KPIs de indicação em background ao iniciar
 (async function carregarKpisIndicacao() {
@@ -2074,6 +2074,132 @@ atualizarAtivasSelecoes().then(() => { renderSelecoes(); setFase(faseInicial); }
     console.error('[KPIs Indicação]', err);
   }
 })();
+</script>
+
+<!-- ── POPUP PRÓXIMO JOGO PLACAR ─────────────────────────────── -->
+<div id="popup-placar-overlay" style="display:none;position:fixed;inset:0;background:rgba(7,16,29,.92);backdrop-filter:blur(6px);z-index:500;align-items:center;justify-content:center;padding:20px">
+  <div id="popup-placar-box" style="background:linear-gradient(135deg,#0e1e32 0%,#152840 100%);border:1px solid rgba(240,165,0,.35);border-radius:20px;padding:28px;width:100%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,.7),0 0 40px rgba(240,165,0,.08);position:relative">
+    <!-- Fechar -->
+    <button onclick="fecharPopupPlacar()" style="position:absolute;top:14px;right:16px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1">×</button>
+    <!-- Header -->
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--gold);margin-bottom:6px">⚡ Jogo em breve!</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;color:#dce8f5;line-height:1.1">Palpite o Placar <span style="color:var(--gold)">Agora</span></div>
+      <div style="font-size:13px;color:var(--muted);margin-top:4px">Acerte o placar e divida o prêmio!</div>
+    </div>
+    <!-- Jogo -->
+    <div style="background:rgba(7,16,29,.6);border:1px solid rgba(240,165,0,.15);border-radius:14px;padding:20px;margin-bottom:18px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div style="display:flex;align-items:center;gap:10px;flex:1">
+          <img id="pp-flag-casa" src="" style="width:36px;height:26px;object-fit:cover;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.4)">
+          <span id="pp-nome-casa" style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700">—</span>
+        </div>
+        <div style="text-align:center;padding:0 12px">
+          <div style="font-size:11px;color:var(--muted);font-weight:600">VS</div>
+          <div id="pp-hora" style="font-size:12px;color:var(--gold);font-weight:600;margin-top:2px">—</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex:1;justify-content:flex-end">
+          <span id="pp-nome-fora" style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700">—</span>
+          <img id="pp-flag-fora" src="" style="width:36px;height:26px;object-fit:cover;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.4)">
+        </div>
+      </div>
+    </div>
+    <!-- Palpites -->
+    <div id="pp-palpites-area">
+      <div id="pp-palpites-lista"></div>
+      <button onclick="ppAdicionarPlacar()" style="background:rgba(240,165,0,.08);border:1px solid rgba(240,165,0,.2);color:var(--gold);padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;width:100%;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:6px">
+        <span style="font-size:18px">+</span> MAIS <span style="font-size:11px;font-weight:400;opacity:.7;margin-left:4px">outro placar neste jogo</span>
+      </button>
+    </div>
+    <!-- Botão principal -->
+    <button id="pp-btn-palpitar" onclick="ppQueroPalpitar()" style="width:100%;margin-top:16px;padding:14px;background:linear-gradient(135deg,var(--gold) 0%,#d49200 100%);border:none;border-radius:12px;color:#07101d;font-size:15px;font-weight:800;cursor:pointer;font-family:'Barlow Condensed',sans-serif;letter-spacing:.04em;box-shadow:0 4px 20px rgba(240,165,0,.3)">
+      ⚽ QUERO PALPITAR AGORA
+    </button>
+    <div style="text-align:center;margin-top:10px;font-size:11px;color:var(--muted)">R$ 10,00 por palpite · 60% em prêmios</div>
+  </div>
+</div>
+<script>
+
+// ── Popup Próximo Jogo Placar ─────────────────────────────────
+let PP_PARTIDA = null;
+let ppPalpites = [{ golsCasa: 0, golsFora: 0 }];
+
+async function iniciarPopupPlacar() {
+  try {
+    const r = await fetch('/api/partidas?campanhaId=3', { headers: authHeaders() });
+    if (!r.ok) return;
+    const dados = await r.json();
+    const agora = new Date();
+    const proximos = dados.filter(p => !p.encerrada && p.abertaParaPalpite && new Date(p.dataHora) > agora);
+    if (!proximos.length) return;
+    // Pega o jogo mais próximo
+    PP_PARTIDA = proximos.sort((a,b) => new Date(a.dataHora) - new Date(b.dataHora))[0];
+    // Verifica campanha fase 4 ativa
+    const rc = await fetch('/api/campanhas');
+    const camps = await rc.json();
+    const c4 = camps.find(c => c.fase === 4 && c.ativa);
+    if (!c4) return;
+    // Preenche popup
+    document.getElementById('pp-flag-casa').src = PP_PARTIDA.casa.bandeira;
+    document.getElementById('pp-nome-casa').textContent = PP_PARTIDA.casa.nome;
+    document.getElementById('pp-flag-fora').src = PP_PARTIDA.fora.bandeira;
+    document.getElementById('pp-nome-fora').textContent = PP_PARTIDA.fora.nome;
+    const hora = new Date(PP_PARTIDA.dataHora).toLocaleString('pt-BR', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:'America/Sao_Paulo'}).replace(', ',' ');
+    document.getElementById('pp-hora').textContent = hora;
+    ppPalpites = [{ golsCasa: 0, golsFora: 0 }];
+    ppRenderPalpites();
+    // Mostra popup após 2s
+    setTimeout(() => {
+      const overlay = document.getElementById('popup-placar-overlay');
+      overlay.style.display = 'flex';
+    }, 2000);
+  } catch(e) { console.error('[PopupPlacar]', e); }
+}
+
+function ppRenderPalpites() {
+  const lista = document.getElementById('pp-palpites-lista');
+  lista.innerHTML = ppPalpites.map((pl, i) => `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;background:rgba(7,16,29,.6);border:1px solid var(--border);border-radius:8px;padding:8px 12px">
+      <span style="font-size:12px;color:var(--muted);min-width:60px">Palpite ${i+1}</span>
+      <input type="number" min="0" max="20" value="${pl.golsCasa}" autocomplete="off" onchange="ppAtualizarPlacar(${i},'golsCasa',this.value)" style="width:50px;text-align:center;padding:6px;border-radius:6px;border:1px solid var(--border);background:var(--navy2);color:#dce8f5;font-size:18px;font-weight:700">
+      <span style="color:var(--muted);font-weight:700;font-size:18px">x</span>
+      <input type="number" min="0" max="20" value="${pl.golsFora}" autocomplete="off" onchange="ppAtualizarPlacar(${i},'golsFora',this.value)" style="width:50px;text-align:center;padding:6px;border-radius:6px;border:1px solid var(--border);background:var(--navy2);color:#dce8f5;font-size:18px;font-weight:700">
+      <span style="color:var(--gold);font-size:12px;margin-left:auto">R$ 10,00</span>
+      ${i > 0 ? `<button onclick="ppRemoverPlacar(${i})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:18px;padding:0 4px">×</button>` : ''}
+    </div>`).join('');
+}
+
+function ppAdicionarPlacar() {
+  ppPalpites.push({ golsCasa: 0, golsFora: 0 });
+  ppRenderPalpites();
+}
+
+function ppRemoverPlacar(idx) {
+  ppPalpites.splice(idx, 1);
+  ppRenderPalpites();
+}
+
+function ppAtualizarPlacar(idx, campo, valor) {
+  ppPalpites[idx][campo] = Number(valor);
+}
+
+function fecharPopupPlacar() {
+  document.getElementById('popup-placar-overlay').style.display = 'none';
+}
+
+async function ppQueroPalpitar() {
+  fecharPopupPlacar();
+  // Copia palpites para a fase 4
+  setFase(4);
+  await carregarPartidasF4();
+  // Ativa o jogo no mapa da fase 4
+  palpitesF4[PP_PARTIDA.id] = ppPalpites.map(p => ({...p}));
+  renderPartidasF4();
+  updateResumoF4();
+  // Scroll para o topo da seção de palpites
+  document.getElementById('fase4-ui').scrollIntoView({ behavior: 'smooth' });
+}
+
 </script>
 </body>
 </html>
