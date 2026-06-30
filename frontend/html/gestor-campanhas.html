@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestor de Campanhas · Clube de Palpites</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--night:#07101d;--navy:#0e1e32;--navy2:#152840;--navy3:#1b3353;--gold:#F0A500;--green:#1db954;--red:#e05252;--blue:#4a9eff;--muted:#7a93ad;--border:rgba(255,255,255,0.07);--r:10px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--night);color:#dce8f5;min-height:100vh}
+.topbar{background:var(--navy);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:0 24px;height:56px;position:sticky;top:0;z-index:100}
+.logo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;display:flex;align-items:center;gap:8px}
+.logo span{color:var(--gold)}
+.back-btn{margin-left:auto;background:none;border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:var(--r);font-size:13px;cursor:pointer}
+.back-btn:hover{color:#dce8f5;border-color:rgba(255,255,255,.2)}
+.container{max-width:1100px;margin:0 auto;padding:28px 20px}
+.page-title{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:700;margin-bottom:4px}
+.page-sub{color:var(--muted);font-size:14px;margin-bottom:24px}
+.card{background:var(--navy);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:20px}
+.card-title{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;margin-bottom:16px;color:var(--gold)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group.full{grid-column:1/-1}
+label{font-size:12px;font-weight:500;color:var(--muted)}
+input,select{background:var(--navy2);border:1px solid var(--border);border-radius:var(--r);color:#dce8f5;font-size:13px;padding:10px 12px;outline:none;font-family:'Inter',sans-serif;width:100%}
+input:focus,select:focus{border-color:var(--gold)}
+.btn{padding:10px 20px;border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:'Inter',sans-serif}
+.btn-gold{background:var(--gold);color:#07101d}
+.btn-gold:hover{background:#d49200}
+.btn-outline{background:none;border:1px solid var(--border);color:var(--muted)}
+.btn-outline:hover{border-color:rgba(255,255,255,.2);color:#dce8f5}
+.btn-green{background:rgba(29,185,84,.15);border:1px solid rgba(29,185,84,.3);color:var(--green)}
+.btn-red{background:rgba(224,82,82,.15);border:1px solid rgba(224,82,82,.3);color:var(--red)}
+.badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-green{background:rgba(29,185,84,.15);color:var(--green);border:1px solid rgba(29,185,84,.3)}
+.badge-red{background:rgba(224,82,82,.15);color:var(--red);border:1px solid rgba(224,82,82,.3)}
+.badge-gold{background:rgba(240,165,0,.15);color:var(--gold);border:1px solid rgba(240,165,0,.3)}
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:10px 12px;text-align:left;border-bottom:1px solid var(--border)}
+td{padding:12px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--navy3);border:1px solid var(--border);border-radius:12px;padding:12px 20px;font-size:13px;z-index:999;display:none;animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.modal-overlay{position:fixed;inset:0;background:rgba(7,16,29,.85);backdrop-filter:blur(4px);z-index:300;display:none;align-items:center;justify-content:center;padding:24px}
+.modal-overlay.show{display:flex}
+.modal-box{background:var(--navy);border:1px solid rgba(240,165,0,.2);border-radius:16px;padding:28px;width:100%;max-width:600px}
+.modal-title{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:var(--gold);margin-bottom:20px}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="logo">⚽ Clube <span>Palpite</span></div>
+  <span style="color:var(--muted);font-size:13px">Gestor de Campanhas</span>
+  <button class="back-btn" onclick="history.back()">← Voltar</button>
+</div>
+
+<div class="container">
+  <div class="page-title">🏆 Gestor de Campanhas</div>
+  <div class="page-sub">Crie, edite e gerencie as campanhas do Clube de Palpites</div>
+
+  <!-- CRIAR CAMPANHA -->
+  <div class="card">
+    <div class="card-title">➕ Nova Campanha</div>
+    <div class="form-grid">
+      <div class="form-group full">
+        <label>Nome da campanha</label>
+        <input type="text" id="new-nome" placeholder="Ex: 1ª Fase — Seleção Campeã · Copa 2026">
+      </div>
+      <div class="form-group">
+        <label>Fase</label>
+        <select id="new-fase">
+          <option value="1">1ª Fase</option>
+          <option value="2">2ª Fase</option>
+          <option value="3">3ª Fase (Palpite por Resultado)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Tipo</label>
+        <select id="new-tipo">
+          <option value="CAMPEA">Campeã (1 seleção)</option>
+          <option value="CAMPEA_VICE">Campeã + Vice (2 seleções)</option>
+          <option value="RESULTADO">Resultado (Vitória/Empate)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Valor por palpite (R$)</label>
+        <input type="number" id="new-valor" placeholder="10.00" step="0.01" min="0">
+      </div>
+      <div class="form-group">
+        <label>% Clube</label>
+        <input type="number" id="new-perc-clube" value="40" min="0" max="100">
+      </div>
+      <div class="form-group">
+        <label>% Prêmio</label>
+        <input type="number" id="new-perc-premio" value="60" min="0" max="100">
+      </div>
+      <div class="form-group">
+        <label>Data de início</label>
+        <input type="datetime-local" id="new-inicio">
+      </div>
+      <div class="form-group">
+        <label>Data de fim</label>
+        <input type="datetime-local" id="new-fim">
+      </div>
+    </div>
+    <div style="margin-top:16px;display:flex;justify-content:flex-end">
+      <button class="btn btn-gold" onclick="criarCampanha()">✅ Criar Campanha</button>
+    </div>
+  </div>
+
+  <!-- LISTA DE CAMPANHAS -->
+  <div class="card">
+    <div class="card-title">📋 Campanhas Cadastradas</div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Nome</th>
+            <th>Fase</th>
+            <th>Tipo</th>
+            <th>Valor</th>
+            <th>Início</th>
+            <th>Fim</th>
+            <th>% Clube/Prêmio</th>
+            <th>Palpites</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-campanhas"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR -->
+<div class="modal-overlay" id="modal-editar">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-edit-titulo">Editar Campanha</div>
+    <input type="hidden" id="edit-id">
+    <div class="form-grid">
+      <div class="form-group full">
+        <label>Nome</label>
+        <input type="text" id="edit-nome">
+      </div>
+      <div class="form-group">
+        <label>Fase</label>
+        <select id="edit-fase">
+          <option value="1">1ª Fase</option>
+          <option value="2">2ª Fase</option>
+          <option value="3">3ª Fase</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Tipo</label>
+        <select id="edit-tipo">
+          <option value="CAMPEA">Campeã</option>
+          <option value="CAMPEA_VICE">Campeã + Vice</option>
+          <option value="RESULTADO">Resultado</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Valor (R$)</label>
+        <input type="number" id="edit-valor" step="0.01">
+      </div>
+      <div class="form-group">
+        <label>% Clube</label>
+        <input type="number" id="edit-perc-clube" min="0" max="100">
+      </div>
+      <div class="form-group">
+        <label>% Prêmio</label>
+        <input type="number" id="edit-perc-premio" min="0" max="100">
+      </div>
+      <div class="form-group">
+        <label>Início</label>
+        <input type="datetime-local" id="edit-inicio">
+      </div>
+      <div class="form-group">
+        <label>Fim</label>
+        <input type="datetime-local" id="edit-fim">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="fecharModal()">Cancelar</button>
+      <button class="btn btn-gold" onclick="salvarEdicao()">Salvar alterações</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API_BASE = '/api';
+let CAMPANHAS = [];
+
+function authHeaders() {
+  return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token') || ''}` };
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3000);
+}
+
+function fmtData(d) {
+  return new Date(d).toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+
+function toLocalInput(d) {
+  const dt = new Date(d);
+  dt.setMinutes(dt.getMinutes() - dt.getTimezoneOffset());
+  return dt.toISOString().slice(0,16);
+}
+
+async function carregarCampanhas() {
+  try {
+    const r = await fetch(`${API_BASE}/campanhas/admin/todas`, { headers: authHeaders() });
+    if (!r.ok) { showToast('❌ Sem permissão. Faça login como admin.'); return; }
+    CAMPANHAS = await r.json();
+    renderCampanhas();
+  } catch(e) { showToast('❌ Erro ao carregar campanhas.'); }
+}
+
+function renderCampanhas() {
+  const tbody = document.getElementById('tbody-campanhas');
+  if (!CAMPANHAS.length) { tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--muted)">Nenhuma campanha cadastrada.</td></tr>'; return; }
+  tbody.innerHTML = CAMPANHAS.map(c => `
+    <tr>
+      <td style="color:var(--muted)">${c.id}</td>
+      <td style="font-weight:500">${c.nome}</td>
+      <td><span class="badge badge-gold">${c.fase}ª</span></td>
+      <td style="color:var(--muted);font-size:12px">${c.tipo}</td>
+      <td style="color:var(--green)">R$ ${Number(c.valorPalpite).toFixed(2)}</td>
+      <td style="color:var(--muted);font-size:12px">${fmtData(c.inicio)}</td>
+      <td style="color:var(--muted);font-size:12px">${fmtData(c.fim)}</td>
+      <td style="font-size:12px">${Number(c.percClube).toFixed(0)}% / ${Number(c.percPremio).toFixed(0)}%</td>
+      <td style="text-align:center">${c._count?.palpites || 0}</td>
+      <td><span class="badge ${c.ativa ? 'badge-green' : 'badge-red'}">${c.ativa ? 'Ativa' : 'Inativa'}</span></td>
+      <td>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-outline" style="padding:5px 10px;font-size:11px" onclick="abrirEditar(${c.id})">✏️ Editar</button>
+          <button class="btn ${c.ativa ? 'btn-red' : 'btn-green'}" style="padding:5px 10px;font-size:11px" onclick="toggleAtiva(${c.id},${!c.ativa})">${c.ativa ? '🚫 Desativar' : '✅ Ativar'}</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+async function criarCampanha() {
+  const nome = document.getElementById('new-nome').value.trim();
+  const fase = Number(document.getElementById('new-fase').value);
+  const tipo = document.getElementById('new-tipo').value;
+  const valorPalpite = document.getElementById('new-valor').value;
+  const percClube = document.getElementById('new-perc-clube').value;
+  const percPremio = document.getElementById('new-perc-premio').value;
+  const inicio = document.getElementById('new-inicio').value;
+  const fim = document.getElementById('new-fim').value;
+  if (!nome || !valorPalpite || !inicio || !fim) { showToast('⚠️ Preencha todos os campos obrigatórios.'); return; }
+  try {
+    const r = await fetch(`${API_BASE}/campanhas`, {
+      method: 'POST', headers: authHeaders(),
+      body: JSON.stringify({ nome, fase, tipo, valorPalpite, percClube, percPremio, inicio, fim }),
+    });
+    if (!r.ok) { showToast('❌ Erro ao criar campanha.'); return; }
+    showToast('✅ Campanha criada com sucesso!');
+    document.getElementById('new-nome').value = '';
+    document.getElementById('new-valor').value = '';
+    document.getElementById('new-inicio').value = '';
+    document.getElementById('new-fim').value = '';
+    carregarCampanhas();
+  } catch(e) { showToast('❌ Erro ao conectar.'); }
+}
+
+function abrirEditar(id) {
+  const c = CAMPANHAS.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('edit-id').value = c.id;
+  document.getElementById('modal-edit-titulo').textContent = `Editar Campanha #${c.id}`;
+  document.getElementById('edit-nome').value = c.nome;
+  document.getElementById('edit-fase').value = c.fase;
+  document.getElementById('edit-tipo').value = c.tipo;
+  document.getElementById('edit-valor').value = Number(c.valorPalpite).toFixed(2);
+  document.getElementById('edit-perc-clube').value = Number(c.percClube).toFixed(0);
+  document.getElementById('edit-perc-premio').value = Number(c.percPremio).toFixed(0);
+  document.getElementById('edit-inicio').value = toLocalInput(c.inicio);
+  document.getElementById('edit-fim').value = toLocalInput(c.fim);
+  document.getElementById('modal-editar').classList.add('show');
+}
+
+function fecharModal() {
+  document.getElementById('modal-editar').classList.remove('show');
+}
+
+async function salvarEdicao() {
+  const id = Number(document.getElementById('edit-id').value);
+  const body = {
+    nome:       document.getElementById('edit-nome').value.trim(),
+    fase:       Number(document.getElementById('edit-fase').value),
+    tipo:       document.getElementById('edit-tipo').value,
+    valorPalpite: document.getElementById('edit-valor').value,
+    percClube:  document.getElementById('edit-perc-clube').value,
+    percPremio: document.getElementById('edit-perc-premio').value,
+    inicio:     document.getElementById('edit-inicio').value,
+    fim:        document.getElementById('edit-fim').value,
+  };
+  try {
+    const r = await fetch(`${API_BASE}/campanhas/${id}`, {
+      method: 'PUT', headers: authHeaders(), body: JSON.stringify(body),
+    });
+    if (!r.ok) { showToast('❌ Erro ao salvar.'); return; }
+    showToast('✅ Campanha atualizada!');
+    fecharModal();
+    carregarCampanhas();
+  } catch(e) { showToast('❌ Erro ao conectar.'); }
+}
+
+async function toggleAtiva(id, ativa) {
+  try {
+    const r = await fetch(`${API_BASE}/campanhas/${id}`, {
+      method: 'PUT', headers: authHeaders(), body: JSON.stringify({ ativa }),
+    });
+    if (!r.ok) { showToast('❌ Erro ao atualizar.'); return; }
+    showToast(ativa ? '✅ Campanha ativada!' : '🚫 Campanha desativada!');
+    carregarCampanhas();
+  } catch(e) { showToast('❌ Erro ao conectar.'); }
+}
+
+// Inicializa
+carregarCampanhas();
+</script>
+</body>
+</html>

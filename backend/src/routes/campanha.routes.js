@@ -25,6 +25,39 @@ router.post('/', autenticar, apenasAdmin, async (req, res) => {
   }
 });
 
+// Lista TODAS campanhas (admin)
+router.get('/admin/todas', autenticar, apenasAdmin, async (req, res) => {
+  try {
+    const campanhas = await prisma.campanha.findMany({
+      orderBy: { fase: 'asc' },
+      include: {
+        _count: { select: { palpites: true, pagamentos: true } }
+      }
+    });
+    res.json(campanhas);
+  } catch(e) { res.status(500).json({ error: 'Erro ao listar campanhas.' }); }
+});
+
+// Editar campanha (admin)
+router.put('/:id', autenticar, apenasAdmin, async (req, res) => {
+  const { id } = req.params;
+  const { nome, fase, inicio, fim, valorPalpite, tipo, percClube, percPremio, ativa } = req.body;
+  try {
+    const data = {};
+    if (nome !== undefined) data.nome = nome;
+    if (fase !== undefined) data.fase = Number(fase);
+    if (inicio !== undefined) data.inicio = new Date(inicio);
+    if (fim !== undefined) data.fim = new Date(fim);
+    if (valorPalpite !== undefined) data.valorPalpite = valorPalpite;
+    if (tipo !== undefined) data.tipo = tipo;
+    if (percClube !== undefined) data.percClube = percClube;
+    if (percPremio !== undefined) data.percPremio = percPremio;
+    if (ativa !== undefined) data.ativa = ativa;
+    const campanha = await prisma.campanha.update({ where: { id: Number(id) }, data });
+    res.json(campanha);
+  } catch(e) { res.status(500).json({ error: 'Erro ao editar campanha.' }); }
+});
+
 module.exports = router;
 
 // ─────────────────────────────────────────────────────────────
