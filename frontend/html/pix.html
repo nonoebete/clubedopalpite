@@ -200,7 +200,7 @@ body{font-family:'Inter',sans-serif;background:var(--night);color:#dce8f5;min-he
 
     <!-- Botões de ação -->
     <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
-      <a href="portal.html" style="text-align:center;padding:14px;border-radius:var(--radius);color:#dce8f5;font-size:14px;font-weight:600;text-decoration:none;background:var(--navy2);border:1px solid var(--border);display:block">
+      <a href="javascript:void(0)" onclick="voltarPortal()" style="text-align:center;padding:14px;border-radius:var(--radius);color:#dce8f5;font-size:14px;font-weight:600;text-decoration:none;background:var(--navy2);border:1px solid var(--border);display:block">
         ← Voltar ao portal <span style="font-size:11px;display:block;margin-top:3px;color:var(--muted);font-weight:400">(o PIX continua ativo — você será notificado)</span>
       </a>
       <button class="btn btn-ghost" onclick="cancelar()" id="btn-cancelar" style="font-size:12px;padding:8px;color:var(--red);border-color:rgba(224,82,82,.3)">
@@ -220,7 +220,7 @@ body{font-family:'Inter',sans-serif;background:var(--night);color:#dce8f5;min-he
         <div class="sd-row"><span class="key">Valor pago</span><span class="val" id="suc-valor" style="color:var(--pix)">R$ 30,00</span></div>
         <div class="sd-row"><span class="key">Pago em</span><span class="val" id="suc-hora">—</span></div>
       </div>
-      <button class="btn btn-green" onclick="window.location.href='portal.html'">
+      <button class="btn btn-green" onclick="voltarPortal()">
         Ir para Meus Palpites →
       </button>
       <div style="font-size:12px;color:var(--muted);margin-top:12px" id="suc-countdown">Redirecionando em 3 segundos…</div>
@@ -420,7 +420,7 @@ function aprovado() {
       if (elCountdown) elCountdown.textContent = `Redirecionando em ${conta} segundo${conta !== 1 ? 's' : ''}…`;
       if (conta <= 0) {
         clearInterval(timer);
-        window.location.href = 'portal.html';
+        voltarPortal();
       }
     }, 1000);
   }, 800);
@@ -457,12 +457,21 @@ function copiarPix() {
   });
 }
 
+function voltarPortal() {
+  try {
+    const dados = JSON.parse(sessionStorage.getItem('cdp_pagamento_atual') || '{}');
+    const fase = dados.resumo?.faseLabel?.includes('4ª') ? '4' : 
+                 dados.resumo?.faseLabel?.includes('3ª') ? '3' :
+                 dados.resumo?.faseLabel?.includes('2ª') ? '2' : '1';
+    window.location.href = `portal.html?fase=${fase}`;
+  } catch { voltarPortal(); }
+}
 function cancelar() {
   if (confirm('Cancelar pagamento? Os palpites serão removidos.')) {
     clearInterval(countdownTimer);
     clearInterval(pollingTimer);
     sessionStorage.removeItem('cdp_pagamento_atual');
-    window.location.href = 'portal.html';
+    voltarPortal();
   }
 }
 

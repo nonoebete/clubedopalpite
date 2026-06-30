@@ -969,7 +969,15 @@ async function confirmarPalpite(btn) {
         return part ? `${part.selecaoCasa.nome} ${p.golsCasa}x${p.golsFora} ${part.selecaoFora.nome}` : '';
       }).join('<br>');
       sessionStorage.setItem('cdp_pagamento_atual', JSON.stringify({
-        ...dataPlacar,
+        pagamentoId: dataPlacar.pagamentoId,
+        valor: `R$ ${Number(dataPlacar.total).toFixed(2)}`,
+        quantPalpites: totalPalpites,
+        pix: {
+          qrCodeBase64: dataPlacar.qrCodeBase64,
+          copiaECola:   dataPlacar.pixCopiaECola,
+          expiracao:    new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+          expiracaoMin: 30,
+        },
         resumo: {
           faseLabel: '4ª Fase · Palpite o Placar',
           selecoesLabel,
@@ -2043,7 +2051,10 @@ function updateResumoF4() {
 }
 
 // Init
-atualizarAtivasSelecoes().then(() => { renderSelecoes(); setFase(3); });
+// Lê fase da URL se vier do pix.html
+const urlFase = new URLSearchParams(window.location.search).get('fase');
+const faseInicial = urlFase ? Number(urlFase) : 3;
+atualizarAtivasSelecoes().then(() => { renderSelecoes(); setFase(faseInicial); });
 
 // Carrega KPIs de indicação em background ao iniciar
 (async function carregarKpisIndicacao() {
