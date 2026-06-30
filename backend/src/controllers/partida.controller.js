@@ -15,7 +15,7 @@ function campanhaAberta(campanha) {
 }
 
 // ── Constante compartilhada: janela de fechamento de palpites ──
-const MARGEM_FECHAMENTO_MIN = 10;
+const MARGEM_FECHAMENTO_MIN = 0;
 
 function abertaParaPalpite(partida) {
   if (partida.encerrada) return false;

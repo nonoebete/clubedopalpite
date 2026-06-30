@@ -200,6 +200,11 @@
           <div class="fp-label">Campeã + Vice</div>
           <div class="fp-price">R$ 15,00 / dupla</div>
         </div>
+        <div class="fase-pill" id="pill-f4" onclick="setFase(4)">
+          <div class="fp-num">4ª Fase · Aberta</div>
+          <div class="fp-label">Palpite o Placar</div>
+          <div class="fp-price">R$ 10,00 / palpite</div>
+        </div>
       </div>
 
       <div style="display:grid;grid-template-columns:1fr 300px;gap:24px;align-items:start">
@@ -241,9 +246,17 @@
             <p style="font-size:13px;color:var(--muted);margin-bottom:12px">
               Escolha o resultado de quantos jogos quiser — vitória do time da casa, empate ou vitória do visitante. Cada acerto vale <strong style="color:var(--gold)">3 pontos</strong> no ranking.<br>
               💳 Valor do bilhete: <strong style="color:var(--gold)">R$ 10,00 fixo</strong>, independente da quantidade de jogos escolhidos.<br>
-              ⏱️ Os palpites de cada partida ficam disponíveis até <strong>10 minutos antes do início do jogo</strong>.
+              ⏱️ Os palpites de cada partida ficam disponíveis até o <strong>início do jogo</strong>.
             </p>
             <div id="partidas-f3"></div>
+          </div>
+          <!-- FASE 4 — Palpite o Placar -->
+          <div id="fase4-ui" style="display:none">
+            <p style="font-size:13px;color:var(--muted);margin-bottom:12px">
+              Palpite o placar exato dos jogos do dia! Quem acertar o resultado divide o premio com os demais acertadores.<br>
+              <strong style="color:var(--gold)">R$ 10,00 por palpite</strong>. Use o botao <strong style="color:var(--gold)">+ MAIS</strong> para adicionar mais placares no mesmo jogo.
+            </p>
+            <div id="partidas-f4"></div>
           </div>
         </div>
 
@@ -843,11 +856,15 @@ function setFase(f) {
   document.getElementById('fase1-ui').style.display = f===1?'block':'none';
   document.getElementById('fase2-ui').style.display = f===2?'block':'none';
   document.getElementById('fase3-ui').style.display = f===3?'block':'none';
+  document.getElementById('fase4-ui').style.display = f===4?'block':'none';
   document.getElementById('pill-f1').classList.toggle('active', f===1);
   document.getElementById('pill-f2').classList.toggle('active', f===2);
   document.getElementById('pill-f3').classList.toggle('active', f===3);
+  const pf4 = document.getElementById('pill-f4');
+  if (pf4) pf4.classList.toggle('active', f===4);
   sel1.clear(); campea=null; vice=null; campeaData=null; viceData=null; duplas=[];
   if (f===3) { palpitesF3 = {}; if (PARTIDAS_F3.length) renderPartidasF3(); else carregarPartidasF3(); }
+  if (f===4) { carregarPartidasF4(); }
   renderSelecoes(); updateResumo();
 }
 
@@ -1863,6 +1880,128 @@ function abrirFaleConosco() {
     } catch {}
   }, 5000);
 })();
+
+// ── Fase 4 — Palpite o Placar ────────────────────────────────
+let PARTIDAS_F4 = [];
+let palpitesF4 = {}; // { partidaId: [{ golsCasa, golsFora }] }
+
+async function carregarPartidasF4() {
+  const el = document.getElementById('partidas-f4');
+  if (!el) return;
+  el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted)">⏳ Carregando partidas…</div>';
+  try {
+    const r = await fetch('/api/partidas?campanhaId=3');
+    if (!r.ok) throw new Error('Erro ' + r.status);
+    const dados = await r.json();
+    PARTIDAS_F4 = dados.filter(p => !p.encerrada && p.abertaParaPalpite).map(p => ({
+      id:       p.id,
+      selecaoCasa: { nome: p.casa.nome, bandeiraCss: p.casa.bandeira || p.casa.bandeiraCss },
+      selecaoFora: { nome: p.fora.nome, bandeiraCss: p.fora.bandeira || p.fora.bandeiraCss },
+      dataHora: p.dataHora,
+      grupo:    p.grupo,
+      data:     new Date(p.dataHora).toLocaleString('pt-BR', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:'America/Sao_Paulo'}).replace(', ',' '),
+    }));
+    palpitesF4 = {};
+    renderPartidasF4();
+  } catch(e) {
+    console.error('[F4]', e);
+    if (el) el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--red)">Erro ao carregar partidas.</div>';
+  }
+}
+
+function renderPartidasF4() {
+  const el = document.getElementById('partidas-f4');
+  if (!PARTIDAS_F4.length) {
+    el.innerHTML = '<p style="color:var(--muted);font-size:13px;padding:20px 0">Nenhum jogo disponível para palpite de placar.</p>';
+    return;
+  }
+  el.innerHTML = PARTIDAS_F4.map(p => {
+    const hora = new Date(p.dataHora).toLocaleString('pt-BR', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:'America/Sao_Paulo'}).replace(', ',' ');
+    const ativo = !!palpitesF4[p.id];
+    return `
+    <div style="background:var(--navy2);border:1px solid ${ativo ? 'rgba(240,165,0,.3)' : 'var(--border)'};border-radius:12px;padding:16px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:${ativo ? '12px' : '0'}">
+        <div style="display:flex;align-items:center;gap:8px">
+          <img src="${p.selecaoCasa.bandeiraCss}" style="width:28px;height:20px;object-fit:cover;border-radius:3px">
+          <span style="font-weight:600;font-size:14px">${p.selecaoCasa.nome}</span>
+        </div>
+        <span style="color:var(--muted);font-size:12px;text-align:center">vs<br>${hora}</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-weight:600;font-size:14px">${p.selecaoFora.nome}</span>
+          <img src="${p.selecaoFora.bandeiraCss}" style="width:28px;height:20px;object-fit:cover;border-radius:3px">
+        </div>
+        ${!ativo ? `<button onclick="ativarJogoF4(${p.id})" style="background:rgba(240,165,0,.12);border:1px solid rgba(240,165,0,.35);color:var(--gold);padding:7px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;white-space:nowrap;margin-left:12px">⚽ Quero Palpitar</button>` : ''}
+      </div>
+      ${ativo ? `
+      <div id="placares-${p.id}">${renderPlacares(p.id)}</div>
+      <button onclick="adicionarPlacar(${p.id})" style="background:rgba(240,165,0,.08);border:1px solid rgba(240,165,0,.2);color:var(--gold);padding:7px 16px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;width:100%;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:6px">
+        <span style="font-size:16px">+</span> MAIS <span style="font-size:11px;font-weight:400;opacity:.7;margin-left:4px">outro placar neste jogo</span>
+      </button>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function ativarJogoF4(partidaId) {
+  palpitesF4[partidaId] = [{ golsCasa: 0, golsFora: 0 }];
+  renderPartidasF4();
+  updateResumoF4();
+}
+
+function renderPlacares(partidaId) {
+  const placares = palpitesF4[partidaId] || [{ golsCasa: 0, golsFora: 0 }];
+  if (!palpitesF4[partidaId]) palpitesF4[partidaId] = [{ golsCasa: 0, golsFora: 0 }];
+  return placares.map((pl, i) => `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;background:var(--navy);border:1px solid var(--border);border-radius:8px;padding:8px 12px">
+      <span style="font-size:12px;color:var(--muted);min-width:60px">Palpite ${i+1}</span>
+      <input type="number" min="0" max="20" value="${pl.golsCasa}" autocomplete="off" onchange="atualizarPlacar(${partidaId},${i},'golsCasa',this.value)" style="width:50px;text-align:center;padding:6px;border-radius:6px;border:1px solid var(--border);background:var(--navy2);color:#dce8f5;font-size:16px;font-weight:700">
+      <span style="color:var(--muted);font-weight:700">x</span>
+      <input type="number" min="0" max="20" value="${pl.golsFora}" autocomplete="off" onchange="atualizarPlacar(${partidaId},${i},'golsFora',this.value)" style="width:50px;text-align:center;padding:6px;border-radius:6px;border:1px solid var(--border);background:var(--navy2);color:#dce8f5;font-size:16px;font-weight:700">
+      <span style="color:var(--gold);font-size:12px;margin-left:auto">R$ 10,00</span>
+      ${i > 0 ? `<button onclick="removerPlacar(${partidaId},${i})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;padding:0 4px">×</button>` : ''}
+    </div>`).join('');
+}
+
+function adicionarPlacar(partidaId) {
+  if (!palpitesF4[partidaId]) palpitesF4[partidaId] = [];
+  palpitesF4[partidaId].push({ golsCasa: 0, golsFora: 0 });
+  document.getElementById('placares-' + partidaId).innerHTML = renderPlacares(partidaId);
+  updateResumoF4();
+}
+
+function removerPlacar(partidaId, idx) {
+  palpitesF4[partidaId].splice(idx, 1);
+  document.getElementById('placares-' + partidaId).innerHTML = renderPlacares(partidaId);
+  updateResumoF4();
+}
+
+function atualizarPlacar(partidaId, idx, campo, valor) {
+  if (!palpitesF4[partidaId]) palpitesF4[partidaId] = [];
+  if (!palpitesF4[partidaId][idx]) palpitesF4[partidaId][idx] = { golsCasa: 0, golsFora: 0 };
+  palpitesF4[partidaId][idx][campo] = Number(valor);
+  updateResumoF4();
+}
+
+function updateResumoF4() {
+  let total = 0;
+  const items = [];
+  Object.entries(palpitesF4).forEach(([pid, placares]) => {
+    const partida = PARTIDAS_F4.find(p => p.id === Number(pid));
+    if (!partida) return;
+    placares.forEach(pl => {
+      total += 10;
+      items.push(`<div class="resumo-item"><span style="font-size:12px">${partida.selecaoCasa.nome} ${pl.golsCasa}x${pl.golsFora} ${partida.selecaoFora.nome}</span><span style="margin-left:auto;color:var(--gold)">R$10</span></div>`);
+    });
+  });
+  const rl = document.getElementById('resumo-list');
+  const empty = document.getElementById('resumo-empty');
+  if (items.length) {
+    rl.innerHTML = items.join('');
+    if (empty) empty.style.display = 'none';
+  } else {
+    rl.innerHTML = '<div class="resumo-empty">Nenhum palpite adicionado ainda.</div>';
+  }
+  document.getElementById('total-valor').textContent = `R$ ${total.toFixed(2)}`;
+}
 
 // Init
 atualizarAtivasSelecoes().then(() => { renderSelecoes(); setFase(3); });
