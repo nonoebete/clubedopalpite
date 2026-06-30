@@ -1,44 +1,27 @@
-// src/routes/placar.routes.js
 const router = require('express').Router();
 const prisma = require('../models/prisma');
 const { autenticar } = require('../middleware/auth.middleware');
+const mp = require('../services/mercadopago.service');
 
-// GET /api/placar/jogos — jogos disponíveis para palpite (mesmos da 3ª fase)
+// GET /api/placar/jogos — jogos disponíveis para palpite de placar
 router.get('/jogos', autenticar, async (req, res) => {
   try {
-    const campanha = await prisma.campanha.findFirst({
-      where: { fase: 4, ativa: true },
-    });
+    const campanha = await prisma.campanha.findFirst({ where: { fase: 4, ativa: true } });
     if (!campanha) return res.json({ jogos: [], campanha: null });
-
-    // Usa as partidas da campanha fase 3
     const campanha3 = await prisma.campanha.findFirst({ where: { fase: 3 } });
     if (!campanha3) return res.json({ jogos: [], campanha });
-
-    const hoje = new Date();
-    const amanha = new Date(hoje);
-    amanha.setDate(amanha.getDate() + 1);
-    amanha.setHours(23, 59, 59);
-
     const partidas = await prisma.partida.findMany({
-      where: {
-        campanhaId: campanha3.id,
-        encerrada: false,
-        dataHora: { gte: new Date(hoje.setHours(0,0,0,0)), lte: amanha },
-      },
+      where: { campanhaId: campanha3.id, encerrada: false },
       include: {
         selecaoCasa: { select: { id: true, nome: true, bandeiraCss: true } },
         selecaoFora: { select: { id: true, nome: true, bandeiraCss: true } },
       },
       orderBy: { dataHora: 'asc' },
     });
-
-    // Palpites já feitos pelo usuário
     const meusPalpites = await prisma.palpitePlacar.findMany({
-      where: { usuarioId: req.usuario.id, partida: { campanhaId: campanha3.id } },
+      where: { usuarioId: req.usuario.id },
       select: { partidaId: true, golsCasa: true, golsFora: true, pagamentoConfirmado: true },
     });
-
     res.json({ jogos: partidas, campanha, meusPalpites });
   } catch(e) {
     console.error('[PlacarJogos]', e);
@@ -46,62 +29,79 @@ router.get('/jogos', autenticar, async (req, res) => {
   }
 });
 
-// POST /api/placar/palpitar — registra palpite de placar
+// POST /api/placar/palpitar — registra palpites de placar com PIX
 router.post('/palpitar', autenticar, async (req, res) => {
   const { palpites } = req.body;
-  // palpites = [{ partidaId, golsCasa, golsFora }]
   if (!Array.isArray(palpites) || palpites.length === 0) {
     return res.status(400).json({ error: 'Informe os palpites.' });
   }
   try {
+    const usuarioId = req.usuario.id;
     const campanha = await prisma.campanha.findFirst({ where: { fase: 4, ativa: true } });
     if (!campanha) return res.status(400).json({ error: 'Campanha 4ª fase não está ativa.' });
 
+    const usuario = await prisma.usuario.findUnique({ where: { id: usuarioId } });
     const valorUnit = Number(campanha.valorPalpite);
     const totalValor = valorUnit * palpites.length;
 
-    // Cria pagamento PIX
-    const mp = require('../services/mercadopago.service');
-    const pix = await mp.criarPix({
-      valor: totalValor,
-      descricao: `Palpite Placar - ${palpites.length} jogo(s)`,
-      usuarioId: req.usuario.id,
-    });
-
-    // Cria pagamento no banco
-    const pagamento = await prisma.pagamento.create({
+    // Cria pagamento temporário
+    const pagamentoTemp = await prisma.pagamento.create({
       data: {
-        usuarioId:   req.usuario.id,
-        campanhaId:  campanha.id,
-        valor:       totalValor,
-        status:      'PENDENTE',
-        mpPaymentId: pix.id?.toString() || null,
-        qrCode:      pix.qrCode || null,
-        qrCodeBase64: pix.qrCodeBase64 || null,
-        pixCopiaECola: pix.pixCopiaECola || null,
-        expiresAt:   new Date(Date.now() + 30 * 60 * 1000),
+        usuarioId,
+        campanhaId: campanha.id,
+        valor: totalValor,
+        status: 'PENDENTE',
+        palpiteIds: '[]',
+        expiresAt: new Date(Date.now() + 35 * 60 * 1000),
       },
     });
 
-    // Cria palpites de placar vinculados ao pagamento
-    await prisma.palpitePlacar.createMany({
-      data: palpites.map(p => ({
-        usuarioId:  req.usuario.id,
-        partidaId:  Number(p.partidaId),
-        pagamentoId: pagamento.id,
-        golsCasa:   Number(p.golsCasa),
-        golsFora:   Number(p.golsFora),
-        valorPago:  valorUnit,
-      })),
+    // Cria palpites vinculados ao pagamento
+    const palpitesCriados = await prisma.$transaction(
+      palpites.map(p => prisma.palpitePlacar.create({
+        data: {
+          usuarioId,
+          partidaId: Number(p.partidaId),
+          pagamentoId: pagamentoTemp.id,
+          golsCasa: Number(p.golsCasa),
+          golsFora: Number(p.golsFora),
+          valorPago: valorUnit,
+          pagamentoConfirmado: false,
+        },
+      }))
+    );
+
+    const palpiteIds = palpitesCriados.map(p => p.id);
+    const descricao = `4ª Fase Palpite Placar · ${usuario.apelido} (${usuario.codigoCdp}) · ${palpites.length} jogo(s)`;
+
+    const pixData = await mp.criarCobrancaPix({
+      valor: totalValor,
+      descricao,
+      pagadorNome: usuario.nomeCompleto,
+      pagadorEmail: usuario.email || `${usuario.codigoCdp.toLowerCase()}@clubedopalpite.com`,
+      pagadorCpf: usuario.cpf || '00000000000',
+      referenciaExterna: `placar_${palpiteIds.join('_')}`,
+      expiracaoMinutos: 30,
+    });
+
+    const pagamento = await prisma.pagamento.update({
+      where: { id: pagamentoTemp.id },
+      data: {
+        palpiteIds: JSON.stringify(palpiteIds),
+        mpPaymentId: String(pixData.mpPaymentId),
+        qrCode: pixData.qrCode,
+        qrCodeBase64: pixData.qrCodeBase64,
+        pixCopiaECola: pixData.pixCopiaECola,
+        expiresAt: new Date(pixData.expiresAt),
+      },
     });
 
     res.status(201).json({
-      mensagem: 'Palpites registrados! Efetue o pagamento PIX.',
       pagamentoId: pagamento.id,
       total: totalValor,
-      qrCode: pix.qrCode,
-      qrCodeBase64: pix.qrCodeBase64,
-      pixCopiaECola: pix.pixCopiaECola,
+      qrCode: pixData.qrCode,
+      qrCodeBase64: pixData.qrCodeBase64,
+      pixCopiaECola: pixData.pixCopiaECola,
     });
   } catch(e) {
     console.error('[PlacarPalpitar]', e);
