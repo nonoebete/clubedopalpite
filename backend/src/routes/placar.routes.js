@@ -19,7 +19,7 @@ router.get('/jogos', autenticar, async (req, res) => {
       orderBy: { dataHora: 'asc' },
     });
     const meusPalpites = await prisma.palpitePlacar.findMany({
-      where: { usuarioId: req.usuario.id },
+      where: { usuarioId: req.user.id },
       select: { partidaId: true, golsCasa: true, golsFora: true, pagamentoConfirmado: true },
     });
     res.json({ jogos: partidas, campanha, meusPalpites });
@@ -36,7 +36,7 @@ router.post('/palpitar', autenticar, async (req, res) => {
     return res.status(400).json({ error: 'Informe os palpites.' });
   }
   try {
-    const usuarioId = req.usuario.id;
+    const usuarioId = req.user.id;
     const campanha = await prisma.campanha.findFirst({ where: { fase: 4, ativa: true } });
     if (!campanha) return res.status(400).json({ error: 'Campanha 4ª fase não está ativa.' });
 
@@ -113,7 +113,7 @@ router.post('/palpitar', autenticar, async (req, res) => {
 router.get('/meus', autenticar, async (req, res) => {
   try {
     const palpites = await prisma.palpitePlacar.findMany({
-      where: { usuarioId: req.usuario.id },
+      where: { usuarioId: req.user.id },
       include: {
         partida: {
           include: {
