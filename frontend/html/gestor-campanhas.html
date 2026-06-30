@@ -61,6 +61,14 @@ tr:last-child td{border-bottom:none}
   <div class="page-title">🏆 Gestor de Campanhas</div>
   <div class="page-sub">Crie, edite e gerencie as campanhas do Clube de Palpites</div>
 
+  <!-- CONTROLE DE FASES -->
+  <div class="card">
+    <div class="card-title">📅 Controle de Fases</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px" id="grid-fases">
+      <!-- Renderizado via JS -->
+    </div>
+  </div>
+
   <!-- CRIAR CAMPANHA -->
   <div class="card">
     <div class="card-title">➕ Nova Campanha</div>
@@ -75,6 +83,7 @@ tr:last-child td{border-bottom:none}
           <option value="1">1ª Fase</option>
           <option value="2">2ª Fase</option>
           <option value="3">3ª Fase (Palpite por Resultado)</option>
+          <option value="4">4ª Fase (Palpite o Placar)</option>
         </select>
       </div>
       <div class="form-group">
@@ -83,6 +92,7 @@ tr:last-child td{border-bottom:none}
           <option value="CAMPEA">Campeã (1 seleção)</option>
           <option value="CAMPEA_VICE">Campeã + Vice (2 seleções)</option>
           <option value="RESULTADO">Resultado (Vitória/Empate)</option>
+          <option value="PLACAR">Placar (Gols)</option>
         </select>
       </div>
       <div class="form-group">
@@ -153,6 +163,7 @@ tr:last-child td{border-bottom:none}
           <option value="1">1ª Fase</option>
           <option value="2">2ª Fase</option>
           <option value="3">3ª Fase</option>
+          <option value="4">4ª Fase</option>
         </select>
       </div>
       <div class="form-group">
@@ -161,6 +172,7 @@ tr:last-child td{border-bottom:none}
           <option value="CAMPEA">Campeã</option>
           <option value="CAMPEA_VICE">Campeã + Vice</option>
           <option value="RESULTADO">Resultado</option>
+          <option value="PLACAR">Placar</option>
         </select>
       </div>
       <div class="form-group">
@@ -224,6 +236,7 @@ async function carregarCampanhas() {
     if (!r.ok) { showToast('❌ Sem permissão. Faça login como admin.'); return; }
     CAMPANHAS = await r.json();
     renderCampanhas();
+    renderFases();
   } catch(e) { showToast('❌ Erro ao carregar campanhas.'); }
 }
 
@@ -328,6 +341,53 @@ async function toggleAtiva(id, ativa) {
     showToast(ativa ? '✅ Campanha ativada!' : '🚫 Campanha desativada!');
     carregarCampanhas();
   } catch(e) { showToast('❌ Erro ao conectar.'); }
+}
+
+// ── Controle de Fases ────────────────────────────────────────
+const FASES_CONFIG = [
+  { num: 3, label: 'Palpite por Resultado', icon: '⚽', tipo: 'RESULTADO', valor: 10 },
+  { num: 1, label: 'Seleção Campeã', icon: '🏆', tipo: 'CAMPEA', valor: 10 },
+  { num: 2, label: 'Campeã + Vice', icon: '🥈', tipo: 'CAMPEA_VICE', valor: 15 },
+  { num: 4, label: 'Palpite o Placar', icon: '🎯', tipo: 'PLACAR', valor: 10 },
+];
+
+function renderFases() {
+  const grid = document.getElementById('grid-fases');
+  if (!grid) return;
+  grid.innerHTML = FASES_CONFIG.map(f => {
+    const campanha = CAMPANHAS.find(c => c.fase === f.num);
+    const ativa = campanha?.ativa || false;
+    const existe = !!campanha;
+    return `
+    <div style="background:var(--navy2);border:1px solid ${ativa ? 'rgba(29,185,84,.3)' : 'rgba(255,255,255,.07)'};border-radius:12px;padding:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <span style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700">${f.icon} ${f.num}ª Fase</span>
+        <span class="badge ${ativa ? 'badge-green' : 'badge-red'}">${ativa ? 'Aberta' : existe ? 'Fechada' : 'Não criada'}</span>
+      </div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:12px">${f.label}</div>
+      ${existe ? `
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px">
+        R$ ${Number(campanha.valorPalpite).toFixed(2)} / palpite · ${campanha._count?.palpites || 0} palpites
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn ${ativa ? 'btn-red' : 'btn-green'}" style="flex:1;padding:6px;font-size:12px" onclick="toggleAtiva(${campanha.id},${!ativa})">${ativa ? '🚫 Fechar Fase' : '✅ Abrir Fase'}</button>
+        <button class="btn btn-outline" style="padding:6px 10px;font-size:12px" onclick="abrirEditar(${campanha.id})">✏️</button>
+      </div>` : `
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Nenhuma campanha cadastrada para esta fase.</div>
+      <button class="btn btn-gold" style="width:100%;padding:6px;font-size:12px" onclick="criarFaseRapida(${f.num})">➕ Criar campanha</button>`}
+    </div>`;
+  }).join('');
+}
+
+async function criarFaseRapida(num) {
+  const fase = FASES_CONFIG.find(f => f.num === num);
+  document.getElementById('new-fase').value = num;
+  document.getElementById('new-tipo').value = fase.tipo === 'PLACAR' ? 'RESULTADO' : fase.tipo;
+  document.getElementById('new-valor').value = fase.valor;
+  document.getElementById('new-nome').value = `${num}ª Fase — ${fase.label} · Copa 2026`;
+  document.getElementById('new-perc-clube').value = 40;
+  document.getElementById('new-perc-premio').value = 60;
+  document.querySelector('.card-title').scrollIntoView({ behavior: 'smooth' });
 }
 
 // Inicializa

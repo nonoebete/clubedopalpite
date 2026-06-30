@@ -149,6 +149,7 @@ enum TipoCampanha {
   CAMPEA
   CAMPEA_VICE
   PALPITE_RESULTADO
+  PLACAR
 }
 
 enum StatusPagamento {
