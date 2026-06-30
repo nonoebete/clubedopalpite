@@ -941,6 +941,45 @@ async function confirmarPalpite(btn) {
         valorUnitario: 'R$ 10,00',
         quantidadeLabel: `${selecoesEscolhidas.length} palpite(s)`,
       };
+    } else if (fase === 4) {
+      const totalPalpites = Object.values(palpitesF4).reduce((s, pl) => s + pl.length, 0);
+      if (!totalPalpites) { alert('Adicione ao menos um palpite de placar.'); return; }
+      // Envia via rota /api/placar/palpitar
+      const palpitesPayload = [];
+      Object.entries(palpitesF4).forEach(([pid, placares]) => {
+        placares.forEach(pl => {
+          palpitesPayload.push({ partidaId: Number(pid), golsCasa: pl.golsCasa, golsFora: pl.golsFora });
+        });
+      });
+      const respPlacar = await fetch(`${API_BASE}/placar/palpitar`, {
+        method: 'POST',
+        headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ palpites: palpitesPayload }),
+      });
+      const dataPlacar = await respPlacar.json();
+      if (!respPlacar.ok) { alert(dataPlacar.error || 'Erro ao registrar palpites.'); return; }
+      // Redireciona para pix.html igual às outras fases
+      let palpiteiroLabel = '';
+      try {
+        const u = JSON.parse(localStorage.getItem('cdp_usuario') || '{}');
+        palpiteiroLabel = `${u.apelido || u.nomeCompleto || ''}${u.codigoCdp ? ' · ' + u.codigoCdp : ''}`;
+      } catch {}
+      const selecoesLabel = palpitesPayload.map(p => {
+        const part = PARTIDAS_F4.find(x => x.id === p.partidaId);
+        return part ? `${part.selecaoCasa.nome} ${p.golsCasa}x${p.golsFora} ${part.selecaoFora.nome}` : '';
+      }).join('<br>');
+      sessionStorage.setItem('cdp_pagamento_atual', JSON.stringify({
+        ...dataPlacar,
+        resumo: {
+          faseLabel: '4ª Fase · Palpite o Placar',
+          selecoesLabel,
+          valorUnitario: 'R$ 10,00',
+          quantidadeLabel: `${totalPalpites} palpite(s)`,
+          palpiteiro: palpiteiroLabel,
+        }
+      }));
+      window.location.href = `pix.html?pagamentoId=${dataPlacar.pagamentoId}`;
+      return;
     } else {
       if (!duplas.length) { alert('Monte ao menos uma dupla (campeã + vice).'); return; }
       campanhaId = 2;
