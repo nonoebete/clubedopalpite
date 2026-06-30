@@ -26,6 +26,7 @@ model Usuario {
   criadoEm     DateTime  @default(now()) @map("criado_em")
   palpites           PalpiteCampanha[]
   palpitesPartida    PalpitePartida[]
+  palpitesPlacar     PalpitePlacar[]
   pagamentos         Pagamento[]
   indicacoesFeitas   Indicacao[]     @relation("Indicador")
   indicacaoRecebida  Indicacao?      @relation("Indicado")
@@ -113,6 +114,7 @@ model Partida {
   selecaoCasa Selecao  @relation("PartidaCasa", fields: [selecaoCasaId], references: [id])
   selecaoFora Selecao  @relation("PartidaFora", fields: [selecaoForaId], references: [id])
   palpites    PalpitePartida[]
+  palpitesPlacar PalpitePlacar[]
   @@map("partidas")
 }
 
@@ -245,3 +247,20 @@ enum ResultadoPartida {
   EMPATE
 }
 
+
+// ── Palpite de placar (4ª Fase) ─────────────────────────────────
+model PalpitePlacar {
+  id                  Int      @id @default(autoincrement())
+  usuarioId           Int      @map("usuario_id")
+  partidaId           Int      @map("partida_id")
+  pagamentoId         Int?     @map("pagamento_id")
+  golsCasa            Int      @map("gols_casa")
+  golsFora            Int      @map("gols_fora")
+  valorPago           Decimal  @map("valor_pago") @db.Decimal(10,2)
+  pagamentoConfirmado Boolean  @default(false) @map("pagamento_confirmado")
+  acertou             Boolean?
+  criadoEm            DateTime @default(now()) @map("criado_em")
+  usuario  Usuario  @relation(fields: [usuarioId], references: [id])
+  partida  Partida  @relation(fields: [partidaId], references: [id])
+  @@map("palpites_placar")
+}

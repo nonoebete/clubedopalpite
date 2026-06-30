@@ -16,6 +16,7 @@ const pagamentoRoutes = require('./routes/pagamento.routes');
 const whatsappRoutes  = require('./routes/whatsapp.routes');
 const indicacaoRoutes = require('./routes/indicacao.routes');
 const partidaRoutes   = require('./routes/partida.routes');
+const placarRoutes    = require('./routes/placar.routes');
 
 // ── Rotas da finalização (ranking público, extrato, gestão) ────
 const { ranking, meuExtrato, listar, editar, resetarSenha, alterarStatus } =
@@ -56,6 +57,7 @@ app.use('/api/pagamentos', pagamentoRoutes);
 app.use('/api/whatsapp',   whatsappRoutes);
 app.use('/api/indicacao',  indicacaoRoutes);
 app.use('/api/partidas',   partidaRoutes);
+app.use('/api/placar',     placarRoutes);
 
 // ── Ranking público (sem auth) ──────────────────────────────────
 app.get('/api/ranking', ranking);
