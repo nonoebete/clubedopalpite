@@ -460,9 +460,7 @@ function copiarPix() {
 function voltarPortal() {
   try {
     const dados = JSON.parse(sessionStorage.getItem('cdp_pagamento_atual') || '{}');
-    const fase = dados.resumo?.faseLabel?.includes('4ª') ? '4' : 
-                 dados.resumo?.faseLabel?.includes('3ª') ? '3' :
-                 dados.resumo?.faseLabel?.includes('2ª') ? '2' : '1';
+    const fase = dados.resumo?.faseLabel?.includes("4") ? "4" : dados.resumo?.faseLabel?.includes("3") ? "3" : dados.resumo?.faseLabel?.includes("2") ? "2" : "3";
     window.location.href = `portal.html?fase=${fase}`;
   } catch { voltarPortal(); }
 }
