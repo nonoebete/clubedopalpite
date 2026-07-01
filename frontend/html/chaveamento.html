@@ -76,7 +76,7 @@ body{font-family:'Inter',sans-serif;background:var(--night);color:#dce8f5;min-he
     </div>
     <div style="display:flex;gap:8px;margin-bottom:16px">
       <button class="fase-tab active" id="nivel-grupos" onclick="setNivel('grupos')">📊 Fase de Grupos</button>
-      <button class="fase-tab" id="nivel-eliminatorias" onclick="setNivel('eliminatorias')">⚔️ Mata-Mata</button>
+      <button class="fase-tab" id="nivel-eliminatorias" onclick="setNivel('eliminatorias')">⚔️ Fase Eliminatória · Mata-Mata</button>
     </div>
     <div class="fase-tabs" id="fase-tabs"></div>
     <div class="jogos-grid" id="jogos-grid"></div>
@@ -108,11 +108,11 @@ const FASES = {
   'A':'Grupo A','B':'Grupo B','C':'Grupo C','D':'Grupo D',
   'E':'Grupo E','F':'Grupo F','G':'Grupo G','H':'Grupo H',
   'I':'Grupo I','J':'Grupo J','K':'Grupo K','L':'Grupo L',
-  'O':'Oitavas de Final','Q':'Quartas de Final','S':'Semifinal','T':'3o Lugar','N':'Final'
+  'M':'16 Avos de Final','O':'Oitavas de Final','Q':'Quartas de Final','S':'Semifinal','T':'3o Lugar','N':'Final'
 };
-const FASE_ORDEM = ['A','B','C','D','E','F','G','H','I','J','K','L','O','Q','S','T','N'];
+const FASE_ORDEM = ['A','B','C','D','E','F','G','H','I','J','K','L','M','O','Q','S','T','N'];
 const FASE_GRUPOS = ['A','B','C','D','E','F','G','H','I','J','K','L'];
-const FASE_ELIMINATORIAS = ['O','Q','S','T','N'];
+const FASE_ELIMINATORIAS = ['M','O','Q','S','T','N'];
 let NIVEL_SEL = 'grupos'; // 'grupos' ou 'eliminatorias' 
 
 // Carregar dados
