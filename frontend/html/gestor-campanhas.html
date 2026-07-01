@@ -17,7 +17,7 @@ body{font-family:'Inter',sans-serif;background:var(--night);color:#dce8f5;min-he
 .back-btn:hover{color:#dce8f5;border-color:rgba(255,255,255,.2)}
 /* ── Layout principal ── */
 .app-layout{display:grid;grid-template-columns:var(--sidebar-w) 1fr;min-height:calc(100vh - 56px);transition:grid-template-columns .25s}
-.app-layout.collapsed{grid-template-columns:52px 1fr}
+.app-layout[data-collapsed]{grid-template-columns:52px 1fr}
 /* ── Sidebar ── */
 .sidebar{background:var(--navy);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;position:sticky;top:56px;height:calc(100vh - 56px)}
 .sidebar-toggle{display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;border-bottom:1px solid var(--border);color:var(--muted);font-size:13px;font-weight:600;white-space:nowrap;transition:color .15s}
@@ -25,10 +25,11 @@ body{font-family:'Inter',sans-serif;background:var(--night);color:#dce8f5;min-he
 .nav-item{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;color:var(--muted);font-size:13px;font-weight:500;white-space:nowrap;border-radius:0;transition:all .15s;border-left:3px solid transparent}
 .nav-item:hover{color:#dce8f5;background:rgba(255,255,255,.04)}
 .nav-item.active{color:var(--gold);background:rgba(240,165,0,.06);border-left-color:var(--gold)}
-.nav-item .icon{font-size:16px;min-width:20px;text-align:center}
+.nav-item .icon{font-size:16px;min-width:20px;text-align:center;pointer-events:none}
+.nav-label{transition:opacity .2s;pointer-events:none}
 .nav-label{transition:opacity .2s}
-.app-layout.collapsed .nav-label{opacity:0;width:0;overflow:hidden}
-.app-layout.collapsed .sidebar-toggle span:last-child{opacity:0;width:0;overflow:hidden}
+.app-layout[data-collapsed] .nav-label{opacity:0;width:0;overflow:hidden}
+.app-layout[data-collapsed] .sidebar-toggle span:last-child{opacity:0;width:0;overflow:hidden}
 /* ── Conteúdo ── */
 .main-content{padding:28px;overflow-y:auto}
 .section{display:none}
@@ -85,10 +86,10 @@ tr:last-child td{border-bottom:none}
 <div class="app-layout" id="app-layout">
   <!-- Sidebar -->
   <nav class="sidebar">
-    <div class="sidebar-toggle" onclick="toggleSidebar()"><span>☰</span><span class="nav-label">Menu</span></div>
-    <div class="nav-item active" onclick="showSec('chaveamento',this)"><span class="icon">🔀</span><span class="nav-label">Chaveamento</span></div>
-    <div class="nav-item" onclick="showSec('fases',this)"><span class="icon">📅</span><span class="nav-label">Formatar Fases</span></div>
-    <div class="nav-item" onclick="showSec('campanhas',this)"><span class="icon">🏆</span><span class="nav-label">Gestão de Campanhas</span></div>
+    <a href="#" class="sidebar-toggle" id="btn-toggle" style="text-decoration:none"><span style="pointer-events:none">☰</span><span class="nav-label" style="pointer-events:none">Menu</span></a>
+    <div class="nav-item active" data-sec="chaveamento"><span class="icon">🔀</span><span class="nav-label">Chaveamento</span></div>
+    <div class="nav-item" data-sec="fases"><span class="icon">📅</span><span class="nav-label">Formatar Fases</span></div>
+    <div class="nav-item" data-sec="campanhas"><span class="icon">🏆</span><span class="nav-label">Gestão de Campanhas</span></div>
   </nav>
   <!-- Conteúdo -->
   <div class="main-content">
@@ -244,6 +245,8 @@ tr:last-child td{border-bottom:none}
 <div class="toast" id="toast"></div>
 
 <script>
+console.log("SCRIPT INICIANDO");
+console.log("SCRIPT INICIANDO");
 const API_BASE = '/api';
 let CAMPANHAS = [];
 
@@ -271,11 +274,11 @@ function toLocalInput(d) {
 async function carregarCampanhas() {
   try {
     const r = await fetch(`${API_BASE}/campanhas/admin/todas`, { headers: authHeaders() });
-    if (!r.ok) { showToast('❌ Sem permissão. Faça login como admin.'); return; }
+    if (!r.ok) { showToast('Sem permissao. Faca login como admin.'); return; }
     CAMPANHAS = await r.json();
     renderCampanhas();
     renderFases();
-  } catch(e) { showToast('❌ Erro ao carregar campanhas.'); }
+  } catch(e) { showToast('Erro ao carregar campanhas.'); }
 }
 
 function renderCampanhas() {
@@ -285,7 +288,7 @@ function renderCampanhas() {
     <tr>
       <td style="color:var(--muted)">${c.id}</td>
       <td style="font-weight:500">${c.nome}</td>
-      <td><span class="badge badge-gold">${c.fase}ª</span></td>
+      <td><span class="badge badge-gold">Fase ${c.fase}</span></td>
       <td style="color:var(--muted);font-size:12px">${c.tipo}</td>
       <td style="color:var(--green)">R$ ${Number(c.valorPalpite).toFixed(2)}</td>
       <td style="color:var(--muted);font-size:12px">${fmtData(c.inicio)}</td>
@@ -311,20 +314,20 @@ async function criarCampanha() {
   const percPremio = document.getElementById('new-perc-premio').value;
   const inicio = document.getElementById('new-inicio').value;
   const fim = document.getElementById('new-fim').value;
-  if (!nome || !valorPalpite || !inicio || !fim) { showToast('⚠️ Preencha todos os campos obrigatórios.'); return; }
+  if (!nome || !valorPalpite || !inicio || !fim) { showToast('Preencha todos os campos obrigatorios.'); return; }
   try {
     const r = await fetch(`${API_BASE}/campanhas`, {
       method: 'POST', headers: authHeaders(),
       body: JSON.stringify({ nome, fase, tipo, valorPalpite, percClube, percPremio, inicio, fim }),
     });
-    if (!r.ok) { showToast('❌ Erro ao criar campanha.'); return; }
-    showToast('✅ Campanha criada com sucesso!');
+    if (!r.ok) { showToast('Erro ao criar campanha.'); return; }
+    showToast('Campanha criada com sucesso!');
     document.getElementById('new-nome').value = '';
     document.getElementById('new-valor').value = '';
     document.getElementById('new-inicio').value = '';
     document.getElementById('new-fim').value = '';
     carregarCampanhas();
-  } catch(e) { showToast('❌ Erro ao conectar.'); }
+  } catch(e) { showToast('Erro ao conectar.'); }
 }
 
 function abrirEditar(id) {
@@ -363,11 +366,11 @@ async function salvarEdicao() {
     const r = await fetch(`${API_BASE}/campanhas/${id}`, {
       method: 'PUT', headers: authHeaders(), body: JSON.stringify(body),
     });
-    if (!r.ok) { showToast('❌ Erro ao salvar.'); return; }
-    showToast('✅ Campanha atualizada!');
+    if (!r.ok) { showToast('Erro ao salvar.'); return; }
+    showToast('Campanha atualizada!');
     fecharModal();
     carregarCampanhas();
-  } catch(e) { showToast('❌ Erro ao conectar.'); }
+  } catch(e) { showToast('Erro ao conectar.'); }
 }
 
 async function toggleAtiva(id, ativa) {
@@ -378,7 +381,7 @@ async function toggleAtiva(id, ativa) {
     if (!r.ok) { showToast('❌ Erro ao atualizar.'); return; }
     showToast(ativa ? '✅ Campanha ativada!' : '🚫 Campanha desativada!');
     carregarCampanhas();
-  } catch(e) { showToast('❌ Erro ao conectar.'); }
+  } catch(e) { showToast('Erro ao conectar.'); }
 }
 
 // ── Controle de Fases ────────────────────────────────────────
@@ -430,22 +433,10 @@ async function criarFaseRapida(num) {
 
 // Inicializa
 carregarCampanhas();
-function showSec(id, navEl) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.getElementById('sec-' + id)?.classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  if (navEl) navEl.classList.add('active');
-  if (id === 'fases') renderFases();
-  if (id === 'campanhas') carregarCampanhas();
-}
-function toggleSidebar() {
-  document.getElementById('app-layout').classList.toggle('collapsed');
-}
 function exportCSV() {
   const rows = [['#','Nome','Fase','Tipo','Valor','Inicio','Fim','Status']];
   CAMPANHAS.forEach(c => rows.push([c.id,c.nome,c.fase+'a',c.tipo,Number(c.valorPalpite).toFixed(2),new Date(c.inicio).toLocaleDateString('pt-BR'),new Date(c.fim).toLocaleDateString('pt-BR'),c.ativa?'Ativa':'Inativa']));
-  const csv = rows.map(r => r.join(';')).join('
-');
+  const csv = rows.map(r => r.join(';')).join('\n');
   const a = document.createElement('a');
   a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
   a.download = 'campanhas_' + new Date().toLocaleDateString('pt-BR').replace(/\//g,'-') + '.csv';
@@ -454,6 +445,38 @@ function exportCSV() {
 function exportPDF() {
   window.print();
 }
+</script>
+<script>
+function toggleSidebar() {
+  var layout = document.getElementById('app-layout');
+  if (layout.getAttribute('data-collapsed') === '1') {
+    layout.removeAttribute('data-collapsed');
+    layout.style.gridTemplateColumns = '220px 1fr';
+  } else {
+    layout.setAttribute('data-collapsed', '1');
+    layout.style.gridTemplateColumns = '52px 1fr';
+  }
+}
+function showSec(id) {
+  document.querySelectorAll('.section').forEach(function(s){ s.classList.remove('active'); });
+  var sec = document.getElementById('sec-' + id);
+  if (sec) sec.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('active'); });
+  var navEl = document.querySelector('[data-sec="' + id + '"]');
+  if (navEl) navEl.classList.add('active');
+  setTimeout(function() {
+    if (id === 'fases' && typeof renderFases === 'function') renderFases();
+    if (id === 'campanhas' && typeof carregarCampanhas === 'function') carregarCampanhas();
+  }, 50);
+}
+(function() {
+  document.getElementById('app-layout').classList.remove('collapsed');
+  document.querySelector('.sidebar-toggle').addEventListener('click', toggleSidebar);
+  document.querySelectorAll('.nav-item[data-sec]').forEach(function(el) {
+    el.addEventListener('click', function() { showSec(this.dataset.sec); });
+  });
+})();
+console.log("REGISTRANDO TOGGLE"); setTimeout(function() { console.log("TIMEOUT EXECUTADO"); var b=document.getElementById("btn-toggle"); if(b){ console.log("BTN ENCONTRADO"); b.addEventListener("click", function(e){ e.preventDefault(); console.log("TOGGLE EVENT"); toggleSidebar(); }, true); } }, 200);
 </script>
 </body>
 </html></html>
