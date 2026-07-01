@@ -182,7 +182,7 @@
       DA COPA
     </h1>
     <p class="hero-sub">
-      3 campanhas, prêmios em dinheiro e 48 seleções para palpitar. Cadastre-se grátis e comece agora!
+      <span id="hero-campanhas">4</span> campanhas, prêmios em dinheiro e 48 seleções para palpitar. Cadastre-se grátis e comece agora!
     </p>
     <div class="hero-cta">
       <a href="login.html" target="_self"><button class="btn-pri">🏆 Quero participar</button></a>
@@ -521,6 +521,7 @@ async function atualizarCampanhasAtivas() {
     const titulo = document.getElementById('sec-title-campanhas');
     if (el) el.textContent = total;
     if (titulo) titulo.textContent = `${total} Campanha${total !== 1 ? 's' : ''}, ${total} chance${total !== 1 ? 's' : ''} de ganhar`;
+    const hero = document.getElementById("hero-campanhas"); if (hero) hero.textContent = total;
   } catch(e) { console.error('[Campanhas]', e); }
 }
 atualizarCampanhasAtivas();
