@@ -307,8 +307,17 @@ async function novoJogo() {
   });
   if (r.ok) {
     const data = await r.json();
-    const rPart = await fetch(`${API_BASE}/partidas?campanhaId=3`, { headers: authHeaders() });
-    PARTIDAS = await rPart.json();
+    // Adiciona apenas o novo jogo ao array local sem recarregar tudo
+    PARTIDAS.push({
+      id: data.partida.id,
+      grupo: FASE_SEL,
+      dataHora: dataHora,
+      encerrada: false,
+      casa: null,
+      fora: null,
+      _selCasaId: null,
+      _selForaId: null,
+    });
     renderFaseTabs();
     renderJogos();
     showToast('Novo jogo adicionado!');
