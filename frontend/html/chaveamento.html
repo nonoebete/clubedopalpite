@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chaveamento · Clube de Palpites</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--night:#07101d;--navy:#0e1e32;--navy2:#152840;--navy3:#1b3353;--gold:#F0A500;--green:#1db954;--red:#e05252;--blue:#4a9eff;--muted:#7a93ad;--border:rgba(255,255,255,0.07);--r:10px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--night);color:#dce8f5;min-height:100vh}
+.topbar{background:var(--navy);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:0 24px;height:56px;position:sticky;top:0;z-index:200}
+.logo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;display:flex;align-items:center;gap:8px}
+.logo span{color:var(--gold)}
+.back-btn{margin-left:auto;background:none;border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:var(--r);font-size:13px;cursor:pointer}
+/* ── Layout ── */
+.layout{display:grid;grid-template-columns:240px 1fr;min-height:calc(100vh - 56px)}
+/* ── Painel seleções ── */
+.selecoes-panel{background:var(--navy);border-right:1px solid var(--border);padding:16px;overflow-y:auto;max-height:calc(100vh - 56px);position:sticky;top:56px}
+.panel-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:var(--gold);margin-bottom:12px}
+.busca-sel{width:100%;padding:8px 12px;border-radius:var(--r);border:1px solid var(--border);background:var(--navy2);color:#dce8f5;font-size:13px;outline:none;margin-bottom:12px}
+.sel-card{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--navy2);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:grab;transition:all .15s;user-select:none}
+.sel-card:hover{border-color:rgba(240,165,0,.4);background:var(--navy3)}
+.sel-card.dragging{opacity:.5;border-color:var(--gold)}
+.sel-card img{width:28px;height:20px;object-fit:cover;border-radius:3px}
+.sel-card .sel-nome{font-size:13px;font-weight:500}
+.sel-card .sel-sigla{font-size:11px;color:var(--muted)}
+/* ── Chaveamento ── */
+.chave-area{padding:24px;overflow-x:auto}
+.chave-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.chave-title{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:700}
+.btn-salvar{background:var(--gold);color:#07101d;border:none;padding:8px 20px;border-radius:var(--r);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+.fase-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.fase-tab{padding:6px 16px;border-radius:20px;border:1px solid var(--border);background:var(--navy);color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.fase-tab.active{background:rgba(240,165,0,.12);border-color:rgba(240,165,0,.35);color:var(--gold)}
+/* ── Jogos ── */
+.jogos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.jogo-card{background:var(--navy);border:1px solid var(--border);border-radius:12px;padding:16px}
+.jogo-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;font-size:11px;color:var(--muted);font-weight:600}
+.jogo-times{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center}
+.slot{border:2px dashed rgba(255,255,255,.12);border-radius:10px;padding:10px;min-height:64px;display:flex;align-items:center;justify-content:center;transition:all .2s;cursor:pointer;text-align:center}
+.slot.dragover{border-color:var(--gold);background:rgba(240,165,0,.08)}
+.slot.filled{border-style:solid;border-color:rgba(255,255,255,.15);background:var(--navy2)}
+.slot img{width:32px;height:22px;object-fit:cover;border-radius:3px;margin-bottom:4px}
+.slot .slot-nome{font-size:12px;font-weight:600;color:#dce8f5}
+.slot .slot-empty{font-size:11px;color:var(--muted)}
+.vs-badge{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--muted);text-align:center}
+.jogo-data{margin-top:10px;display:flex;gap:6px;align-items:center}
+.jogo-data input{background:var(--navy2);border:1px solid var(--border);border-radius:6px;color:#dce8f5;font-size:12px;padding:5px 8px;outline:none;font-family:inherit;flex:1}
+.jogo-data input:focus{border-color:var(--gold)}
+.btn-remover{background:rgba(224,82,82,.1);border:1px solid rgba(224,82,82,.2);color:var(--red);padding:4px 8px;border-radius:6px;cursor:pointer;font-size:11px;font-family:inherit}
+.btn-novo-jogo{width:100%;padding:12px;background:rgba(240,165,0,.08);border:1px dashed rgba(240,165,0,.3);color:var(--gold);border-radius:12px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;margin-top:8px}
+.btn-novo-jogo:hover{background:rgba(240,165,0,.15)}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--navy3);border:1px solid var(--border);border-radius:12px;padding:12px 20px;font-size:13px;z-index:999;display:none}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html" style="text-decoration:none"><div class="logo">⚽ Clube <span>Palpite</span></div></a>
+  <span style="color:var(--muted);font-size:13px">🔀 Chaveamento</span>
+  <button class="back-btn" onclick="history.back()">← Voltar</button>
+</div>
+<div class="layout">
+  <!-- Painel de seleções -->
+  <div class="selecoes-panel">
+    <div class="panel-title">⚽ Seleções</div>
+    <input type="text" class="busca-sel" id="busca-sel" placeholder="Filtrar..." oninput="filtrarSelecoes()">
+    <div id="lista-selecoes"></div>
+  </div>
+  <!-- Área de chaveamento -->
+  <div class="chave-area">
+    <div class="chave-header">
+      <div class="chave-title">🏆 Copa do Mundo 2026</div>
+      <button class="btn-salvar" onclick="salvarTudo()">💾 Salvar Chaveamento</button>
+    </div>
+    <div class="fase-tabs" id="fase-tabs"></div>
+    <div class="jogos-grid" id="jogos-grid"></div>
+    <button class="btn-novo-jogo" onclick="novoJogo()">+ Adicionar Jogo</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const API_BASE = '/api';
+function authHeaders() {
+  return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token') || ''}` };
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3000);
+}
+
+// Estado
+let SELECOES = [];
+let PARTIDAS = [];
+let FASE_SEL = 'O'; // grupo atual selecionado
+let dragSelecao = null;
+let dragSlotInfo = null;
+
+// Mapa de fases
+const FASES = {
+  'A':'Grupo A','B':'Grupo B','C':'Grupo C','D':'Grupo D',
+  'E':'Grupo E','F':'Grupo F','G':'Grupo G','H':'Grupo H',
+  'I':'Grupo I','J':'Grupo J','K':'Grupo K','L':'Grupo L',
+  'O':'Oitavas','Q':'Quartas','S':'Semifinal','T':'3o Lugar','N':'Final'
+};
+
+// Carregar dados
+async function init() {
+  const [rSel, rPart] = await Promise.all([
+    fetch(`${API_BASE}/selecoes`, { headers: authHeaders() }),
+    fetch(`${API_BASE}/partidas?campanhaId=3`, { headers: authHeaders() }),
+  ]);
+  SELECOES = await rSel.json();
+  PARTIDAS = await rPart.json();
+  renderSelecoes();
+  renderFaseTabs();
+  renderJogos();
+}
+
+function filtrarSelecoes() {
+  const q = document.getElementById('busca-sel').value.toLowerCase();
+  renderSelecoes(q);
+}
+
+function renderSelecoes(filtro = '') {
+  const lista = document.getElementById('lista-selecoes');
+  const sels = filtro ? SELECOES.filter(s => s.nome.toLowerCase().includes(filtro)) : SELECOES;
+  lista.innerHTML = sels.map(s => `
+    <div class="sel-card" draggable="true" data-id="${s.id}" data-nome="${s.nome}" data-bandeira="${s.bandeiraCss}" data-sigla="${s.sigla || ''}"
+      ondragstart="onDragStartSel(event, ${s.id})">
+      <img src="${s.bandeiraCss}" onerror="this.style.display='none'">
+      <div>
+        <div class="sel-nome">${s.nome}</div>
+        <div class="sel-sigla">${s.sigla || ''}</div>
+      </div>
+    </div>`).join('');
+}
+
+function renderFaseTabs() {
+  const grupos = [...new Set(PARTIDAS.map(p => p.grupo))].sort();
+  const tabs = document.getElementById('fase-tabs');
+  tabs.innerHTML = grupos.map(g => `
+    <button class="fase-tab ${g === FASE_SEL ? 'active' : ''}" onclick="setFase('${g}')">
+      ${FASES[g] || 'Grupo ' + g}
+    </button>`).join('');
+}
+
+function setFase(g) {
+  FASE_SEL = g;
+  renderFaseTabs();
+  renderJogos();
+}
+
+function renderJogos() {
+  const grid = document.getElementById('jogos-grid');
+  const partidas = PARTIDAS.filter(p => p.grupo === FASE_SEL);
+  grid.innerHTML = partidas.map((p, i) => `
+    <div class="jogo-card" data-id="${p.id}">
+      <div class="jogo-header">
+        <span>Jogo ${i + 1}</span>
+        <button class="btn-remover" onclick="removerJogo(${p.id})">✕ Remover</button>
+      </div>
+      <div class="jogo-times">
+        ${renderSlot(p, 'casa')}
+        <div class="vs-badge">VS</div>
+        ${renderSlot(p, 'fora')}
+      </div>
+      <div class="jogo-data">
+        <input type="datetime-local" value="${p.dataHora ? toLocalInput(p.dataHora) : ''}" 
+          onchange="atualizarData(${p.id}, this.value)" placeholder="Data/Hora">
+      </div>
+    </div>`).join('');
+
+  // Adiciona eventos de drag nos slots
+  document.querySelectorAll('.slot').forEach(slot => {
+    slot.addEventListener('dragover', e => { e.preventDefault(); slot.classList.add('dragover'); });
+    slot.addEventListener('dragleave', () => slot.classList.remove('dragover'));
+    slot.addEventListener('drop', e => { e.preventDefault(); slot.classList.remove('dragover'); onDropSlot(slot); });
+  });
+}
+
+function renderSlot(partida, lado) {
+  const sel = lado === 'casa' ? partida.casa : partida.fora;
+  const filled = sel && sel.nome !== 'Brasil' || (sel && sel.nome);
+  if (sel) {
+    return `<div class="slot filled" data-partida="${partida.id}" data-lado="${lado}" 
+      draggable="true" ondragstart="onDragStartSlot(event, ${partida.id}, '${lado}')">
+      <div style="text-align:center">
+        <img src="${sel.bandeira}" onerror="this.style.display='none'" style="display:block;margin:0 auto 4px">
+        <div class="slot-nome">${sel.nome}</div>
+      </div>
+    </div>`;
+  }
+  return `<div class="slot" data-partida="${partida.id}" data-lado="${lado}">
+    <div class="slot-empty">Arrastar<br>seleção</div>
+  </div>`;
+}
+
+function toLocalInput(d) {
+  const dt = new Date(d);
+  dt.setMinutes(dt.getMinutes() - dt.getTimezoneOffset());
+  return dt.toISOString().slice(0, 16);
+}
+
+// Drag & Drop
+function onDragStartSel(e, selId) {
+  dragSelecao = selId;
+  dragSlotInfo = null;
+  e.dataTransfer.effectAllowed = 'move';
+}
+
+function onDragStartSlot(e, partidaId, lado) {
+  dragSlotInfo = { partidaId, lado };
+  dragSelecao = null;
+  e.dataTransfer.effectAllowed = 'move';
+}
+
+function onDropSlot(slot) {
+  const partidaId = Number(slot.dataset.partida);
+  const lado = slot.dataset.lado;
+  const partida = PARTIDAS.find(p => p.id === partidaId);
+  if (!partida) return;
+
+  if (dragSelecao) {
+    // Arrastar da lista de seleções para o slot
+    const sel = SELECOES.find(s => s.id === dragSelecao);
+    if (!sel) return;
+    if (lado === 'casa') {
+      partida.casa = { nome: sel.nome, bandeira: sel.bandeiraCss, sigla: sel.sigla };
+      partida._selCasaId = sel.id;
+    } else {
+      partida.fora = { nome: sel.nome, bandeira: sel.bandeiraCss, sigla: sel.sigla };
+      partida._selForaId = sel.id;
+    }
+  } else if (dragSlotInfo) {
+    // Trocar seleções entre slots
+    const origem = PARTIDAS.find(p => p.id === dragSlotInfo.partidaId);
+    if (!origem) return;
+    const selOrigem = dragSlotInfo.lado === 'casa' ? origem.casa : origem.fora;
+    const selIdOrigem = dragSlotInfo.lado === 'casa' ? (origem._selCasaId || null) : (origem._selForaId || null);
+    const selDestino = lado === 'casa' ? partida.casa : partida.fora;
+    const selIdDestino = lado === 'casa' ? (partida._selCasaId || null) : (partida._selForaId || null);
+
+    // Troca
+    if (dragSlotInfo.lado === 'casa') { origem.casa = selDestino; origem._selCasaId = selIdDestino; }
+    else { origem.fora = selDestino; origem._selForaId = selIdDestino; }
+    if (lado === 'casa') { partida.casa = selOrigem; partida._selCasaId = selIdOrigem; }
+    else { partida.fora = selOrigem; partida._selForaId = selIdOrigem; }
+  }
+  renderJogos();
+}
+
+async function atualizarData(partidaId, valor) {
+  const partida = PARTIDAS.find(p => p.id === partidaId);
+  if (partida) partida.dataHora = valor;
+}
+
+async function salvarTudo() {
+  const partidas = PARTIDAS.filter(p => p.grupo === FASE_SEL);
+  let ok = 0;
+  for (const p of partidas) {
+    const body = { dataHora: p.dataHora };
+    if (p._selCasaId) body.selecaoCasaId = p._selCasaId;
+    if (p._selForaId) body.selecaoForaId = p._selForaId;
+    try {
+      const r = await fetch(`${API_BASE}/partidas/admin/partidas/${p.id}/chaveamento`, {
+        method: 'PATCH', headers: authHeaders(), body: JSON.stringify(body),
+      });
+      if (r.ok) ok++;
+    } catch(e) {}
+  }
+  showToast(`Salvo! ${ok}/${partidas.length} jogos atualizados.`);
+}
+
+async function novoJogo() {
+  const dataHora = new Date().toISOString();
+  const r = await fetch(`${API_BASE}/partidas/admin/partidas/nova`, {
+    method: 'POST', headers: authHeaders(),
+    body: JSON.stringify({ campanhaId: 3, selecaoCasaId: 1, selecaoForaId: 2, dataHora, grupo: FASE_SEL }),
+  });
+  if (r.ok) {
+    const data = await r.json();
+    const rPart = await fetch(`${API_BASE}/partidas?campanhaId=3`, { headers: authHeaders() });
+    PARTIDAS = await rPart.json();
+    renderFaseTabs();
+    renderJogos();
+    showToast('Novo jogo adicionado!');
+  }
+}
+
+async function removerJogo(id) {
+  if (!confirm('Remover este jogo do chaveamento?')) return;
+  // Marca como encerrado para remover da visualização
+  PARTIDAS = PARTIDAS.filter(p => p.id !== id);
+  renderFaseTabs();
+  renderJogos();
+  showToast('Jogo removido da visualização.');
+}
+
+init();
+</script>
+</body>
+</html>

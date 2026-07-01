@@ -15,3 +15,40 @@ router.patch('/admin/partidas/:id/resultado',    autenticar, apenasAdmin, ctrl.d
 router.post ('/admin/apurar-campanha',           autenticar, apenasAdmin, ctrl.apurarCampanha);
 
 module.exports = router;
+
+// Atualizar seleções de uma partida (chaveamento)
+router.patch('/admin/partidas/:id/chaveamento', autenticar, apenasAdmin, async (req, res) => {
+  const prisma = require('../models/prisma');
+  const { selecaoCasaId, selecaoForaId, dataHora, grupo } = req.body;
+  try {
+    const data = {};
+    if (selecaoCasaId !== undefined) data.selecaoCasaId = Number(selecaoCasaId);
+    if (selecaoForaId !== undefined) data.selecaoForaId = Number(selecaoForaId);
+    if (dataHora !== undefined) data.dataHora = new Date(dataHora);
+    if (grupo !== undefined) data.grupo = grupo;
+    const partida = await prisma.partida.update({ where: { id: Number(req.params.id) }, data });
+    res.json({ ok: true, partida });
+  } catch(e) {
+    res.status(500).json({ error: 'Erro ao atualizar partida.' });
+  }
+});
+
+// Criar nova partida (chaveamento)
+router.post('/admin/partidas/nova', autenticar, apenasAdmin, async (req, res) => {
+  const prisma = require('../models/prisma');
+  const { campanhaId, selecaoCasaId, selecaoForaId, dataHora, grupo } = req.body;
+  try {
+    const partida = await prisma.partida.create({
+      data: {
+        campanhaId: Number(campanhaId),
+        selecaoCasaId: Number(selecaoCasaId),
+        selecaoForaId: Number(selecaoForaId),
+        dataHora: new Date(dataHora),
+        grupo: grupo || 'O',
+      }
+    });
+    res.status(201).json({ ok: true, partida });
+  } catch(e) {
+    res.status(500).json({ error: 'Erro ao criar partida.' });
+  }
+});
