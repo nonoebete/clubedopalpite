@@ -74,9 +74,13 @@ body{font-family:'Inter',sans-serif;background:var(--night);color:#dce8f5;min-he
       <div class="chave-title">🏆 Copa do Mundo 2026</div>
       <button class="btn-salvar" onclick="salvarTudo()">💾 Salvar Chaveamento</button>
     </div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button class="fase-tab active" id="nivel-grupos" onclick="setNivel('grupos')">📊 Fase de Grupos</button>
+      <button class="fase-tab" id="nivel-eliminatorias" onclick="setNivel('eliminatorias')">⚔️ Mata-Mata</button>
+    </div>
     <div class="fase-tabs" id="fase-tabs"></div>
     <div class="jogos-grid" id="jogos-grid"></div>
-    <button class="btn-novo-jogo" onclick="novoJogo()">+ Adicionar Jogo</button>
+    <button class="btn-novo-jogo" onclick="novoJogo()">+ Adicionar Jogo nesta fase</button>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -104,8 +108,12 @@ const FASES = {
   'A':'Grupo A','B':'Grupo B','C':'Grupo C','D':'Grupo D',
   'E':'Grupo E','F':'Grupo F','G':'Grupo G','H':'Grupo H',
   'I':'Grupo I','J':'Grupo J','K':'Grupo K','L':'Grupo L',
-  'O':'Oitavas','Q':'Quartas','S':'Semifinal','T':'3o Lugar','N':'Final'
+  'O':'Oitavas de Final','Q':'Quartas de Final','S':'Semifinal','T':'3o Lugar','N':'Final'
 };
+const FASE_ORDEM = ['A','B','C','D','E','F','G','H','I','J','K','L','O','Q','S','T','N'];
+const FASE_GRUPOS = ['A','B','C','D','E','F','G','H','I','J','K','L'];
+const FASE_ELIMINATORIAS = ['O','Q','S','T','N'];
+let NIVEL_SEL = 'grupos'; // 'grupos' ou 'eliminatorias' 
 
 // Carregar dados
 async function init() {
@@ -140,7 +148,9 @@ function renderSelecoes(filtro = '') {
 }
 
 function renderFaseTabs() {
-  const grupos = [...new Set(PARTIDAS.map(p => p.grupo))].sort();
+  const gruposSet = [...new Set(PARTIDAS.map(p => p.grupo))];
+  const fasesNivel = NIVEL_SEL === 'grupos' ? FASE_GRUPOS : FASE_ELIMINATORIAS;
+  const grupos = FASE_ORDEM.filter(f => gruposSet.includes(f) && fasesNivel.includes(f));
   const tabs = document.getElementById('fase-tabs');
   tabs.innerHTML = grupos.map(g => `
     <button class="fase-tab ${g === FASE_SEL ? 'active' : ''}" onclick="setFase('${g}')">
@@ -148,6 +158,16 @@ function renderFaseTabs() {
     </button>`).join('');
 }
 
+function setNivel(nivel) {
+  NIVEL_SEL = nivel;
+  document.getElementById('nivel-grupos').classList.toggle('active', nivel === 'grupos');
+  document.getElementById('nivel-eliminatorias').classList.toggle('active', nivel === 'eliminatorias');
+  const fases = nivel === 'grupos' ? FASE_GRUPOS : FASE_ELIMINATORIAS;
+  const disponiveis = fases.filter(f => PARTIDAS.some(p => p.grupo === f));
+  FASE_SEL = disponiveis[0] || fases[0];
+  renderFaseTabs();
+  renderJogos();
+}
 function setFase(g) {
   FASE_SEL = g;
   renderFaseTabs();
@@ -191,6 +211,7 @@ function renderSlot(partida, lado) {
       <div style="text-align:center">
         <img src="${sel.bandeira}" onerror="this.style.display='none'" style="display:block;margin:0 auto 4px">
         <div class="slot-nome">${sel.nome}</div>
+        <button onclick="removerSelSlot(${partida.id},'${lado}')" style="background:none;border:none;color:var(--red);font-size:10px;cursor:pointer;margin-top:2px;pointer-events:all">✕ remover</button>
       </div>
     </div>`;
   }
@@ -291,13 +312,31 @@ async function novoJogo() {
   }
 }
 
-async function removerJogo(id) {
-  if (!confirm('Remover este jogo do chaveamento?')) return;
-  // Marca como encerrado para remover da visualização
-  PARTIDAS = PARTIDAS.filter(p => p.id !== id);
-  renderFaseTabs();
+function removerSelSlot(partidaId, lado) {
+  const p = PARTIDAS.find(x => x.id === partidaId);
+  if (!p) return;
+  if (lado === 'casa') { p.casa = null; p._selCasaId = null; }
+  else { p.fora = null; p._selForaId = null; }
   renderJogos();
-  showToast('Jogo removido da visualização.');
+}
+
+async function removerJogo(id) {
+  if (!confirm('Remover este jogo permanentemente?')) return;
+  try {
+    const r = await fetch(`${API_BASE}/partidas/admin/partidas/${id}/chaveamento`, {
+      method: 'PATCH', headers: authHeaders(),
+      body: JSON.stringify({ encerrada: true }),
+    });
+    PARTIDAS = PARTIDAS.filter(p => p.id !== id);
+    renderFaseTabs();
+    renderJogos();
+    showToast('Jogo removido!');
+  } catch(e) {
+    PARTIDAS = PARTIDAS.filter(p => p.id !== id);
+    renderFaseTabs();
+    renderJogos();
+    showToast('Jogo removido da visualizacao.');
+  }
 }
 
 init();
