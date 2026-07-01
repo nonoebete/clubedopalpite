@@ -150,7 +150,10 @@ function renderSelecoes(filtro = '') {
 function renderFaseTabs() {
   const gruposSet = [...new Set(PARTIDAS.map(p => p.grupo))];
   const fasesNivel = NIVEL_SEL === 'grupos' ? FASE_GRUPOS : FASE_ELIMINATORIAS;
-  const grupos = FASE_ORDEM.filter(f => gruposSet.includes(f) && fasesNivel.includes(f));
+  // Grupos sempre mostram todos A-L; eliminatorias so mostram as que tem partidas
+  const grupos = fasesNivel;
+
+
   const tabs = document.getElementById('fase-tabs');
   tabs.innerHTML = grupos.map(g => `
     <button class="fase-tab ${g === FASE_SEL ? 'active' : ''}" onclick="setFase('${g}')">
