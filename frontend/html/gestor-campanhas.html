@@ -85,7 +85,7 @@ tr:last-child td{border-bottom:none}
 <div class="app-layout" id="app-layout">
   <!-- Sidebar -->
   <nav class="sidebar">
-    <div class="sidebar-toggle" onclick="toggleSidebar()"><span>☰</span><span style="margin-left:8px;font-size:13px">Menu</span></div>
+    <div class="sidebar-toggle" onclick="toggleSidebar()"><span>☰</span><span class="nav-label">Menu</span></div>
     <div class="nav-item active" onclick="showSec('chaveamento',this)"><span class="icon">🔀</span><span class="nav-label">Chaveamento</span></div>
     <div class="nav-item" onclick="showSec('fases',this)"><span class="icon">📅</span><span class="nav-label">Formatar Fases</span></div>
     <div class="nav-item" onclick="showSec('campanhas',this)"><span class="icon">🏆</span><span class="nav-label">Gestão de Campanhas</span></div>
@@ -430,10 +430,6 @@ async function criarFaseRapida(num) {
 
 // Inicializa
 carregarCampanhas();
-</script>
-</body>
-</html>
-<script>
 function showSec(id, navEl) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('sec-' + id)?.classList.add('active');
@@ -459,3 +455,5 @@ function exportPDF() {
   window.print();
 }
 </script>
+</body>
+</html></html>
