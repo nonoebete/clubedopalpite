@@ -61,6 +61,7 @@ td{padding:12px;border-bottom:1px solid var(--border);font-size:13px;vertical-al
 tr:last-child td{border-bottom:none}
 .toast{position:fixed;bottom:24px;right:24px;background:var(--navy3);border:1px solid var(--border);border-radius:12px;padding:12px 20px;font-size:13px;z-index:999;display:none;animation:fadeIn .2s}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 .modal-overlay{position:fixed;inset:0;background:rgba(7,16,29,.85);backdrop-filter:blur(4px);z-index:300;display:none;align-items:center;justify-content:center;padding:24px}
 .modal-overlay.show{display:flex}
 .modal-box{background:var(--navy);border:1px solid rgba(240,165,0,.2);border-radius:16px;padding:28px;width:100%;max-width:600px}
@@ -70,9 +71,16 @@ tr:last-child td{border-bottom:none}
 </head>
 <body>
 <div class="topbar">
-  <div class="logo">⚽ Clube <span>Palpite</span></div>
+  <a href="index.html" style="text-decoration:none"><div class="logo">⚽ Clube <span>Palpite</span></div></a>
   <span style="color:var(--muted);font-size:13px">⚙️ Configurações</span>
-  <button class="back-btn" onclick="history.back()">← Voltar</button>
+  <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
+    <div style="display:flex;align-items:center;gap:6px;background:rgba(29,185,84,.15);border:1px solid rgba(29,185,84,.3);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600;color:#1db954">
+      <span style="width:7px;height:7px;background:#1db954;border-radius:50%;display:inline-block;animation:pulse 1.5s infinite"></span> Ao vivo
+    </div>
+    <button onclick="exportCSV()" style="background:rgba(74,158,255,.12);border:1px solid rgba(74,158,255,.3);color:#4a9eff;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit">⬇ CSV</button>
+    <button onclick="exportPDF()" style="background:rgba(240,165,0,.12);border:1px solid rgba(240,165,0,.3);color:var(--gold);padding:5px 12px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit">📄 Relatório PDF</button>
+    <button onclick="window.location.href='admin-avancado.html'" style="background:rgba(224,82,82,.12);border:1px solid rgba(224,82,82,.3);color:#e05252;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit">🔐 Admin</button>
+  </div>
 </div>
 <div class="app-layout" id="app-layout">
   <!-- Sidebar -->
@@ -436,5 +444,18 @@ function showSec(id, navEl) {
 }
 function toggleSidebar() {
   document.getElementById('app-layout').classList.toggle('collapsed');
+}
+function exportCSV() {
+  const rows = [['#','Nome','Fase','Tipo','Valor','Inicio','Fim','Status']];
+  CAMPANHAS.forEach(c => rows.push([c.id,c.nome,c.fase+'a',c.tipo,Number(c.valorPalpite).toFixed(2),new Date(c.inicio).toLocaleDateString('pt-BR'),new Date(c.fim).toLocaleDateString('pt-BR'),c.ativa?'Ativa':'Inativa']));
+  const csv = rows.map(r => r.join(';')).join('
+');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'campanhas_' + new Date().toLocaleDateString('pt-BR').replace(/\//g,'-') + '.csv';
+  a.click();
+}
+function exportPDF() {
+  window.print();
 }
 </script>
