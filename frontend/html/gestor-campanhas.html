@@ -7,15 +7,33 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{--night:#07101d;--navy:#0e1e32;--navy2:#152840;--navy3:#1b3353;--gold:#F0A500;--green:#1db954;--red:#e05252;--blue:#4a9eff;--muted:#7a93ad;--border:rgba(255,255,255,0.07);--r:10px}
+:root{--night:#07101d;--navy:#0e1e32;--navy2:#152840;--navy3:#1b3353;--gold:#F0A500;--green:#1db954;--red:#e05252;--blue:#4a9eff;--muted:#7a93ad;--border:rgba(255,255,255,0.07);--r:10px;--sidebar-w:220px}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',sans-serif;background:var(--night);color:#dce8f5;min-height:100vh}
-.topbar{background:var(--navy);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:0 24px;height:56px;position:sticky;top:0;z-index:100}
+body{font-family:'Inter',sans-serif;background:var(--night);color:#dce8f5;min-height:100vh;display:grid;grid-template-rows:56px 1fr}
+.topbar{background:var(--navy);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:0 24px;height:56px;position:sticky;top:0;z-index:200}
 .logo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;display:flex;align-items:center;gap:8px}
 .logo span{color:var(--gold)}
 .back-btn{margin-left:auto;background:none;border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:var(--r);font-size:13px;cursor:pointer}
 .back-btn:hover{color:#dce8f5;border-color:rgba(255,255,255,.2)}
-.container{max-width:1100px;margin:0 auto;padding:28px 20px}
+/* ── Layout principal ── */
+.app-layout{display:grid;grid-template-columns:var(--sidebar-w) 1fr;min-height:calc(100vh - 56px);transition:grid-template-columns .25s}
+.app-layout.collapsed{grid-template-columns:52px 1fr}
+/* ── Sidebar ── */
+.sidebar{background:var(--navy);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;position:sticky;top:56px;height:calc(100vh - 56px)}
+.sidebar-toggle{display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;border-bottom:1px solid var(--border);color:var(--muted);font-size:13px;font-weight:600;white-space:nowrap;transition:color .15s}
+.sidebar-toggle:hover{color:#dce8f5}
+.nav-item{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;color:var(--muted);font-size:13px;font-weight:500;white-space:nowrap;border-radius:0;transition:all .15s;border-left:3px solid transparent}
+.nav-item:hover{color:#dce8f5;background:rgba(255,255,255,.04)}
+.nav-item.active{color:var(--gold);background:rgba(240,165,0,.06);border-left-color:var(--gold)}
+.nav-item .icon{font-size:16px;min-width:20px;text-align:center}
+.nav-label{transition:opacity .2s}
+.app-layout.collapsed .nav-label{opacity:0;width:0;overflow:hidden}
+.app-layout.collapsed .sidebar-toggle span:last-child{opacity:0;width:0;overflow:hidden}
+/* ── Conteúdo ── */
+.main-content{padding:28px;overflow-y:auto}
+.section{display:none}
+.section.active{display:block}
+.container{max-width:1000px}
 .page-title{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:700;margin-bottom:4px}
 .page-sub{color:var(--muted);font-size:14px;margin-bottom:24px}
 .card{background:var(--navy);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:20px}
@@ -53,100 +71,112 @@ tr:last-child td{border-bottom:none}
 <body>
 <div class="topbar">
   <div class="logo">⚽ Clube <span>Palpite</span></div>
-  <span style="color:var(--muted);font-size:13px">Gestor de Campanhas</span>
+  <span style="color:var(--muted);font-size:13px">⚙️ Configurações</span>
   <button class="back-btn" onclick="history.back()">← Voltar</button>
 </div>
-
-<div class="container">
-  <div class="page-title">🏆 Gestor de Campanhas</div>
-  <div class="page-sub">Crie, edite e gerencie as campanhas do Clube de Palpites</div>
-
-  <!-- CONTROLE DE FASES -->
-  <div class="card">
-    <div class="card-title">📅 Controle de Fases</div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px" id="grid-fases">
-      <!-- Renderizado via JS -->
-    </div>
-  </div>
-
-  <!-- CRIAR CAMPANHA -->
-  <div class="card">
-    <div class="card-title">➕ Nova Campanha</div>
-    <div class="form-grid">
-      <div class="form-group full">
-        <label>Nome da campanha</label>
-        <input type="text" id="new-nome" placeholder="Ex: 1ª Fase — Seleção Campeã · Copa 2026">
-      </div>
-      <div class="form-group">
-        <label>Fase</label>
-        <select id="new-fase">
-          <option value="1">1ª Fase</option>
-          <option value="2">2ª Fase</option>
-          <option value="3">3ª Fase (Palpite por Resultado)</option>
-          <option value="4">4ª Fase (Palpite o Placar)</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Tipo</label>
-        <select id="new-tipo">
-          <option value="CAMPEA">Campeã (1 seleção)</option>
-          <option value="CAMPEA_VICE">Campeã + Vice (2 seleções)</option>
-          <option value="RESULTADO">Resultado (Vitória/Empate)</option>
-          <option value="PLACAR">Placar (Gols)</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Valor por palpite (R$)</label>
-        <input type="number" id="new-valor" placeholder="10.00" step="0.01" min="0">
-      </div>
-      <div class="form-group">
-        <label>% Clube</label>
-        <input type="number" id="new-perc-clube" value="40" min="0" max="100">
-      </div>
-      <div class="form-group">
-        <label>% Prêmio</label>
-        <input type="number" id="new-perc-premio" value="60" min="0" max="100">
-      </div>
-      <div class="form-group">
-        <label>Data de início</label>
-        <input type="datetime-local" id="new-inicio">
-      </div>
-      <div class="form-group">
-        <label>Data de fim</label>
-        <input type="datetime-local" id="new-fim">
+<div class="app-layout" id="app-layout">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-toggle" onclick="toggleSidebar()"><span>☰</span><span style="margin-left:8px;font-size:13px">Menu</span></div>
+    <div class="nav-item active" onclick="showSec('chaveamento',this)"><span class="icon">🔀</span><span class="nav-label">Chaveamento</span></div>
+    <div class="nav-item" onclick="showSec('fases',this)"><span class="icon">📅</span><span class="nav-label">Formatar Fases</span></div>
+    <div class="nav-item" onclick="showSec('campanhas',this)"><span class="icon">🏆</span><span class="nav-label">Gestão de Campanhas</span></div>
+  </nav>
+  <!-- Conteúdo -->
+  <div class="main-content">
+    <!-- CHAVEAMENTO -->
+    <div class="section active" id="sec-chaveamento">
+      <div class="page-title">🔀 Chaveamento</div>
+      <div class="page-sub">Gerencie o chaveamento das fases da Copa</div>
+      <div class="card">
+        <div class="card-title">Em desenvolvimento</div>
+        <p style="color:var(--muted);font-size:13px">Funcionalidade de chaveamento sera implementada em breve.</p>
       </div>
     </div>
-    <div style="margin-top:16px;display:flex;justify-content:flex-end">
-      <button class="btn btn-gold" onclick="criarCampanha()">✅ Criar Campanha</button>
+    <!-- FORMATAR FASES -->
+    <div class="section" id="sec-fases">
+      <div class="page-title">📅 Formatar Fases</div>
+      <div class="page-sub">Controle de ativação e configuração das fases</div>
+      <div class="card">
+        <div class="card-title">📅 Controle de Fases</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px" id="grid-fases">
+          <!-- Renderizado via JS -->
+        </div>
+      </div>
     </div>
-  </div>
-
-  <!-- LISTA DE CAMPANHAS -->
-  <div class="card">
-    <div class="card-title">📋 Campanhas Cadastradas</div>
-    <div style="overflow-x:auto">
-      <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Nome</th>
-            <th>Fase</th>
-            <th>Tipo</th>
-            <th>Valor</th>
-            <th>Início</th>
-            <th>Fim</th>
-            <th>% Clube/Prêmio</th>
-            <th>Palpites</th>
-            <th>Status</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody id="tbody-campanhas"></tbody>
-      </table>
+    <!-- GESTÃO DE CAMPANHAS -->
+    <div class="section" id="sec-campanhas">
+      <div class="page-title">🏆 Gestão de Campanhas</div>
+      <div class="page-sub">Crie, edite e gerencie as campanhas do Clube de Palpites</div>
+      <!-- CRIAR CAMPANHA -->
+      <div class="card">
+        <div class="card-title">➕ Nova Campanha</div>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Nome da campanha</label>
+            <input type="text" id="new-nome" placeholder="Ex: 1ª Fase — Seleção Campeã · Copa 2026">
+          </div>
+          <div class="form-group">
+            <label>Fase</label>
+            <select id="new-fase">
+              <option value="1">1ª Fase</option>
+              <option value="2">2ª Fase</option>
+              <option value="3">3ª Fase (Palpite por Resultado)</option>
+              <option value="4">4ª Fase (Palpite o Placar)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Tipo</label>
+            <select id="new-tipo">
+              <option value="CAMPEA">Campeã (1 seleção)</option>
+              <option value="CAMPEA_VICE">Campeã + Vice (2 seleções)</option>
+              <option value="RESULTADO">Resultado (Vitória/Empate)</option>
+              <option value="PLACAR">Placar (Gols)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Valor por palpite (R$)</label>
+            <input type="number" id="new-valor" placeholder="10.00" step="0.01" min="0">
+          </div>
+          <div class="form-group">
+            <label>% Clube</label>
+            <input type="number" id="new-perc-clube" value="40" min="0" max="100">
+          </div>
+          <div class="form-group">
+            <label>% Prêmio</label>
+            <input type="number" id="new-perc-premio" value="60" min="0" max="100">
+          </div>
+          <div class="form-group">
+            <label>Data de início</label>
+            <input type="datetime-local" id="new-inicio">
+          </div>
+          <div class="form-group">
+            <label>Data de fim</label>
+            <input type="datetime-local" id="new-fim">
+          </div>
+        </div>
+        <div style="margin-top:16px;display:flex;justify-content:flex-end">
+          <button class="btn btn-gold" onclick="criarCampanha()">✅ Criar Campanha</button>
+        </div>
+      </div>
+      <!-- LISTA DE CAMPANHAS -->
+      <div class="card">
+        <div class="card-title">📋 Campanhas Cadastradas</div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th><th>Nome</th><th>Fase</th><th>Tipo</th><th>Valor</th>
+                <th>Início</th><th>Fim</th><th>% Clube/Prêmio</th><th>Palpites</th><th>Status</th><th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-campanhas"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
 </div>
-
 <!-- MODAL EDITAR -->
 <div class="modal-overlay" id="modal-editar">
   <div class="modal-box">
@@ -395,3 +425,16 @@ carregarCampanhas();
 </script>
 </body>
 </html>
+<script>
+function showSec(id, navEl) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-' + id)?.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (navEl) navEl.classList.add('active');
+  if (id === 'fases') renderFases();
+  if (id === 'campanhas') carregarCampanhas();
+}
+function toggleSidebar() {
+  document.getElementById('app-layout').classList.toggle('collapsed');
+}
+</script>
