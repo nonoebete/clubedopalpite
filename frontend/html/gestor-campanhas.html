@@ -114,23 +114,25 @@ tr:last-child td{border-bottom:none}
     <!-- CHAVEAMENTO -->
     <div class="section active" id="sec-chaveamento" style="padding:0;height:calc(100vh - 56px);overflow:hidden">
       <div style="display:grid;grid-template-columns:220px 1fr;height:100%">
-        <div class="selecoes-panel" style="height:100%;overflow-y:auto">
-          <div class="panel-title">⚽ Seleções</div>
+        <div class="selecoes-panel" style="height:100%;overflow-y:auto;padding:0">
+          <div style="padding:16px 12px 12px;border-bottom:1px solid var(--border);margin-bottom:12px"><span style="font-family:Barlow Condensed,sans-serif;font-size:16px;font-weight:700;color:var(--gold)">⚽ Seleções</span></div>
+          <div style="padding:0 12px 12px"><!-- sel wrap start -->
           <input type="text" class="busca-sel" id="busca-sel" placeholder="🔍 Filtrar..." oninput="filtrarSelecoes()">
           <div id="lista-selecoes"></div>
+          </div><!-- sel wrap end -->
         </div>
-        <div class="chave-area" style="height:100%;overflow-y:auto">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+        <div class="chave-area" style="height:100%;overflow-y:auto;padding:0 20px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:10px;padding:20px 20px 12px 20px;background:var(--night);position:sticky;top:0;z-index:10">
             <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700">🏆 Copa do Mundo 2026</div>
             <button onclick="salvarTudo()" style="background:var(--gold);color:#07101d;border:none;padding:9px 22px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 2px 12px rgba(240,165,0,.3)">💾 Salvar Chaveamento</button>
           </div>
           <div style="display:flex;gap:8px;margin-bottom:16px">
-            <button class="fase-tab active" id="nivel-grupos" onclick="setNivel('grupos')">📊 Fase de Grupos</button>
-            <button class="fase-tab" id="nivel-eliminatorias" onclick="setNivel('eliminatorias')">⚔️ Fase Eliminatória · Mata-Mata</button>
+            <button id="nivel-grupos" onclick="setNivel('grupos')" style="padding:7px 18px;border-radius:20px;border:1px solid var(--gold);background:rgba(240,165,0,.12);color:var(--gold);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">📊 Fase de Grupos</button>
+            <button id="nivel-eliminatorias" onclick="setNivel('eliminatorias')" style="padding:7px 18px;border-radius:20px;border:1px solid var(--border);background:var(--navy2);color:#dce8f5;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">⚔️ Fase Eliminatória · Mata-Mata</button>
           </div>
-          <div class="fase-tabs" id="fase-tabs"></div>
+          <div class="fase-tabs" id="fase-tabs" style="padding-bottom:12px;border-bottom:1px solid var(--border);margin-bottom:16px"></div>
           <div class="chv-jogos-grid" id="chv-jogos-grid"></div>
-          <button class="btn-novo-jogo" onclick="novoJogo()">+ Adicionar Jogo nesta fase</button>
+          <div style="display:flex;justify-content:center;margin-top:16px"><button onclick="novoJogo()" style="background:rgba(240,165,0,.08);border:1px dashed rgba(240,165,0,.4);color:var(--gold);padding:10px 32px;border-radius:12px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit">+ Adicionar Jogo nesta fase</button></div>
         </div>
       </div>
     </div>
