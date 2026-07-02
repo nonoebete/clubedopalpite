@@ -651,8 +651,8 @@ function renderJogos() {
 
 function renderSlot(partida, lado) {
   const sel = lado === 'casa' ? partida.casa : partida.fora;
-  const filled = sel && sel.nome !== 'Brasil' || (sel && sel.nome);
-  if (sel) {
+  const isPlaceholder = sel && (sel.nome === 'México' || sel.nome === 'África do Sul');
+  if (sel && !isPlaceholder) {
     return `<div class="chv-slot filled" data-partida="${partida.id}" data-lado="${lado}" 
       draggable="true" ondragstart="onDragStartSlot(event, ${partida.id}, '${lado}')">
       <div style="text-align:center">
