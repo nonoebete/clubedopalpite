@@ -739,8 +739,11 @@ async function salvarTudo() {
   let ok = 0;
   for (const p of partidas) {
     const body = { dataHora: p.dataHora };
-    if (p._selCasaId) body.selecaoCasaId = p._selCasaId;
-    if (p._selForaId) body.selecaoForaId = p._selForaId;
+    // Usar _selCasaId se definido (drag-drop), senao usar id da selecao do banco
+    const casaId = p._selCasaId || p.casa?.id || null;
+    const foraId = p._selForaId || p.fora?.id || null;
+    if (casaId) body.selecaoCasaId = casaId;
+    if (foraId) body.selecaoForaId = foraId;
     try {
       const r = await fetch(`${CHAVE_API_BASE}/partidas/admin/partidas/${p.id}/chaveamento`, {
         method: 'PATCH', headers: authHeaders(), body: JSON.stringify(body),

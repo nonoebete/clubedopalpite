@@ -35,8 +35,8 @@ async function listar(req, res) {
     const partidas = await prisma.partida.findMany({
       where:   { campanhaId: Number(campanhaId) },
       include: {
-        selecaoCasa: { select: { nome: true, sigla: true, bandeiraCss: true } },
-        selecaoFora: { select: { nome: true, sigla: true, bandeiraCss: true } },
+        selecaoCasa: { select: { id: true, nome: true, sigla: true, bandeiraCss: true } },
+        selecaoFora: { select: { id: true, nome: true, sigla: true, bandeiraCss: true } },
       },
       orderBy: { dataHora: 'asc' },
     });
@@ -48,8 +48,8 @@ async function listar(req, res) {
       encerrada: p.encerrada,
       resultado: p.resultado,
       abertaParaPalpite: abertaParaPalpite(p),
-      casa: { nome: p.selecaoCasa.nome, sigla: p.selecaoCasa.sigla, bandeira: p.selecaoCasa.bandeiraCss },
-      fora: { nome: p.selecaoFora.nome, sigla: p.selecaoFora.sigla, bandeira: p.selecaoFora.bandeiraCss },
+      casa: { id: p.selecaoCasa.id, nome: p.selecaoCasa.nome, sigla: p.selecaoCasa.sigla, bandeira: p.selecaoCasa.bandeiraCss },
+      fora: { id: p.selecaoFora.id, nome: p.selecaoFora.nome, sigla: p.selecaoFora.sigla, bandeira: p.selecaoFora.bandeiraCss },
     })));
   } catch (err) {
     return res.status(500).json({ error: 'Erro ao listar partidas.' });
