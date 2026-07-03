@@ -1969,13 +1969,17 @@ function renderPartidasF4() {
     <div style="background:var(--navy2);border:1px solid ${ativo ? 'rgba(240,165,0,.3)' : 'var(--border)'};border-radius:12px;padding:16px;margin-bottom:12px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:${ativo ? '12px' : '0'}">
         <div style="display:flex;align-items:center;gap:8px">
-          <img src="${p.selecaoCasa.bandeiraCss}" style="width:28px;height:20px;object-fit:cover;border-radius:3px">
-          <span style="font-weight:600;font-size:14px">${p.selecaoCasa.nome}</span>
+          ${p.selecaoCasa.id === 49 || p.selecaoCasa.id === 50 
+            ? `<img src="logo-clube.png" style="width:28px;height:28px;object-fit:contain;border-radius:50%;opacity:.5">`
+            : `<img src="${p.selecaoCasa.bandeiraCss}" style="width:28px;height:20px;object-fit:cover;border-radius:3px">`}
+          <span style="font-weight:600;font-size:14px;color:${p.selecaoCasa.id === 49 || p.selecaoCasa.id === 50 ? 'var(--muted)' : '#dce8f5'}">${p.selecaoCasa.id === 49 ? 'Time A' : p.selecaoCasa.id === 50 ? 'Time B' : p.selecaoCasa.nome}</span>
         </div>
         <span style="color:var(--muted);font-size:12px;text-align:center">vs<br>${hora}</span>
         <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-weight:600;font-size:14px">${p.selecaoFora.nome}</span>
-          <img src="${p.selecaoFora.bandeiraCss}" style="width:28px;height:20px;object-fit:cover;border-radius:3px">
+          <span style="font-weight:600;font-size:14px;color:${p.selecaoFora.id === 49 || p.selecaoFora.id === 50 ? 'var(--muted)' : '#dce8f5'}">${p.selecaoFora.id === 49 ? 'Time A' : p.selecaoFora.id === 50 ? 'Time B' : p.selecaoFora.nome}</span>
+          ${p.selecaoFora.id === 49 || p.selecaoFora.id === 50
+            ? `<img src="logo-clube.png" style="width:28px;height:28px;object-fit:contain;border-radius:50%;opacity:.5">`
+            : `<img src="${p.selecaoFora.bandeiraCss}" style="width:28px;height:20px;object-fit:cover;border-radius:3px">`}
         </div>
         ${!ativo ? `<button onclick="ativarJogoF4(${p.id})" style="background:rgba(240,165,0,.12);border:1px solid rgba(240,165,0,.35);color:var(--gold);padding:7px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;white-space:nowrap;margin-left:12px">⚽ Quero Palpitar</button>` : ''}
       </div>
