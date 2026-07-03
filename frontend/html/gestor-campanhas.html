@@ -676,8 +676,9 @@ function renderSlot(partida, lado) {
 }
 
 function toLocalInput(d) {
+  // Converter UTC para horario de Brasilia (UTC-3)
   const dt = new Date(d);
-  dt.setMinutes(dt.getMinutes() - dt.getTimezoneOffset());
+  dt.setHours(dt.getHours() - 3);
   return dt.toISOString().slice(0, 16);
 }
 
@@ -731,7 +732,12 @@ function onDropSlot(slot) {
 
 async function atualizarData(partidaId, valor) {
   const partida = PARTIDAS.find(p => p.id === partidaId);
-  if (partida) partida.dataHora = valor;
+  if (partida) {
+    // Converter horario de Brasilia para UTC (adicionar 3h)
+    const dt = new Date(valor);
+    dt.setHours(dt.getHours() + 3);
+    partida.dataHora = dt.toISOString();
+  }
 }
 
 async function salvarTudo() {
