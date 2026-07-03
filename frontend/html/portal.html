@@ -1084,8 +1084,10 @@ async function carregarPartidasF3() {
     PARTIDAS_F3 = dados.map(p => ({
       id:        p.id,
       casa:      p.casa.nome,
+      casaId:    p.casa.id,
       cb:        p.casa.bandeira,
       fora:      p.fora.nome,
+      foraId:    p.fora.id,
       fb:        p.fora.bandeira,
       grupo:     p.grupo,
       dataHora:  p.dataHora,
@@ -1148,18 +1150,18 @@ function renderPartidasF3() {
             <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px">
               <div style="display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;cursor:pointer" onclick="palpitarF3(${p.id},'CASA')">
                 <div style="width:52px;height:52px;border-radius:10px;overflow:hidden;border:2px solid ${selCasa ? 'var(--gold)' : 'var(--border2)'};background:var(--navy)">
-                  <img src="${p.cb}" alt="${p.casa}" style="width:100%;height:100%;object-fit:cover">
+                  ${p.casaId === 49 || p.casaId === 50 ? `<img src="logo-clube.png" style="width:100%;height:100%;object-fit:contain;opacity:.4">` : `<img src="${p.cb}" alt="${p.casa}" style="width:100%;height:100%;object-fit:cover">`}
                 </div>
-                <span style="font-size:11px;font-weight:600;text-align:center;color:${selCasa ? 'var(--gold)' : '#dce8f5'}">${p.casa}</span>
+                <span style="font-size:11px;font-weight:600;text-align:center;color:${selCasa ? 'var(--gold)' : (p.casaId === 49 ? '#7a93ad' : p.casaId === 50 ? '#7a93ad' : '#dce8f5')}">${p.casaId === 49 ? 'Time A' : p.casaId === 50 ? 'Time B' : p.casa}</span>
               </div>
               <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
                 <button onclick="palpitarF3(${p.id},'EMPATE')" style="background:${selEmp ? 'rgba(240,165,0,.15)' : 'var(--navy)'};border:1px solid ${selEmp ? 'var(--gold)' : 'var(--border2)'};color:${selEmp ? 'var(--gold)' : 'var(--muted)'};font-size:13px;font-weight:700;padding:8px 14px;border-radius:8px;cursor:pointer;font-family:inherit;line-height:1.2">X<br><span style="font-size:9px;font-weight:400">Empate</span></button>
               </div>
               <div style="display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;cursor:pointer" onclick="palpitarF3(${p.id},'FORA')">
                 <div style="width:52px;height:52px;border-radius:10px;overflow:hidden;border:2px solid ${selFora ? 'var(--gold)' : 'var(--border2)'};background:var(--navy)">
-                  <img src="${p.fb}" alt="${p.fora}" style="width:100%;height:100%;object-fit:cover">
+                  ${p.foraId === 49 || p.foraId === 50 ? `<img src="logo-clube.png" style="width:100%;height:100%;object-fit:contain;opacity:.4">` : `<img src="${p.fb}" alt="${p.fora}" style="width:100%;height:100%;object-fit:cover">`}
                 </div>
-                <span style="font-size:11px;font-weight:600;text-align:center;color:${selFora ? 'var(--gold)' : '#dce8f5'}">${p.fora}</span>
+                <span style="font-size:11px;font-weight:600;text-align:center;color:${selFora ? 'var(--gold)' : (p.foraId === 49 ? '#7a93ad' : p.foraId === 50 ? '#7a93ad' : '#dce8f5')}">${p.foraId === 49 ? 'Time A' : p.foraId === 50 ? 'Time B' : p.fora}</span>
               </div>
             </div>
             <div style="text-align:center;font-size:11px;font-weight:600;color:${palpitesF3[p.id] ? 'var(--gold)' : 'var(--muted)'}">
