@@ -652,8 +652,8 @@ function renderJogos() {
 function renderSlot(partida, lado) {
   const sel = lado === 'casa' ? partida.casa : partida.fora;
   // Slot vazio se partida tem os placeholders (Mexico id:1 e Africa do Sul id:2)
-  const isCasaPlaceholder = partida.casa?.nome === 'México' && !partida._selCasaId;
-  const isForaPlaceholder = partida.fora?.nome === 'África do Sul' && !partida._selForaId;
+  const isCasaPlaceholder = (partida.casa?.id === 49 || partida.casa?.id === 50) && !partida._selCasaId;
+  const isForaPlaceholder = (partida.fora?.id === 49 || partida.fora?.id === 50) && !partida._selForaId;
   const isPlaceholder = (lado === 'casa' && isCasaPlaceholder) || (lado === 'fora' && isForaPlaceholder);
   if (sel && !isPlaceholder) {
     return `<div class="chv-slot filled" data-partida="${partida.id}" data-lado="${lado}" 
@@ -740,8 +740,9 @@ async function salvarTudo() {
   for (const p of partidas) {
     const body = { dataHora: p.dataHora };
     // Usar _selCasaId se definido (drag-drop), senao usar id da selecao do banco
-    const casaId = p._selCasaId || p.casa?.id || null;
-    const foraId = p._selForaId || p.fora?.id || null;
+    // Usar _selCasaId se drag-drop foi feito, senao usar id do banco (exceto placeholders 1 e 2)
+    const casaId = p._selCasaId || (p.casa?.id && p.casa.id !== 49 && p.casa.id !== 50 ? p.casa.id : null);
+    const foraId = p._selForaId || (p.fora?.id && p.fora.id !== 49 && p.fora.id !== 50 ? p.fora.id : null);
     if (casaId) body.selecaoCasaId = casaId;
     if (foraId) body.selecaoForaId = foraId;
     try {
