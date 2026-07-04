@@ -1007,11 +1007,11 @@ chartBarsInstance = new Chart(document.getElementById('chartBars'), {
 function acumData(arr) { let s=0; return arr.map(v=>(s+=v)); }
 chartAcum1Instance = new Chart(document.getElementById('chartAcum1'), {
   type:'line', data:{ labels:[], datasets:[{label:'Acumulado 1ª fase', data:[], borderColor:C.gold, backgroundColor:'rgba(240,165,0,0.07)', fill:true, tension:.3, borderWidth:2, pointRadius:3}]},
-  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>'R$'+v}},x:{grid:{display:false}}}}
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>'R$'+Math.round(v)}},x:{grid:{display:false}}}}
 });
 chartAcum2Instance = new Chart(document.getElementById('chartAcum2'), {
   type:'line', data:{ labels:[], datasets:[{label:'Acumulado 2ª fase', data:[], borderColor:C.green, backgroundColor:'rgba(29,185,84,0.07)', fill:true, tension:.3, borderWidth:2, pointRadius:3}]},
-  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>'R$'+v}},x:{grid:{display:false}}}}
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>'R$'+Math.round(v)}},x:{grid:{display:false}}}}
 });
 
 // ── Toggle período ─────────────────────────────────────────────
