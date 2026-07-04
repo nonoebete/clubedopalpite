@@ -109,6 +109,8 @@ model Partida {
   dataHora      DateTime  @map("data_hora")
   grupo         String    @db.Char(1)
   resultado     ResultadoPartida? // preenchido pelo admin após o jogo
+  golsCasa      Int?      @map("gols_casa")
+  golsFora      Int?      @map("gols_fora")
   encerrada     Boolean   @default(false)
   campanha    Campanha @relation(fields: [campanhaId], references: [id])
   selecaoCasa Selecao  @relation("PartidaCasa", fields: [selecaoCasaId], references: [id])

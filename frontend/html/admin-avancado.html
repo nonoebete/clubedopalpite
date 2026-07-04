@@ -1755,25 +1755,79 @@ function buildF3Jogos() {
             const aClass = j.casa === 'A Classificar';
             const flagC = j.cb ? `<img src="${j.cb}" alt="${j.casa}" style="width:20px;height:14px;object-fit:cover;border-radius:2px;border:1px solid rgba(255,255,255,.1)">` : '🏴';
             const flagF = j.fb ? `<img src="${j.fb}" alt="${j.fora}" style="width:20px;height:14px;object-fit:cover;border-radius:2px;border:1px solid rgba(255,255,255,.1)">` : '🏴';
-            const btn = (res, label) => `<button onclick="setResultF3(${j.id},'${res}')" ${aClass?'disabled':''} style="background:${r===res?'rgba(240,165,0,.2)':'var(--navy)'};border:1px solid ${r===res?'var(--gold)':'var(--border)'};color:${r===res?'var(--gold)':'#dce8f5'};font-size:10px;font-weight:600;padding:3px 7px;border-radius:6px;cursor:${aClass?'not-allowed':'pointer'};font-family:inherit;opacity:${aClass?.5:1}">${label}</button>`;
-            return `<div style="background:var(--navy2);border:1px solid var(--border);border-radius:var(--r);padding:10px">
+            const placar = placaresF3[j.id] || { casa: '', fora: '' };
+            const resultadoSalvo = resultadosF3[j.id];
+            return `<div style="background:var(--navy2);border:1px solid ${resultadoSalvo ? 'rgba(29,185,84,.3)' : 'var(--border)'};border-radius:var(--r);padding:10px">
               <div style="font-size:10px;color:var(--muted);margin-bottom:6px">🗓 ${j.data}${j.hora?' · '+j.hora:''}</div>
-              <div style="display:flex;align-items:center;justify-content:space-between;gap:4px;flex-wrap:wrap">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:4px;flex-wrap:wrap;margin-bottom:8px">
                 <div style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;min-width:70px">
                   ${flagC} <span style="color:${aClass?'var(--muted)':'#dce8f5'}">${j.casa}</span>
                 </div>
-                <div style="display:flex;gap:3px;flex-shrink:0">
-                  ${aClass ? '<span style="font-size:10px;color:var(--muted)">A definir</span>' : `${btn('CASA','1')} ${btn('EMPATE','X')} ${btn('FORA','2')}`}
+                <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
+                  ${aClass ? '<span style="font-size:10px;color:var(--muted)">A definir</span>' : `
+                  <input type="number" min="0" max="20" value="${placar.casa}" placeholder="0" onchange="setPlacarF3(${j.id},'casa',this.value)" style="width:36px;text-align:center;padding:4px;border-radius:6px;border:1px solid var(--border);background:var(--navy);color:#dce8f5;font-size:14px;font-weight:700;outline:none">
+                  <span style="color:var(--muted);font-weight:700">x</span>
+                  <input type="number" min="0" max="20" value="${placar.fora}" placeholder="0" onchange="setPlacarF3(${j.id},'fora',this.value)" style="width:36px;text-align:center;padding:4px;border-radius:6px;border:1px solid var(--border);background:var(--navy);color:#dce8f5;font-size:14px;font-weight:700;outline:none">
+                  `}
                 </div>
                 <div style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;min-width:70px;justify-content:flex-end">
                   <span style="color:${aClass?'var(--muted)':'#dce8f5'}">${j.fora}</span> ${flagF}
                 </div>
               </div>
+              ${!aClass ? `<div style="display:flex;gap:6px;justify-content:center">
+                <button onclick="salvarResultadoF3(${j.id})" style="background:rgba(29,185,84,.15);border:1px solid rgba(29,185,84,.3);color:#1db954;font-size:11px;font-weight:600;padding:4px 12px;border-radius:6px;cursor:pointer;font-family:inherit">💾 Salvar</button>
+                ${resultadoSalvo ? `<span style="font-size:10px;color:#1db954;align-self:center">✅ ${resultadoSalvo === 'CASA' ? j.casa + ' venceu' : resultadoSalvo === 'FORA' ? j.fora + ' venceu' : 'Empate'}</span>` : ''}
+              </div>` : ''}
             </div>`;
           }).join('')}
         </div>
       </div>`;
   }).join('');
+}
+
+let placaresF3 = {};
+
+function setPlacarF3(id, lado, valor) {
+  if (!placaresF3[id]) placaresF3[id] = { casa: '', fora: '' };
+  placaresF3[id][lado] = valor;
+  // Calcular resultado automaticamente
+  const gc = Number(placaresF3[id].casa);
+  const gf = Number(placaresF3[id].fora);
+  if (placaresF3[id].casa !== '' && placaresF3[id].fora !== '') {
+    if (gc > gf) resultadosF3[id] = 'CASA';
+    else if (gf > gc) resultadosF3[id] = 'FORA';
+    else resultadosF3[id] = 'EMPATE';
+  }
+}
+
+async function salvarResultadoF3(id) {
+  const placar = placaresF3[id];
+  if (!placar || placar.casa === '' || placar.fora === '') {
+    showToast('Informe o placar completo.'); return;
+  }
+  const resultado = resultadosF3[id];
+  if (!resultado) { showToast('Placar invalido.'); return; }
+  try {
+    const r = await fetch(`/api/partidas/admin/partidas/${id}/chaveamento`, {
+      method: 'PATCH',
+      headers: authHeadersAdmin(),
+      body: JSON.stringify({
+        golsCasa: Number(placar.casa),
+        golsFora: Number(placar.fora),
+        resultado,
+        encerrada: true,
+      }),
+    });
+    if (r.ok) {
+      showToast('Resultado salvo!');
+      // Atualizar o jogo no array
+      const jogo = JOGOS_F3.find(j => j.id === id);
+      if (jogo) { jogo.resultado = resultado; jogo.encerrada = true; }
+      buildF3Jogos();
+    } else {
+      showToast('Erro ao salvar.');
+    }
+  } catch(e) { showToast('Erro ao conectar.'); }
 }
 
 function setResultF3(id, res) {

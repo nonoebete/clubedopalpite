@@ -19,13 +19,17 @@ module.exports = router;
 // Atualizar seleções de uma partida (chaveamento)
 router.patch('/admin/partidas/:id/chaveamento', autenticar, apenasAdmin, async (req, res) => {
   const prisma = require('../models/prisma');
-  const { selecaoCasaId, selecaoForaId, dataHora, grupo } = req.body;
+  const { selecaoCasaId, selecaoForaId, dataHora, grupo, golsCasa, golsFora, resultado, encerrada } = req.body;
   try {
     const data = {};
     if (selecaoCasaId !== undefined) data.selecaoCasaId = Number(selecaoCasaId);
     if (selecaoForaId !== undefined) data.selecaoForaId = Number(selecaoForaId);
     if (dataHora !== undefined) data.dataHora = new Date(dataHora);
     if (grupo !== undefined) data.grupo = grupo;
+    if (golsCasa !== undefined) data.golsCasa = Number(golsCasa);
+    if (golsFora !== undefined) data.golsFora = Number(golsFora);
+    if (resultado !== undefined) data.resultado = resultado;
+    if (encerrada !== undefined) data.encerrada = encerrada;
     const partida = await prisma.partida.update({ where: { id: Number(req.params.id) }, data });
     res.json({ ok: true, partida });
   } catch(e) {
