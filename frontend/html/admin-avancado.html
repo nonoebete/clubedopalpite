@@ -1691,41 +1691,36 @@ carregarMembros();
 
 
 // ── 3ª Fase — Jogos completos da Copa 2026 (16/06 a 19/07) ──
-const JOGOS_F3 = [
-  // ── Fase de Grupos (já realizados — não aparecem) ──
-  {id:1,  fase:'Grupos',    casa:'Brasil',          cb:'https://flagcdn.com/w40/br.png',     fora:'Marrocos',       fb:'https://flagcdn.com/w40/ma.png',     data:'2026-06-12', hora:'16:00'},
-  {id:2,  fase:'Grupos',    casa:'Argentina',       cb:'https://flagcdn.com/w40/ar.png',     fora:'Argélia',        fb:'https://flagcdn.com/w40/dz.png',     data:'2026-06-12', hora:'19:00'},
-  {id:3,  fase:'Grupos',    casa:'França',          cb:'https://flagcdn.com/w40/fr.png',     fora:'Senegal',        fb:'https://flagcdn.com/w40/sn.png',     data:'2026-06-13', hora:'22:00'},
-  {id:4,  fase:'Grupos',    casa:'Espanha',         cb:'https://flagcdn.com/w40/es.png',     fora:'Uruguai',        fb:'https://flagcdn.com/w40/uy.png',     data:'2026-06-14', hora:'13:00'},
-  {id:5,  fase:'Grupos',    casa:'Inglaterra',      cb:'https://flagcdn.com/w40/gb-eng.png', fora:'Croácia',        fb:'https://flagcdn.com/w40/hr.png',     data:'2026-06-15', hora:'16:00'},
-  {id:6,  fase:'Grupos',    casa:'Portugal',        cb:'https://flagcdn.com/w40/pt.png',     fora:'Colômbia',       fb:'https://flagcdn.com/w40/co.png',     data:'2026-06-15', hora:'19:00'},
-  {id:7,  fase:'Grupos',    casa:'Alemanha',        cb:'https://flagcdn.com/w40/de.png',     fora:'Equador',        fb:'https://flagcdn.com/w40/ec.png',     data:'2026-06-16', hora:'13:00'},
-  {id:8,  fase:'Grupos',    casa:'Holanda',         cb:'https://flagcdn.com/w40/nl.png',     fora:'Japão',          fb:'https://flagcdn.com/w40/jp.png',     data:'2026-06-17', hora:'16:00'},
-  {id:9,  fase:'Grupos',    casa:'Bélgica',         cb:'https://flagcdn.com/w40/be.png',     fora:'Egito',          fb:'https://flagcdn.com/w40/eg.png',     data:'2026-06-18', hora:'13:00'},
-  {id:10, fase:'Grupos',    casa:'México',          cb:'https://flagcdn.com/w40/mx.png',     fora:'Coreia do Sul',  fb:'https://flagcdn.com/w40/kr.png',     data:'2026-06-19', hora:'16:00'},
-  {id:11, fase:'Grupos',    casa:'Estados Unidos',  cb:'https://flagcdn.com/w40/us.png',     fora:'Paraguai',       fb:'https://flagcdn.com/w40/py.png',     data:'2026-06-20', hora:'16:00'},
-  {id:12, fase:'Grupos',    casa:'Canadá',          cb:'https://flagcdn.com/w40/ca.png',     fora:'Qatar',          fb:'https://flagcdn.com/w40/qa.png',     data:'2026-06-21', hora:'19:00'},
-  // ── Oitavas (Round of 32) — 28/06 a 03/07 ──
-  {id:13, fase:'Oitavas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'2026-06-28', hora:''},
-  {id:14, fase:'Oitavas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'2026-06-28', hora:''},
-  {id:15, fase:'Oitavas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'2026-06-29', hora:''},
-  {id:16, fase:'Oitavas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'2026-06-29', hora:''},
-  {id:17, fase:'Oitavas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'2026-06-30', hora:''},
-  {id:18, fase:'Oitavas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'2026-07-01', hora:''},
-  {id:19, fase:'Oitavas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'2026-07-02', hora:''},
-  {id:20, fase:'Oitavas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'2026-07-03', hora:''},
-  // ── Quartas de Final — 04/07 a 07/07 ──
-  {id:21, fase:'Quartas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'2026-07-04', hora:''},
-  {id:22, fase:'Quartas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'2026-07-05', hora:''},
-  {id:23, fase:'Quartas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'2026-07-06', hora:''},
-  {id:24, fase:'Quartas',   casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'2026-07-07', hora:''},
-  // ── Semifinais — 09/07 e 11/07 ──
-  {id:25, fase:'Semifinal', casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'2026-07-09', hora:''},
-  {id:26, fase:'Semifinal', casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'2026-07-11', hora:''},
-  // ── 3º Lugar e Final ──
-  {id:27, fase:'3º Lugar',  casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'2026-07-14', hora:''},
-  {id:28, fase:'Final',     casa:'A Classificar', cb:null, fora:'A Classificar', fb:null, data:'2026-07-15', hora:''},
-];
+let JOGOS_F3 = [];
+async function carregarJogosF3API() {
+  try {
+    const r = await fetch('/api/partidas?campanhaId=3', { headers: authHeadersAdmin() });
+    if (!r.ok) return;
+    const dados = await r.json();
+    const FASE_MAP = {
+      'A':'Fase de Grupos','B':'Fase de Grupos','C':'Fase de Grupos','D':'Fase de Grupos',
+      'E':'Fase de Grupos','F':'Fase de Grupos','G':'Fase de Grupos','H':'Fase de Grupos',
+      'I':'Fase de Grupos','J':'Fase de Grupos','K':'Fase de Grupos','L':'Fase de Grupos',
+      'M':'16 Avos de Final','O':'Oitavas de Final','Q':'Quartas de Final',
+      'S':'Semifinal','T':'3o Lugar','N':'Final','P':'Historico'
+    };
+    JOGOS_F3 = dados
+      .filter(p => p.grupo !== 'P') // excluir historicos
+      .map(p => ({
+        id:   p.id,
+        fase: FASE_MAP[p.grupo] || ('Grupo ' + p.grupo),
+        casa: p.casa?.id === 49 || p.casa?.id === 50 ? 'A Classificar' : (p.casa?.nome || 'A Classificar'),
+        cb:   p.casa?.id === 49 || p.casa?.id === 50 ? null : (p.casa?.bandeira || null),
+        fora: p.fora?.id === 49 || p.fora?.id === 50 ? 'A Classificar' : (p.fora?.nome || 'A Classificar'),
+        fb:   p.fora?.id === 49 || p.fora?.id === 50 ? null : (p.fora?.bandeira || null),
+        data: new Date(p.dataHora).toLocaleDateString('pt-BR', {timeZone:'America/Sao_Paulo'}),
+        hora: new Date(p.dataHora).toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit',timeZone:'America/Sao_Paulo'}),
+        encerrada: p.encerrada,
+        resultado: p.resultado,
+      }));
+    buildF3Jogos();
+  } catch(e) { console.error('[JogosF3]', e); }
+}
 const resultadosF3 = {};
 
 const FASE_COR = {
@@ -2057,7 +2052,7 @@ function showSec(id, navEl) {
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   if (navEl) navEl.classList.add('active');
   else document.querySelectorAll('.nav-item').forEach(n=>{ if(n.textContent.trim().toLowerCase().includes(id.substring(0,4))) n.classList.add('active'); });
-  if (id==='apurar')      { buildListaApuracao('lista-sel-f1','f1'); buildListaApuracao('lista-sel-f2c','f2c'); buildListaApuracao('lista-sel-f2v','f2v'); buildF3Jogos(); }
+  if (id==='apurar')      { buildListaApuracao('lista-sel-f1','f1'); buildListaApuracao('lista-sel-f2c','f2c'); buildListaApuracao('lista-sel-f2v','f2v'); carregarJogosF3API(); }
   if (id==='arrecadacao') { buildF3JogosArrecadacao(); admCarregarDadosReais(); }
   if (id==='selecoes')    { admCarregarDadosReais(); carregarSelesAdmin(); }
   if (id==='indicadores') { indAdmInit(); }
