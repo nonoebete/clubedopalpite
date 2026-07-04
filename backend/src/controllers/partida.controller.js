@@ -47,6 +47,8 @@ async function listar(req, res) {
       dataHora:  p.dataHora,
       encerrada: p.encerrada,
       resultado: p.resultado,
+      golsCasa:  p.golsCasa,
+      golsFora:  p.golsFora,
       abertaParaPalpite: abertaParaPalpite(p),
       casa: { id: p.selecaoCasa.id, nome: p.selecaoCasa.nome, sigla: p.selecaoCasa.sigla, bandeira: p.selecaoCasa.bandeiraCss },
       fora: { id: p.selecaoFora.id, nome: p.selecaoFora.nome, sigla: p.selecaoFora.sigla, bandeira: p.selecaoFora.bandeiraCss },

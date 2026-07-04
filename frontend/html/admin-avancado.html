@@ -1718,6 +1718,13 @@ async function carregarJogosF3API() {
         encerrada: p.encerrada,
         resultado: p.resultado,
       }));
+    // Restaurar placares e resultados salvos
+    dados.forEach(p => {
+      if (p.resultado) resultadosF3[p.id] = p.resultado;
+      if (p.golsCasa !== null && p.golsCasa !== undefined && p.golsFora !== null && p.golsFora !== undefined) {
+        placaresF3[p.id] = { casa: String(p.golsCasa), fora: String(p.golsFora) };
+      }
+    });
     buildF3Jogos();
   } catch(e) { console.error('[JogosF3]', e); }
 }
