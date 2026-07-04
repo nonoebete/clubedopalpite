@@ -1691,7 +1691,7 @@ carregarMembros();
 
 
 // ── 3ª Fase — Jogos completos da Copa 2026 (16/06 a 19/07) ──
-let JOGOS_F3 = [];
+let JOGOS_F3 = [];let resultadosF3 = {};
 async function carregarJogosF3API() {
   try {
     const r = await fetch('/api/partidas?campanhaId=3', { headers: authHeadersAdmin() });
@@ -1728,7 +1728,6 @@ async function carregarJogosF3API() {
     buildF3Jogos();
   } catch(e) { console.error('[JogosF3]', e); }
 }
-const resultadosF3 = {};
 
 const FASE_COR = {
   'Grupos':   '#4a9eff',
