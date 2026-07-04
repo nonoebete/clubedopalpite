@@ -1759,8 +1759,8 @@ function buildF3Jogos() {
           ${jogos.map(j => {
             const r = resultadosF3[j.id];
             const aClass = j.casa === 'A Classificar';
-            const flagC = j.cb ? `<img src="${j.cb}" alt="${j.casa}" style="width:80px;height:56px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,.1)">` : `<img src="logo-clube.png" style="width:80px;height:56px;object-fit:contain;border-radius:6px;opacity:.5">`;
-            const flagF = j.fb ? `<img src="${j.fb}" alt="${j.fora}" style="width:80px;height:56px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,.1)">` : `<img src="logo-clube.png" style="width:80px;height:56px;object-fit:contain;border-radius:6px;opacity:.5">`;
+            const flagC = j.cb ? `<img src="${j.cb}" alt="${j.casa}" style="width:60px;height:42px;object-fit:cover;border-radius:5px;border:1px solid rgba(255,255,255,.1)">` : `<img src="logo-clube.png" style="width:60px;height:42px;object-fit:contain;border-radius:5px;opacity:.5">`;
+            const flagF = j.fb ? `<img src="${j.fb}" alt="${j.fora}" style="width:60px;height:42px;object-fit:cover;border-radius:5px;border:1px solid rgba(255,255,255,.1)">` : `<img src="logo-clube.png" style="width:60px;height:42px;object-fit:contain;border-radius:5px;opacity:.5">`;
             const nomeCasa = j.casa === 'A Classificar' ? 'Time A' : j.casa;
             const nomeFora = j.fora === 'A Classificar' ? 'Time B' : j.fora;
             const placar = placaresF3[j.id] || { casa: '', fora: '' };
@@ -1768,7 +1768,7 @@ function buildF3Jogos() {
             return `<div style="background:var(--navy2);border:1px solid ${resultadoSalvo ? 'rgba(29,185,84,.3)' : 'var(--border)'};border-radius:var(--r);padding:10px">
               <div style="font-size:10px;color:var(--muted);margin-bottom:6px">🗓 ${j.data}${j.hora?' · '+j.hora:''}</div>
               <div style="display:flex;align-items:center;justify-content:space-between;gap:4px;flex-wrap:wrap;margin-bottom:8px">
-                <div style="display:flex;align-items:center;gap:5px;font-size:15px;font-weight:700;min-width:100px">
+                <div style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;min-width:90px">
                   ${flagC} <span style="color:${aClass?'var(--muted)':'#dce8f5'}">${nomeCasa}</span>
                 </div>
                 <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
@@ -1778,7 +1778,7 @@ function buildF3Jogos() {
                   <input type="number" min="0" max="20" value="${placar.fora}" placeholder="0" onchange="setPlacarF3(${j.id},'fora',this.value)" style="width:36px;text-align:center;padding:4px;border-radius:6px;border:1px solid var(--border);background:var(--navy);color:#dce8f5;font-size:14px;font-weight:700;outline:none">
                   `}
                 </div>
-                <div style="display:flex;align-items:center;gap:5px;font-size:15px;font-weight:700;min-width:100px;justify-content:flex-end">
+                <div style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;min-width:90px;justify-content:flex-end">
                   <span style="color:${aClass?'var(--muted)':'#dce8f5'}">${nomeFora}</span> ${flagF}
                 </div>
               </div>
