@@ -626,10 +626,13 @@ input[type=text]::placeholder{color:var(--muted)}
       <!-- Preview do relatório -->
       <div id="relatorio-preview" style="background:var(--navy);border:1px solid var(--border);border-radius:var(--r-lg);padding:32px;font-family:'Inter',sans-serif">
 
-        <div style="text-align:center;border-bottom:1px solid var(--border);padding-bottom:20px;margin-bottom:24px">
+        <div style="border-bottom:1px solid var(--border);padding-bottom:20px;margin-bottom:24px;display:flex;align-items:center;gap:20px">
+          <img src="logo-clube.png" style="width:70px;height:70px;object-fit:contain;border-radius:50%;border:2px solid var(--gold);flex-shrink:0">
+          <div style="text-align:center;flex:1">
           <div style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800">CLUBE DE PALPITES</div>
           <div style="font-size:13px;color:var(--muted);margin-top:4px">Relatório Financeiro · Copa do Mundo FIFA 2026</div>
           <div style="font-size:12px;color:var(--muted);margin-top:2px" id="rel-data">Gerado em: —</div>
+          </div>
         </div>
 
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px">
