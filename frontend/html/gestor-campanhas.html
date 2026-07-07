@@ -1111,6 +1111,42 @@ function excluirCompeticao(id) {
   showToast('Competição excluída!');
 }
 
+function editarCompeticao(id) {
+  const comp = COMPETICOES.find(x => x.id === id);
+  if (!comp) return;
+  document.getElementById('edit-comp-id').value = id;
+  document.getElementById('edit-comp-nome').value = comp.nome;
+  document.getElementById('edit-comp-ano').value = comp.ano;
+  document.getElementById('edit-comp-equipes').value = comp.equipes || '';
+  document.getElementById('edit-comp-inicio').value = comp.inicio || '';
+  document.getElementById('edit-comp-fim').value = comp.fim || '';
+  // Popular selects
+  const selTipo = document.getElementById('edit-comp-tipo');
+  selTipo.innerHTML = TIPOS_COMPETICAO.map(t => `<option value="${t}">${t}</option>`).join('');
+  selTipo.value = comp.tipo;
+  const selStatus = document.getElementById('edit-comp-ativa');
+  selStatus.innerHTML = STATUS_COMPETICAO.map(s => `<option value="${s}">${s}</option>`).join('');
+  selStatus.value = comp.ativa;
+  document.getElementById('modal-comp-editar').classList.add('show');
+}
+
+function salvarEdicaoComp() {
+  const id = Number(document.getElementById('edit-comp-id').value);
+  const comp = COMPETICOES.find(x => x.id === id);
+  if (!comp) return;
+  comp.nome = document.getElementById('edit-comp-nome').value.trim();
+  comp.ano = Number(document.getElementById('edit-comp-ano').value);
+  comp.equipes = Number(document.getElementById('edit-comp-equipes').value) || 0;
+  comp.inicio = document.getElementById('edit-comp-inicio').value;
+  comp.fim = document.getElementById('edit-comp-fim').value;
+  comp.tipo = document.getElementById('edit-comp-tipo').value;
+  comp.ativa = document.getElementById('edit-comp-ativa').value;
+  localStorage.setItem('cdp_competicoes', JSON.stringify(COMPETICOES));
+  document.getElementById('modal-comp-editar').classList.remove('show');
+  renderCompeticoes();
+  showToast('Competição atualizada!');
+}
+
 function renderCompeticoes() {
   const el = document.getElementById('lista-competicoes');
   if (!el) return;
@@ -1127,6 +1163,7 @@ function renderCompeticoes() {
         </div>
         <div style="display:flex;gap:8px;align-items:center">
           <span style="background:${c.ativa ? 'rgba(29,185,84,.15)' : 'rgba(239,68,68,.15)'};border:1px solid ${c.ativa ? 'rgba(29,185,84,.3)' : 'rgba(239,68,68,.3)'};color:${c.ativa ? '#1db954' : '#ef4444'};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">${c.ativa ? 'Ativa' : 'Inativa'}</span>
+          <button onclick="editarCompeticao(${c.id})" style="background:rgba(74,158,255,.1);border:1px solid rgba(74,158,255,.3);color:#4a9eff;padding:5px 10px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit">✏️ Editar</button>
           <button onclick="toggleCompeticao(${c.id})" style="background:rgba(240,165,0,.1);border:1px solid rgba(240,165,0,.3);color:var(--gold);padding:5px 12px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit">${c.ativa ? '🔴 Desativar' : '✅ Ativar'}</button>
           <button onclick="excluirCompeticao(${c.id})" style="background:rgba(224,82,82,.1);border:1px solid rgba(224,82,82,.3);color:#e05252;padding:5px 10px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit">🗑️</button>
         </div>
@@ -1138,5 +1175,46 @@ function renderCompeticoes() {
     </div>`).join('');
 }
 </script>
+<!-- MODAL EDITAR COMPETIÇÃO -->
+<div class="modal-overlay" id="modal-comp-editar">
+  <div class="modal-box" style="max-width:600px">
+    <div class="modal-title">✏️ Editar Competição</div>
+    <input type="hidden" id="edit-comp-id">
+    <div class="form-grid">
+      <div class="form-group full">
+        <label>Nome</label>
+        <input type="text" id="edit-comp-nome">
+      </div>
+      <div class="form-group">
+        <label>Ano</label>
+        <input type="number" id="edit-comp-ano">
+      </div>
+      <div class="form-group">
+        <label>Equipes</label>
+        <input type="number" id="edit-comp-equipes">
+      </div>
+      <div class="form-group">
+        <label>Início</label>
+        <input type="date" id="edit-comp-inicio">
+      </div>
+      <div class="form-group">
+        <label>Fim</label>
+        <input type="date" id="edit-comp-fim">
+      </div>
+      <div class="form-group">
+        <label>Tipo</label>
+        <select id="edit-comp-tipo"></select>
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="edit-comp-ativa"></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="document.getElementById('modal-comp-editar').classList.remove('show')">Cancelar</button>
+      <button class="btn btn-gold" onclick="salvarEdicaoComp()">💾 Salvar Alterações</button>
+    </div>
+  </div>
+</div>
 </body>
 </html></html>
