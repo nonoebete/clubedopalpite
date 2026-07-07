@@ -319,6 +319,11 @@ async function confirmarPagamento(pagamento, pagoEm) {
           where: { id: { in: palpiteIds } },
           data:  { pagamentoConfirmado: true },
         })
+      : campanha?.tipo === 'PLACAR'
+      ? prisma.palpitePlacar.updateMany({
+          where: { id: { in: palpiteIds } },
+          data:  { pagamentoConfirmado: true },
+        })
       : prisma.palpiteCampanha.updateMany({
           where: { id: { in: palpiteIds } },
           data:  { pagamentoConfirmado: true },
