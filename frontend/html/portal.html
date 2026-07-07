@@ -1728,7 +1728,8 @@ function meusRenderPagamentos() {
       : '';
 
     const linhasPalpites = (pag.palpites || []).map(p => {
-      const confirmado = p.pagamentoConfirmado;
+      // Para palpites PLACAR, usar status do pagamento pai
+      const confirmado = p.tipo === 'PLACAR' ? (pag.status === 'APROVADO') : p.pagamentoConfirmado;
       const acertou = p.acertou;
       const resultadoBadge = acertou === true
         ? `<span class="badge badge-green">✅ Acertou! ${parseFloat(p.premioRecebido||0) > 0 ? '🏆 R$ '+parseFloat(p.premioRecebido).toFixed(2) : ''}</span>`
