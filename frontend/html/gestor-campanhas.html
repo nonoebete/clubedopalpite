@@ -163,22 +163,21 @@ tr:last-child td{border-bottom:none}
           </div>
           <div class="form-group">
             <label>Tipo de Competição</label>
-            <div style="display:flex;gap:8px">
-              <select id="comp-tipo" style="flex:1">
-                <option value="Regional">Regional</option>
-                <option value="Nacional">Nacional</option>
-                <option value="Internacional">Internacional</option>
-                <option value="Mundial" selected>Mundial</option>
-              </select>
-              <button onclick="novoTipoCompeticao()" style="background:rgba(240,165,0,.12);border:1px solid rgba(240,165,0,.3);color:var(--gold);padding:8px 12px;border-radius:var(--r);cursor:pointer;font-size:12px;font-family:inherit;white-space:nowrap">+ Novo Tipo</button>
+            <div style="display:flex;gap:8px;margin-bottom:6px">
+              <select id="comp-tipo" style="flex:1"></select>
+              <button onclick="novoTipoCompeticao()" style="background:rgba(240,165,0,.12);border:1px solid rgba(240,165,0,.3);color:var(--gold);padding:8px 12px;border-radius:var(--r);cursor:pointer;font-size:12px;font-family:inherit;white-space:nowrap">+ Novo</button>
+              <button onclick="editarTipoCompeticao()" style="background:rgba(74,158,255,.12);border:1px solid rgba(74,158,255,.3);color:#4a9eff;padding:8px 10px;border-radius:var(--r);cursor:pointer;font-size:13px;font-family:inherit" title="Editar">✏️</button>
+              <button onclick="deletarTipoCompeticao()" style="background:rgba(224,82,82,.12);border:1px solid rgba(224,82,82,.3);color:#e05252;padding:8px 10px;border-radius:var(--r);cursor:pointer;font-size:13px;font-family:inherit" title="Deletar">🗑️</button>
             </div>
           </div>
           <div class="form-group">
             <label>Status</label>
-            <select id="comp-ativa">
-              <option value="true">Ativa</option>
-              <option value="false">Inativa</option>
-            </select>
+            <div style="display:flex;gap:8px;margin-bottom:6px">
+              <select id="comp-ativa" style="flex:1"></select>
+              <button onclick="novoStatusCompeticao()" style="background:rgba(240,165,0,.12);border:1px solid rgba(240,165,0,.3);color:var(--gold);padding:8px 12px;border-radius:var(--r);cursor:pointer;font-size:12px;font-family:inherit;white-space:nowrap">+ Novo</button>
+              <button onclick="editarStatusCompeticao()" style="background:rgba(74,158,255,.12);border:1px solid rgba(74,158,255,.3);color:#4a9eff;padding:8px 10px;border-radius:var(--r);cursor:pointer;font-size:13px;font-family:inherit" title="Editar">✏️</button>
+              <button onclick="deletarStatusCompeticao()" style="background:rgba(224,82,82,.12);border:1px solid rgba(224,82,82,.3);color:#e05252;padding:8px 10px;border-radius:var(--r);cursor:pointer;font-size:13px;font-family:inherit" title="Deletar">🗑️</button>
+            </div>
           </div>
           <!-- Modelo de Fases -->
           <div class="form-group full">
@@ -208,17 +207,10 @@ tr:last-child td{border-bottom:none}
             </div>
           </div>
           <!-- Equipes e Datas -->
-          <div class="form-group">
-            <label>Qtd. de Equipes Participantes</label>
-            <input type="number" id="comp-equipes" placeholder="Ex: 48" min="2" max="256" value="48">
-          </div>
-          <div class="form-group">
-            <label>Previsão de Início</label>
-            <input type="date" id="comp-inicio">
-          </div>
-          <div class="form-group">
-            <label>Previsão de Fim</label>
-            <input type="date" id="comp-fim">
+          <div class="form-group full" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+            <div><label>Qtd. de Equipes Participantes</label><input type="number" id="comp-equipes" placeholder="Ex: 48" min="2" max="256" value="48" style="width:100%;margin-top:5px"></div>
+            <div><label>Previsão de Início</label><input type="date" id="comp-inicio" style="width:100%;margin-top:5px"></div>
+            <div><label>Previsão de Fim</label><input type="date" id="comp-fim" style="width:100%;margin-top:5px"></div>
           </div>
           <!-- Grupos Ativos -->
           <div class="form-group full">
@@ -641,7 +633,7 @@ function showSec(id) {
   setTimeout(function() {
     if (id === 'fases' && typeof renderFases === 'function') renderFases();
     if (id === 'campanhas' && typeof carregarCampanhas === 'function') carregarCampanhas();
-    if (id === 'competicoes' && typeof renderCompeticoes === 'function') renderCompeticoes();
+    if (id === 'competicoes' && typeof renderCompeticoes === 'function') { renderCompeticoes(); renderSelectTipo(); renderSelectStatus(); }
   }, 50);
 }
 (function() {
@@ -953,6 +945,97 @@ window.addEventListener("load", function(){ if(typeof initChaveamento==="functio
 // ── Competições ───────────────────────────────────────────────
 let COMPETICOES = JSON.parse(localStorage.getItem('cdp_competicoes') || '[]');
 let TIPOS_COMPETICAO = JSON.parse(localStorage.getItem('cdp_tipos_comp') || '["Regional","Nacional","Internacional","Mundial"]');
+let STATUS_COMPETICAO = JSON.parse(localStorage.getItem('cdp_status_comp') || '["Ativa","Inativa","Em Breve","Encerrada"]');
+
+function renderSelectTipo() {
+  const sel = document.getElementById('comp-tipo');
+  if (!sel) return;
+  const val = sel.value;
+  sel.innerHTML = TIPOS_COMPETICAO.map(t => `<option value="${t}">${t}</option>`).join('');
+  if (val) sel.value = val;
+}
+
+function renderSelectStatus() {
+  const sel = document.getElementById('comp-ativa');
+  if (!sel) return;
+  sel.innerHTML = STATUS_COMPETICAO.map(s => `<option value="${s}">${s}</option>`).join('');
+}
+
+function novoTipoCompeticao() {
+  const nome = prompt('Nome do novo tipo:');
+  if (!nome || !nome.trim()) return;
+  if (!TIPOS_COMPETICAO.includes(nome.trim())) {
+    TIPOS_COMPETICAO.push(nome.trim());
+    localStorage.setItem('cdp_tipos_comp', JSON.stringify(TIPOS_COMPETICAO));
+    renderSelectTipo();
+    document.getElementById('comp-tipo').value = nome.trim();
+    showToast('Tipo adicionado!');
+  }
+}
+
+function editarTipoCompeticao() {
+  const sel = document.getElementById('comp-tipo');
+  const atual = sel.value;
+  const novo = prompt('Editar tipo:', atual);
+  if (!novo || !novo.trim() || novo.trim() === atual) return;
+  const idx = TIPOS_COMPETICAO.indexOf(atual);
+  if (idx !== -1) {
+    TIPOS_COMPETICAO[idx] = novo.trim();
+    localStorage.setItem('cdp_tipos_comp', JSON.stringify(TIPOS_COMPETICAO));
+    renderSelectTipo();
+    sel.value = novo.trim();
+    showToast('Tipo atualizado!');
+  }
+}
+
+function deletarTipoCompeticao() {
+  const sel = document.getElementById('comp-tipo');
+  const atual = sel.value;
+  if (TIPOS_COMPETICAO.length <= 1) { showToast('Deve ter ao menos um tipo.'); return; }
+  if (!confirm('Deletar o tipo "' + atual + '"?')) return;
+  TIPOS_COMPETICAO = TIPOS_COMPETICAO.filter(t => t !== atual);
+  localStorage.setItem('cdp_tipos_comp', JSON.stringify(TIPOS_COMPETICAO));
+  renderSelectTipo();
+  showToast('Tipo deletado!');
+}
+
+function novoStatusCompeticao() {
+  const nome = prompt('Nome do novo status:');
+  if (!nome || !nome.trim()) return;
+  if (!STATUS_COMPETICAO.includes(nome.trim())) {
+    STATUS_COMPETICAO.push(nome.trim());
+    localStorage.setItem('cdp_status_comp', JSON.stringify(STATUS_COMPETICAO));
+    renderSelectStatus();
+    document.getElementById('comp-ativa').value = nome.trim();
+    showToast('Status adicionado!');
+  }
+}
+
+function editarStatusCompeticao() {
+  const sel = document.getElementById('comp-ativa');
+  const atual = sel.value;
+  const novo = prompt('Editar status:', atual);
+  if (!novo || !novo.trim() || novo.trim() === atual) return;
+  const idx = STATUS_COMPETICAO.indexOf(atual);
+  if (idx !== -1) {
+    STATUS_COMPETICAO[idx] = novo.trim();
+    localStorage.setItem('cdp_status_comp', JSON.stringify(STATUS_COMPETICAO));
+    renderSelectStatus();
+    sel.value = novo.trim();
+    showToast('Status atualizado!');
+  }
+}
+
+function deletarStatusCompeticao() {
+  const sel = document.getElementById('comp-ativa');
+  const atual = sel.value;
+  if (STATUS_COMPETICAO.length <= 1) { showToast('Deve ter ao menos um status.'); return; }
+  if (!confirm('Deletar o status "' + atual + '"?')) return;
+  STATUS_COMPETICAO = STATUS_COMPETICAO.filter(s => s !== atual);
+  localStorage.setItem('cdp_status_comp', JSON.stringify(STATUS_COMPETICAO));
+  renderSelectStatus();
+  showToast('Status deletado!');
+}
 
 
 
@@ -976,7 +1059,7 @@ function salvarCompeticao() {
   const nome = document.getElementById('comp-nome').value.trim();
   const ano = document.getElementById('comp-ano').value;
   const tipo = document.getElementById('comp-tipo').value;
-  const ativa = document.getElementById('comp-ativa').value === 'true';
+  const ativa = document.getElementById('comp-ativa').value;
   if (!nome || !ano) { showToast('Preencha o nome e o ano.'); return; }
   
   const fases = [];
