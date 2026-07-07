@@ -1717,7 +1717,8 @@ function meusRenderPagamentos() {
       CANCELADO: '<span class="badge badge-red">Cancelado</span>',
     }[pag.status] || '<span class="badge badge-muted">—</span>';
 
-    const data = new Date(pag.criadoEm).toLocaleString('pt-BR');
+    const dataRaw = pag.criadoEm || pag.palpites?.[0]?.criadoEm || pag.palpites?.[0]?.dataHora;
+    const data = dataRaw ? new Date(dataRaw).toLocaleString('pt-BR') : '—';
     const fase = pag.campanha?.fase;
 
     const acaoBotao = pag.status === 'APROVADO'
@@ -1807,30 +1808,44 @@ async function meusPalpitesInit(forcar = false) {
     if (!r.ok) { container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Não foi possível carregar seus palpites.</div>'; return; }
     MEUS_PAGAMENTOS_CACHE = await r.json();
     EXT_PAGAMENTOS_CACHE = MEUS_PAGAMENTOS_CACHE;
-    // Buscar palpites de placar (4a fase)
+    // Buscar palpites de placar (4a fase) e injetar nos pagamentos existentes
     try {
       const rPlacar = await fetch(`${API_BASE}/placar/meus`, { headers: authHeaders() });
       if (rPlacar.ok) {
         const palpitesPlacar = await rPlacar.json();
         if (palpitesPlacar.length > 0) {
-          // Agrupar por pagamentoId e adicionar ao cache como pagamento virtual
-          const grupos = {};
           palpitesPlacar.forEach(p => {
-            const pid = p.pagamentoId || 0;
-            if (!grupos[pid]) grupos[pid] = { id: pid, campanha: { nome: '4ª Fase · Palpite o Placar' }, status: p.pagamentoConfirmado ? 'APROVADO' : 'PENDENTE', valor: 0, palpites: [], tipo: 'PLACAR' };
-            grupos[pid].valor += Number(p.valorPago);
-            grupos[pid].palpites.push({
+            const pid = p.pagamentoId;
+            // Verificar se o pagamento ja existe no cache
+            const pagExistente = MEUS_PAGAMENTOS_CACHE.find(pg => pg.id === pid);
+            const palpiteFormatado = {
               id: p.id,
               tipo: 'PLACAR',
               acertou: p.acertou,
               golsCasa: p.golsCasa,
               golsFora: p.golsFora,
+              valorPago: p.valorPago,
+              pagamentoConfirmado: p.pagamentoConfirmado,
               selecaoCasa: p.partida?.selecaoCasa,
               selecaoFora: p.partida?.selecaoFora,
               dataHora: p.partida?.dataHora,
-            });
+            };
+            if (pagExistente) {
+              // Injetar palpite no pagamento existente
+              if (!pagExistente.palpites) pagExistente.palpites = [];
+              pagExistente.palpites.push(palpiteFormatado);
+            } else {
+              // Criar entrada virtual para pagamentos sem registro
+              let grupo = MEUS_PAGAMENTOS_CACHE.find(pg => pg._placarVirtual && pg.id === pid);
+              if (!grupo) {
+                grupo = { id: pid, _placarVirtual: true, campanha: { nome: '4ª Fase · Palpite o Placar' }, status: p.pagamentoConfirmado ? 'APROVADO' : 'PENDENTE', valor: Number(p.valorPago), palpites: [], criadoEm: p.criadoEm };
+                MEUS_PAGAMENTOS_CACHE.push(grupo);
+              } else {
+                grupo.valor += Number(p.valorPago);
+              }
+              grupo.palpites.push(palpiteFormatado);
+            }
           });
-          Object.values(grupos).forEach(g => MEUS_PAGAMENTOS_CACHE.push(g));
         }
       }
     } catch(e) { console.error('[PlacarMeus]', e); }
