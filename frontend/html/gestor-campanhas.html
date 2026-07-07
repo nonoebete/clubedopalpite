@@ -107,6 +107,7 @@ tr:last-child td{border-bottom:none}
     <a href="#" class="sidebar-toggle" id="btn-toggle" style="text-decoration:none"><span style="pointer-events:none">☰</span><span class="nav-label" style="pointer-events:none">Menu</span></a>
     <div class="nav-item active" data-sec="chaveamento"><span class="icon">🔀</span><span class="nav-label">Chaveamento</span></div>
     <div class="nav-item" data-sec="fases"><span class="icon">📅</span><span class="nav-label">Formatar Fases</span></div>
+    <div class="nav-item" data-sec="competicoes"><span class="icon">🌍</span><span class="nav-label">Competições</span></div>
     <div class="nav-item" data-sec="campanhas"><span class="icon">🏆</span><span class="nav-label">Gestão de Campanhas</span></div>
   </nav>
   <!-- Conteúdo -->
@@ -143,6 +144,91 @@ tr:last-child td{border-bottom:none}
       </div>
     </div>
     <!-- FORMATAR FASES -->
+    <!-- COMPETIÇÕES -->
+    <div class="section" id="sec-competicoes">
+      <div class="page-title">🌍 Competições</div>
+      <div class="page-sub">Cadastre e gerencie as competições do Clube de Palpites</div>
+
+      <!-- NOVA COMPETIÇÃO -->
+      <div class="card">
+        <div class="card-title">➕ Nova Competição</div>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Nome da Competição</label>
+            <input type="text" id="comp-nome" placeholder="Ex: Copa do Mundo FIFA 2026">
+          </div>
+          <div class="form-group">
+            <label>Ano de Referência</label>
+            <input type="number" id="comp-ano" placeholder="2026" value="2026" min="2000" max="2100">
+          </div>
+          <div class="form-group">
+            <label>Tipo de Competição</label>
+            <div style="display:flex;gap:8px">
+              <select id="comp-tipo" style="flex:1">
+                <option value="Regional">Regional</option>
+                <option value="Nacional">Nacional</option>
+                <option value="Internacional">Internacional</option>
+                <option value="Mundial" selected>Mundial</option>
+              </select>
+              <button onclick="novoTipoCompeticao()" style="background:rgba(240,165,0,.12);border:1px solid rgba(240,165,0,.3);color:var(--gold);padding:8px 12px;border-radius:var(--r);cursor:pointer;font-size:12px;font-family:inherit;white-space:nowrap">+ Novo Tipo</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select id="comp-ativa">
+              <option value="true">Ativa</option>
+              <option value="false">Inativa</option>
+            </select>
+          </div>
+          <!-- Modelo de Fases -->
+          <div class="form-group full">
+            <label>Modelo de Fases</label>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px" id="comp-fases-check">
+              <label style="display:flex;align-items:center;gap:6px;background:var(--navy2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13px">
+                <input type="checkbox" id="fase-grupos" value="Fase de Grupos" checked> Fase de Grupos
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;background:var(--navy2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13px">
+                <input type="checkbox" id="fase-16avos" value="16 Avos de Final"> 16 Avos de Final
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;background:var(--navy2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13px">
+                <input type="checkbox" id="fase-oitavas" value="Oitavas de Final" checked> Oitavas de Final
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;background:var(--navy2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13px">
+                <input type="checkbox" id="fase-quartas" value="Quartas de Final" checked> Quartas de Final
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;background:var(--navy2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13px">
+                <input type="checkbox" id="fase-semi" value="Semi Finais" checked> Semi Finais
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;background:var(--navy2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13px">
+                <input type="checkbox" id="fase-final" value="Final" checked> Final
+              </label>
+            </div>
+          </div>
+          <!-- Grupos Ativos -->
+          <div class="form-group full">
+            <label>Grupos Ativos</label>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
+              ${['A','B','C','D','E','F','G','H','I','J','K','L'].map(g => `
+              <label style="display:flex;align-items:center;gap:6px;background:var(--navy2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13px">
+                <input type="checkbox" class="comp-grupo-check" value="${g}" checked> Grupo ${g}
+              </label>`).join('')}
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:16px;display:flex;justify-content:flex-end">
+          <button class="btn btn-gold" onclick="salvarCompeticao()">✅ Cadastrar Competição</button>
+        </div>
+      </div>
+
+      <!-- LISTA DE COMPETIÇÕES -->
+      <div class="card">
+        <div class="card-title">📋 Competições Cadastradas</div>
+        <div id="lista-competicoes" style="display:grid;gap:12px">
+          <div style="text-align:center;padding:24px;color:var(--muted);font-size:13px">Nenhuma competição cadastrada ainda.</div>
+        </div>
+      </div>
+    </div>
+
     <div class="section" id="sec-fases">
       <div class="page-title">📅 Formatar Fases</div>
       <div class="page-sub">Controle de ativação e configuração das fases</div>
@@ -507,6 +593,7 @@ function showSec(id) {
   setTimeout(function() {
     if (id === 'fases' && typeof renderFases === 'function') renderFases();
     if (id === 'campanhas' && typeof carregarCampanhas === 'function') carregarCampanhas();
+    if (id === 'competicoes' && typeof renderCompeticoes === 'function') renderCompeticoes();
   }, 50);
 }
 (function() {
@@ -814,6 +901,99 @@ async function removerJogo(id) {
 }
 
 window.addEventListener("load", function(){ if(typeof initChaveamento==="function") initChaveamento(); });
+
+// ── Competições ───────────────────────────────────────────────
+let COMPETICOES = JSON.parse(localStorage.getItem('cdp_competicoes') || '[]');
+let TIPOS_COMPETICAO = JSON.parse(localStorage.getItem('cdp_tipos_comp') || '["Regional","Nacional","Internacional","Mundial"]');
+
+
+
+function novoTipoCompeticao() {
+  const nome = prompt('Nome do novo tipo de competição:');
+  if (!nome || !nome.trim()) return;
+  if (!TIPOS_COMPETICAO.includes(nome.trim())) {
+    TIPOS_COMPETICAO.push(nome.trim());
+    localStorage.setItem('cdp_tipos_comp', JSON.stringify(TIPOS_COMPETICAO));
+    const sel = document.getElementById('comp-tipo');
+    const opt = document.createElement('option');
+    opt.value = nome.trim();
+    opt.textContent = nome.trim();
+    sel.appendChild(opt);
+    sel.value = nome.trim();
+    showToast('Tipo adicionado!');
+  }
+}
+
+function salvarCompeticao() {
+  const nome = document.getElementById('comp-nome').value.trim();
+  const ano = document.getElementById('comp-ano').value;
+  const tipo = document.getElementById('comp-tipo').value;
+  const ativa = document.getElementById('comp-ativa').value === 'true';
+  if (!nome || !ano) { showToast('Preencha o nome e o ano.'); return; }
+  
+  const fases = [];
+  document.querySelectorAll('#comp-fases-check input:checked').forEach(el => fases.push(el.value));
+  
+  const grupos = [];
+  document.querySelectorAll('.comp-grupo-check:checked').forEach(el => grupos.push(el.value));
+  
+  const comp = {
+    id: Date.now(),
+    nome, ano: Number(ano), tipo, ativa, fases, grupos,
+    criadoEm: new Date().toLocaleDateString('pt-BR')
+  };
+  
+  COMPETICOES.push(comp);
+  localStorage.setItem('cdp_competicoes', JSON.stringify(COMPETICOES));
+  renderCompeticoes();
+  document.getElementById('comp-nome').value = '';
+  showToast('Competição cadastrada!');
+}
+
+function toggleCompeticao(id) {
+  const comp = COMPETICOES.find(c => c.id === id);
+  if (comp) {
+    comp.ativa = !comp.ativa;
+    localStorage.setItem('cdp_competicoes', JSON.stringify(COMPETICOES));
+    renderCompeticoes();
+    showToast(comp.ativa ? 'Competição ativada!' : 'Competição desativada!');
+  }
+}
+
+function excluirCompeticao(id) {
+  if (!confirm('Excluir esta competição?')) return;
+  COMPETICOES = COMPETICOES.filter(c => c.id !== id);
+  localStorage.setItem('cdp_competicoes', JSON.stringify(COMPETICOES));
+  renderCompeticoes();
+  showToast('Competição excluída!');
+}
+
+function renderCompeticoes() {
+  const el = document.getElementById('lista-competicoes');
+  if (!el) return;
+  if (!COMPETICOES.length) {
+    el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px">Nenhuma competição cadastrada ainda.</div>';
+    return;
+  }
+  el.innerHTML = COMPETICOES.map(c => `
+    <div style="background:var(--navy2);border:1px solid ${c.ativa ? 'rgba(29,185,84,.3)' : 'var(--border)'};border-radius:12px;padding:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700">${c.nome} <span style="color:var(--muted);font-size:14px">${c.ano}</span></div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">${c.tipo} · Criado em ${c.criadoEm}</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span style="background:${c.ativa ? 'rgba(29,185,84,.15)' : 'rgba(239,68,68,.15)'};border:1px solid ${c.ativa ? 'rgba(29,185,84,.3)' : 'rgba(239,68,68,.3)'};color:${c.ativa ? '#1db954' : '#ef4444'};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">${c.ativa ? 'Ativa' : 'Inativa'}</span>
+          <button onclick="toggleCompeticao(${c.id})" style="background:rgba(240,165,0,.1);border:1px solid rgba(240,165,0,.3);color:var(--gold);padding:5px 12px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit">${c.ativa ? '🔴 Desativar' : '✅ Ativar'}</button>
+          <button onclick="excluirCompeticao(${c.id})" style="background:rgba(224,82,82,.1);border:1px solid rgba(224,82,82,.3);color:#e05252;padding:5px 10px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit">🗑️</button>
+        </div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        ${c.fases.map(f => `<span style="background:rgba(74,158,255,.1);border:1px solid rgba(74,158,255,.2);color:#4a9eff;padding:2px 8px;border-radius:6px;font-size:11px">${f}</span>`).join('')}
+        ${c.grupos.map(g => `<span style="background:rgba(240,165,0,.08);border:1px solid rgba(240,165,0,.2);color:var(--gold);padding:2px 8px;border-radius:6px;font-size:11px">Grupo ${g}</span>`).join('')}
+      </div>
+    </div>`).join('');
+}
 </script>
 </body>
 </html></html>
