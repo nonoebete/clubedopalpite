@@ -13,4 +13,5 @@ router.get('/:id/status',                 autenticar, ctrl.consultarStatus);
 router.post('/:id/reenviar-whatsapp',     autenticar, ctrl.reenviarConfirmacao);
 router.post('/:id/cancelar',              autenticar, ctrl.cancelarPagamento);
 
+router.post('/deposito', autenticar, ctrl.deposito);
 module.exports = router;
