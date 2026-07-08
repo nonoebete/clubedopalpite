@@ -18,21 +18,12 @@ router.get('/saldo', autenticar, async (req, res) => {
   const prisma = require('../models/prisma');
   try {
     const usuarioId = req.user.id;
-    // Saldo de premios (palpites acertados com premio recebido)
+    // Saldo de premios (apenas palpitesCampanha tem premioRecebido)
     const palpitesCampanha = await prisma.palpiteCampanha.findMany({
       where: { usuarioId, pagamentoConfirmado: true, acertou: true },
       select: { premioRecebido: true }
     });
-    const palpitesPartida = await prisma.palpitePartida.findMany({
-      where: { usuarioId, pagamentoConfirmado: true, acertou: true },
-      select: { premioRecebido: true }
-    });
-    const palpitesPlacar = await prisma.palpitePlacar.findMany({
-      where: { usuarioId, pagamentoConfirmado: true, acertou: true },
-      select: { premioRecebido: true }
-    });
-    const saldoPremios = [...palpitesCampanha, ...palpitesPartida, ...palpitesPlacar]
-      .reduce((s, p) => s + Number(p.premioRecebido || 0), 0);
+    const saldoPremios = palpitesCampanha.reduce((s, p) => s + Number(p.premioRecebido || 0), 0);
     // Saldo de depositos (pagamentos aprovados do tipo deposito - campanhaId=1 sem palpites)
     const depositos = await prisma.pagamento.findMany({
       where: { usuarioId, status: 'APROVADO', palpiteIds: '[]' },
