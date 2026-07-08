@@ -113,7 +113,17 @@
       font-size: 28px; font-weight: 800; color: var(--gold);
       letter-spacing: .04em;
     }
-  </style>
+  .sidebar-toggle{cursor:pointer;user-select:none;-webkit-user-select:none;transition:all .2s}
+.sidebar-toggle *{pointer-events:none}
+.app-layout{transition:grid-template-columns .25s}
+.app-layout.sidebar-collapsed .sidebar{width:52px;min-width:52px;overflow:hidden}
+.app-layout.sidebar-collapsed .label{display:none}
+.app-layout.sidebar-collapsed .sidebar-section{display:none}
+.app-layout.sidebar-collapsed .sidebar-item{justify-content:center;padding:10px 0;display:flex;width:100%;box-sizing:border-box}
+.app-layout.sidebar-collapsed .sidebar-item .icon{margin:0 auto;font-size:20px;display:block;text-align:center}
+.app-layout.sidebar-collapsed .sidebar-toggle{display:flex;justify-content:center;width:100%}
+.app-layout.sidebar-collapsed #sidebar-toggle-btn{justify-content:center;text-align:center;padding:10px 0;display:flex;width:100%}
+</style>
 </head>
 <body>
 
@@ -148,7 +158,7 @@
 
   <!-- SIDEBAR -->
   <aside class="sidebar">
-    <div class="sidebar-toggle" onclick="toggleSidebar()" title="Retrair/expandir menu">☰</div>
+    <div class="sidebar-toggle" id="sidebar-toggle-btn" onclick="toggleSidebar()" title="Retrair/expandir menu" style="cursor:pointer;user-select:none">☰</div>
     <div class="sidebar-section">Menu</div>
     <div class="sidebar-item active" onclick="showSection('palpitar')">
       <span class="icon">⚽</span> <span class="label">Fazer Palpite</span>
@@ -692,7 +702,11 @@ async function carregarSaldo() {
 }
 carregarSaldo();
 // ── Sidebar: retrair/expandir ───────────────────────────────────
+let _toggleLock = false;
 function toggleSidebar() {
+  if (_toggleLock) return;
+  _toggleLock = true;
+  setTimeout(function(){ _toggleLock = false; }, 500);
   const layout = document.getElementById('app-layout');
   layout.classList.toggle('sidebar-collapsed');
   localStorage.setItem('cdp_sidebar_collapsed', layout.classList.contains('sidebar-collapsed') ? '1' : '0');
@@ -705,14 +719,13 @@ function toggleSidebar() {
   }
   // Adicionar listener com capture para garantir que o click funciona
   setTimeout(function() {
-    const btn = document.querySelector('.sidebar-toggle');
+    var btn = document.getElementById('sidebar-toggle-btn');
     if (btn) {
       btn.addEventListener('click', function(e) {
-        e.preventDefault();
         toggleSidebar();
-      }, true);
+      });
     }
-  }, 300);
+  }, 500);
 })();
 
 // ── Seleções da Copa 2026 ──────────────────────────────────────
