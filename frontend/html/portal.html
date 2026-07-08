@@ -125,6 +125,14 @@
   </a>
   <div class="nav-right">
     <span class="badge-fase">⚽ 1ª Fase Aberta</span>
+    <!-- Saldo consolidado -->
+    <div onclick="abrirDepositoPix()" style="display:flex;align-items:center;gap:8px;background:rgba(0,163,134,.1);border:1px solid rgba(0,163,134,.3);border-radius:var(--radius);padding:6px 14px;cursor:pointer" title="Clique para depositar">
+      <span style="font-size:16px">💰</span>
+      <div>
+        <div style="font-size:10px;color:#00a386;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Saldo</div>
+        <div style="font-size:14px;font-weight:700;color:#00a386" id="topo-saldo">R$ 0,00</div>
+      </div>
+    </div>
     <div style="display:flex;align-items:center;gap:8px;background:var(--navy2);border:1px solid var(--border2);border-radius:var(--radius);padding:6px 12px">
       <span style="font-size:20px">👤</span>
       <div>
@@ -669,6 +677,20 @@ let USUARIO_LOGADO = null;
   }
 })();
 
+
+// ── Saldo consolidado ───────────────────────────────────────────
+async function carregarSaldo() {
+  try {
+    const token = localStorage.getItem("token") || "";
+    if (!token) return;
+    const r = await fetch("/api/pagamentos/saldo", { headers: { "Authorization": "Bearer " + token } });
+    if (!r.ok) return;
+    const data = await r.json();
+    const el = document.getElementById("topo-saldo");
+    if (el) el.textContent = "R$ " + Number(data.saldoTotal).toFixed(2).replace(".", ",");
+  } catch(e) { console.error("[Saldo]", e); }
+}
+carregarSaldo();
 // ── Sidebar: retrair/expandir ───────────────────────────────────
 function toggleSidebar() {
   const layout = document.getElementById('app-layout');

@@ -13,6 +13,47 @@ router.get('/:id/status',                 autenticar, ctrl.consultarStatus);
 router.post('/:id/reenviar-whatsapp',     autenticar, ctrl.reenviarConfirmacao);
 router.post('/:id/cancelar',              autenticar, ctrl.cancelarPagamento);
 
+// Saldo consolidado do usuário
+router.get('/saldo', autenticar, async (req, res) => {
+  const prisma = require('../models/prisma');
+  try {
+    const usuarioId = req.user.id;
+    // Saldo de premios (palpites acertados com premio recebido)
+    const palpitesCampanha = await prisma.palpiteCampanha.findMany({
+      where: { usuarioId, pagamentoConfirmado: true, acertou: true },
+      select: { premioRecebido: true }
+    });
+    const palpitesPartida = await prisma.palpitePartida.findMany({
+      where: { usuarioId, pagamentoConfirmado: true, acertou: true },
+      select: { premioRecebido: true }
+    });
+    const palpitesPlacar = await prisma.palpitePlacar.findMany({
+      where: { usuarioId, pagamentoConfirmado: true, acertou: true },
+      select: { premioRecebido: true }
+    });
+    const saldoPremios = [...palpitesCampanha, ...palpitesPartida, ...palpitesPlacar]
+      .reduce((s, p) => s + Number(p.premioRecebido || 0), 0);
+    // Saldo de depositos (pagamentos aprovados do tipo deposito - campanhaId=1 sem palpites)
+    const depositos = await prisma.pagamento.findMany({
+      where: { usuarioId, status: 'APROVADO', palpiteIds: '[]' },
+      select: { valor: true }
+    });
+    const saldoDepositos = depositos.reduce((s, p) => s + Number(p.valor), 0);
+    // Saldo de indicacoes (conta corrente)
+    const conta = await prisma.contaCorrente.findUnique({ where: { usuarioId } });
+    const saldoIndicacoes = Number(conta?.saldo || 0);
+    res.json({
+      saldoPremios,
+      saldoDepositos,
+      saldoIndicacoes,
+      saldoTotal: saldoPremios + saldoDepositos + saldoIndicacoes
+    });
+  } catch(e) {
+    console.error('[Saldo]', e);
+    res.status(500).json({ error: 'Erro ao buscar saldo.' });
+  }
+});
+
 module.exports = router;
 
 // Rota de depósito
