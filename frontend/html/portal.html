@@ -2271,7 +2271,7 @@ async function ppQueroPalpitar() {
     <button onclick="fecharDepositoPix()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer">×</button>
     <!-- Header com logo -->
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:16px">
-      <img src="logo-clube.png" style="width:48px;height:48px;border-radius:50%;border:2px solid rgba(0,163,134,.4);object-fit:contain">
+      <img src="/logo-clube.png" style="width:48px;height:48px;border-radius:50%;border:2px solid rgba(0,163,134,.4);object-fit:contain" onerror="this.src='logo-clube.png'">
       <div>
         <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;color:#dce8f5">💠 PIX DEPÓSITO</div>
         <div style="font-size:12px;color:var(--muted)">Clube de Palpites · Escolha o valor e gere o PIX</div>
@@ -2304,6 +2304,10 @@ async function ppQueroPalpitar() {
           <div style="font-size:11px;color:var(--muted)">Escaneie com o app do banco</div>
         </div>
         <div>
+          <div style="background:rgba(0,163,134,.1);border:1px solid rgba(0,163,134,.3);border-radius:10px;padding:10px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:12px;color:var(--muted)">Valor do depósito:</span>
+            <span id="dep-valor-confirmado" style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;color:#00a386">R$ 0,00</span>
+          </div>
           <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Código Copia e Cola:</div>
           <div id="dep-copia-cola" style="background:var(--navy2);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:10px;color:#dce8f5;word-break:break-all;margin-bottom:12px;max-height:80px;overflow-y:auto"></div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
@@ -2370,6 +2374,8 @@ async function gerarPixDeposito() {
     document.getElementById('dep-copia-cola').textContent = data.pix && data.pix.copiaECola ? data.pix.copiaECola : '';
     document.getElementById('dep-layout-sel').style.display = 'none';
     document.getElementById('dep-pix-area').style.display = 'block';
+    const valConf = document.getElementById('dep-valor-confirmado');
+    if (valConf) valConf.textContent = 'R$ ' + depositoValorSelecionado.toFixed(2).replace('.', ',');
     btn.textContent = '✅ PIX Gerado!';
   } catch(e) { alert('Erro ao conectar.'); btn.disabled=false; btn.textContent='💠 GERAR PIX'; }
 }
