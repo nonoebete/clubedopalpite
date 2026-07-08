@@ -2266,34 +2266,53 @@ async function ppQueroPalpitar() {
 </script>
 
 <!-- MODAL PIX DEPÓSITO -->
-<div id="modal-deposito-overlay" style="display:none;position:fixed;inset:0;background:rgba(7,16,29,.92);backdrop-filter:blur(6px);z-index:500;align-items:center;justify-content:center;padding:20px">
-  <div style="background:linear-gradient(135deg,#0e1e32 0%,#152840 100%);border:1px solid rgba(0,163,134,.35);border-radius:20px;padding:28px;width:100%;max-width:500px;box-shadow:0 20px 60px rgba(0,0,0,.7);position:relative">
-    <button onclick="fecharDepositoPix()" style="position:absolute;top:14px;right:16px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer">×</button>
-    <div style="text-align:center;margin-bottom:24px">
-      <div style="width:60px;height:60px;background:rgba(0,163,134,.12);border:2px solid rgba(0,163,134,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:28px">💠</div>
-      <div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:800;color:#dce8f5">DEPOSITAR</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:4px">Escolha o valor e gere o PIX</div>
+<div id="modal-deposito-overlay" style="display:none;position:fixed;inset:0;background:rgba(7,16,29,.92);backdrop-filter:blur(6px);z-index:500;align-items:center;justify-content:center;padding:16px">
+  <div style="background:linear-gradient(135deg,#0e1e32 0%,#152840 100%);border:1px solid rgba(0,163,134,.35);border-radius:20px;padding:24px;width:100%;max-width:700px;box-shadow:0 20px 60px rgba(0,0,0,.7);position:relative">
+    <button onclick="fecharDepositoPix()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer">×</button>
+    <!-- Header com logo -->
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:16px">
+      <img src="logo-clube.png" style="width:48px;height:48px;border-radius:50%;border:2px solid rgba(0,163,134,.4);object-fit:contain">
+      <div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;color:#dce8f5">💠 PIX DEPÓSITO</div>
+        <div style="font-size:12px;color:var(--muted)">Clube de Palpites · Escolha o valor e gere o PIX</div>
+      </div>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px">
-      <button onclick="selecionarValorDeposito(10)" class="btn-valor-dep" data-valor="10" style="padding:12px 6px;border-radius:10px;border:1px solid var(--border);background:var(--navy2);color:#dce8f5;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">R$&nbsp;10</button>
-      <button onclick="selecionarValorDeposito(20)" class="btn-valor-dep" data-valor="20" style="padding:12px 6px;border-radius:10px;border:1px solid var(--border);background:var(--navy2);color:#dce8f5;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">R$&nbsp;20</button>
-      <button onclick="selecionarValorDeposito(30)" class="btn-valor-dep" data-valor="30" style="padding:12px 6px;border-radius:10px;border:1px solid var(--border);background:var(--navy2);color:#dce8f5;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">R$&nbsp;30</button>
-      <button onclick="selecionarValorDeposito(40)" class="btn-valor-dep" data-valor="40" style="padding:12px 6px;border-radius:10px;border:1px solid var(--border);background:var(--navy2);color:#dce8f5;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">R$&nbsp;40</button>
-      <button onclick="selecionarValorDeposito(50)" class="btn-valor-dep" data-valor="50" style="padding:12px 6px;border-radius:10px;border:1px solid var(--border);background:var(--navy2);color:#dce8f5;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">R$&nbsp;50</button>
-      <button onclick="selecionarValorDeposito(100)" class="btn-valor-dep" data-valor="100" style="padding:12px 6px;border-radius:10px;border:1px solid var(--border);background:var(--navy2);color:#dce8f5;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">R$&nbsp;100</button>
-      <button onclick="selecionarValorDeposito(150)" class="btn-valor-dep" data-valor="150" style="padding:12px 6px;border-radius:10px;border:1px solid var(--border);background:var(--navy2);color:#dce8f5;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">R$&nbsp;150</button>
-      <button onclick="selecionarValorDeposito(200)" class="btn-valor-dep" data-valor="200" style="padding:12px 6px;border-radius:10px;border:1px solid var(--border);background:var(--navy2);color:#dce8f5;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">R$&nbsp;200</button>
+    <!-- Layout em duas colunas quando PIX gerado -->
+    <div id="dep-layout-sel">
+      <!-- Valores -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">
+        <button onclick="selecionarValorDeposito(10)" class="btn-valor-dep" data-valor="10" style="padding:14px 6px;border-radius:10px;border:1px solid var(--border);background:var(--navy2);color:#dce8f5;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">R$&nbsp;10</button>
+        <button onclick="selecionarValorDeposito(20)" class="btn-valor-dep" data-valor="20" style="padding:14px 6px;border-radius:10px;border:1px solid var(--border);background:var(--navy2);color:#dce8f5;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">R$&nbsp;20</button>
+        <button onclick="selecionarValorDeposito(30)" class="btn-valor-dep" data-valor="30" style="padding:14px 6px;border-radius:10px;border:1px solid var(--border);background:var(--navy2);color:#dce8f5;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">R$&nbsp;30</button>
+        <button onclick="selecionarValorDeposito(40)" class="btn-valor-dep" data-valor="40" style="padding:14px 6px;border-radius:10px;border:1px solid var(--border);background:var(--navy2);color:#dce8f5;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">R$&nbsp;40</button>
+        <button onclick="selecionarValorDeposito(50)" class="btn-valor-dep" data-valor="50" style="padding:14px 6px;border-radius:10px;border:1px solid var(--border);background:var(--navy2);color:#dce8f5;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">R$&nbsp;50</button>
+        <button onclick="selecionarValorDeposito(100)" class="btn-valor-dep" data-valor="100" style="padding:14px 6px;border-radius:10px;border:1px solid var(--border);background:var(--navy2);color:#dce8f5;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">R$&nbsp;100</button>
+        <button onclick="selecionarValorDeposito(150)" class="btn-valor-dep" data-valor="150" style="padding:14px 6px;border-radius:10px;border:1px solid var(--border);background:var(--navy2);color:#dce8f5;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">R$&nbsp;150</button>
+        <button onclick="selecionarValorDeposito(200)" class="btn-valor-dep" data-valor="200" style="padding:14px 6px;border-radius:10px;border:1px solid var(--border);background:var(--navy2);color:#dce8f5;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">R$&nbsp;200</button>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--navy2);border:1px solid rgba(0,163,134,.3);border-radius:12px;padding:12px 16px;margin-bottom:14px">
+        <span style="font-size:13px;color:var(--muted)">Valor selecionado:</span>
+        <span id="dep-valor-selecionado" style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700;color:#00a386">R$ 0,00</span>
+      </div>
+      <button id="dep-btn-gerar" onclick="gerarPixDeposito()" disabled style="width:100%;padding:13px;background:rgba(0,163,134,.3);border:none;border-radius:12px;color:rgba(255,255,255,.4);font-size:15px;font-weight:800;cursor:not-allowed;font-family:'Barlow Condensed',sans-serif;letter-spacing:.04em">💠 GERAR PIX</button>
     </div>
-    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--navy2);border:1px solid rgba(0,163,134,.3);border-radius:12px;padding:14px 18px;margin-bottom:16px">
-      <span style="font-size:13px;color:var(--muted)">Valor selecionado:</span>
-      <span id="dep-valor-selecionado" style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:700;color:#00a386">R$ 0,00</span>
-    </div>
-    <button id="dep-btn-gerar" onclick="gerarPixDeposito()" disabled style="width:100%;padding:14px;background:rgba(0,163,134,.3);border:none;border-radius:12px;color:rgba(255,255,255,.4);font-size:15px;font-weight:800;cursor:not-allowed;font-family:'Barlow Condensed',sans-serif;letter-spacing:.04em">💠 GERAR PIX</button>
-    <div id="dep-pix-area" style="display:none;margin-top:20px;text-align:center">
-      <div id="dep-qr-wrap" style="margin:0 auto 12px;width:180px;height:180px;background:white;border-radius:12px;padding:8px;display:flex;align-items:center;justify-content:center"></div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Código Copia e Cola:</div>
-      <div id="dep-copia-cola" style="background:var(--navy2);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:11px;color:#dce8f5;word-break:break-all;text-align:left;margin-bottom:10px"></div>
-      <button onclick="copiarPixDeposito()" style="background:rgba(0,163,134,.12);border:1px solid rgba(0,163,134,.3);color:#00a386;padding:8px 20px;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;font-weight:600">📋 Copiar código PIX</button>
+    <!-- Área do QR Code -->
+    <div id="dep-pix-area" style="display:none">
+      <div style="display:grid;grid-template-columns:200px 1fr;gap:20px;align-items:start">
+        <div style="text-align:center">
+          <div id="dep-qr-wrap" style="width:180px;height:180px;background:white;border-radius:12px;padding:8px;display:flex;align-items:center;justify-content:center;margin-bottom:10px"></div>
+          <div style="font-size:11px;color:var(--muted)">Escaneie com o app do banco</div>
+        </div>
+        <div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Código Copia e Cola:</div>
+          <div id="dep-copia-cola" style="background:var(--navy2);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:10px;color:#dce8f5;word-break:break-all;margin-bottom:12px;max-height:80px;overflow-y:auto"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <button onclick="copiarPixDeposito()" style="background:rgba(0,163,134,.12);border:1px solid rgba(0,163,134,.3);color:#00a386;padding:10px;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;font-weight:600">📋 Copiar PIX</button>
+            <button onclick="cancelarPixDeposito()" style="background:rgba(224,82,82,.12);border:1px solid rgba(224,82,82,.3);color:#e05252;padding:10px;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;font-weight:600">❌ Cancelar PIX</button>
+          </div>
+          <div style="margin-top:12px;font-size:12px;color:var(--muted);text-align:center">⏱️ PIX expira em 30 minutos</div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -2349,13 +2368,24 @@ async function gerarPixDeposito() {
       document.getElementById('dep-qr-wrap').innerHTML = '<img src="data:image/png;base64,' + data.pix.qrCodeBase64 + '" style="width:100%;height:100%;object-fit:contain">';
     }
     document.getElementById('dep-copia-cola').textContent = data.pix && data.pix.copiaECola ? data.pix.copiaECola : '';
+    document.getElementById('dep-layout-sel').style.display = 'none';
     document.getElementById('dep-pix-area').style.display = 'block';
     btn.textContent = '✅ PIX Gerado!';
   } catch(e) { alert('Erro ao conectar.'); btn.disabled=false; btn.textContent='💠 GERAR PIX'; }
 }
 function copiarPixDeposito() {
   const txt = document.getElementById('dep-copia-cola').textContent;
-  navigator.clipboard.writeText(txt).then(() => alert('Código copiado!'));
+  navigator.clipboard.writeText(txt).then(() => alert('Codigo copiado!'));
+}
+function cancelarPixDeposito() {
+  document.getElementById('dep-pix-area').style.display = 'none';
+  document.getElementById('dep-layout-sel').style.display = 'block';
+  const btn = document.getElementById('dep-btn-gerar');
+  btn.disabled = false;
+  btn.style.background = 'linear-gradient(135deg,#00a386,#007a63)';
+  btn.style.color = '#fff';
+  btn.style.cursor = 'pointer';
+  btn.textContent = '💠 GERAR PIX';
 }
 </script>
 </body>
