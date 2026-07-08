@@ -703,6 +703,16 @@ function toggleSidebar() {
       document.getElementById('app-layout')?.classList.add('sidebar-collapsed');
     });
   }
+  // Adicionar listener com capture para garantir que o click funciona
+  setTimeout(function() {
+    const btn = document.querySelector('.sidebar-toggle');
+    if (btn) {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        toggleSidebar();
+      }, true);
+    }
+  }, 300);
 })();
 
 // ── Seleções da Copa 2026 ──────────────────────────────────────
@@ -2151,7 +2161,7 @@ atualizarAtivasSelecoes().then(() => { renderSelecoes(); setFase(faseInicial); i
     set('ind-kpi-saldo',  `R$ ${parseFloat(data.conta?.saldo || 0).toFixed(2)}`);
     set('ind-kpi-ganho',  `R$ ${parseFloat(data.conta?.totalGanho || 0).toFixed(2)}`);
     set('ind-kpi-ind',    (data.indicados || []).length);
-    set('ind-kpi-com',    `R$ ${parseFloatparseFloat(data.totalComissoes || 0).toFixed(2)}`);
+    set('ind-kpi-com',    `R$ ${parseFloat(data.totalComissoes || 0).toFixed(2)}`);
     set('ind-modal-saldo',`R$ ${parseFloat(data.conta?.saldo || 0).toFixed(2)}`);
     // Atualiza IND_SALDO para uso no resgate
     IND_SALDO = parseFloat(data.conta?.saldo || 0);
