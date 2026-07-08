@@ -636,7 +636,11 @@ function exportPDF() {
 }
 </script>
 <script>
+var _gestor_toggle_lock = false;
 function toggleSidebar() {
+  if (_gestor_toggle_lock) return;
+  _gestor_toggle_lock = true;
+  setTimeout(function(){ _gestor_toggle_lock = false; }, 500);
   var layout = document.getElementById('app-layout');
   if (layout.getAttribute('data-collapsed') === '1') {
     layout.removeAttribute('data-collapsed');
@@ -666,7 +670,7 @@ function showSec(id) {
     el.addEventListener('click', function() { showSec(this.dataset.sec); });
   });
 })();
-console.log("REGISTRANDO TOGGLE"); setTimeout(function() { console.log("TIMEOUT EXECUTADO"); var b=document.getElementById("btn-toggle"); if(b){ console.log("BTN ENCONTRADO"); b.addEventListener("click", function(e){ e.preventDefault(); console.log("TOGGLE EVENT"); toggleSidebar(); }, true); } }, 200);
+setTimeout(function() { var b=document.getElementById("btn-toggle"); if(b){ b.addEventListener("click", function(){ toggleSidebar(); }); } }, 300);
 
 const CHAVE_API_BASE = '/api';
 function authHeaders() {
