@@ -18,6 +18,11 @@ body{font-family:'Inter',sans-serif;background:var(--night);color:#dce8f5;min-he
 /* ── Layout principal ── */
 .app-layout{display:grid;grid-template-columns:var(--sidebar-w) 1fr;min-height:calc(100vh - 56px);transition:grid-template-columns .25s}
 .app-layout[data-collapsed]{grid-template-columns:52px 1fr}
+.app-layout[data-collapsed] .sidebar{overflow:hidden}
+.app-layout[data-collapsed] .nav-label{display:none}
+.app-layout[data-collapsed] .nav-item{justify-content:center;padding:10px 0}
+.app-layout[data-collapsed] .nav-item .icon{margin:0;font-size:20px}
+.app-layout[data-collapsed] #btn-toggle{justify-content:center;padding:10px 0}
 /* ── Sidebar ── */
 .sidebar{background:var(--navy);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;position:sticky;top:56px;height:calc(100vh - 56px)}
 .sidebar-toggle{display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;border-bottom:1px solid var(--border);color:var(--muted);font-size:13px;font-weight:600;white-space:nowrap;transition:color .15s}
