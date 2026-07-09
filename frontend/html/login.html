@@ -479,7 +479,7 @@
   }
 
   // Abre como login se vier de ?login na URL
-  if (window.location.search.includes('login') || window.location.pathname.includes('login')) {
+  if (window.location.search.includes('login') || window.location.search.includes('modo=login')) {
     showForm('login');
   }
 
