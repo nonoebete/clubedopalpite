@@ -110,15 +110,38 @@ tr:last-child td{border-bottom:none}
   <!-- Sidebar -->
   <nav class="sidebar">
     <a href="#" class="sidebar-toggle" id="btn-toggle" style="text-decoration:none"><span style="pointer-events:none">☰</span><span class="nav-label" style="pointer-events:none">Menu</span></a>
-    <div class="nav-item active" data-sec="chaveamento"><span class="icon">🔀</span><span class="nav-label">Chaveamento</span></div>
-    <div class="nav-item" data-sec="fases"><span class="icon">📅</span><span class="nav-label">Formatar Fases</span></div>
+    <div class="nav-item active" data-sec="fases"><span class="icon">📅</span><span class="nav-label">Formatar Fases</span></div>
     <div class="nav-item" data-sec="competicoes"><span class="icon">🌍</span><span class="nav-label">Competições</span></div>
+    <div class="nav-item" data-sec="selecoes"><span class="icon">⚽</span><span class="nav-label">Equipes e Seleções</span></div>
+    <div class="nav-item" data-sec="chaveamento"><span class="icon">🔀</span><span class="nav-label">Chaveamento</span></div>
     <div class="nav-item" data-sec="campanhas"><span class="icon">🏆</span><span class="nav-label">Gestão de Campanhas</span></div>
   </nav>
   <!-- Conteúdo -->
   <div class="main-content">
     <!-- CHAVEAMENTO -->
-    <div class="section active" id="sec-chaveamento" style="padding:0;height:calc(100vh - 56px);overflow:hidden">
+    <!-- EQUIPES E SELEÇÕES -->
+    <div class="section" id="sec-selecoes">
+      <div class="page-title">⚽ Equipes e Seleções</div>
+      <div class="page-sub">Gerencie as seleções ativas para palpite</div>
+      <div class="card">
+        <div class="card-title">⚙️ Ativar / Desativar Seleções</div>
+        <div style="padding:16px">
+          <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
+            <input type="text" id="busca-sel-admin" placeholder="🔍 Filtrar seleção…" oninput="filtrarSelesAdmin()" style="flex:1;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--navy2);color:#dce8f5;font-size:13px;outline:none">
+            <button onclick="toggleTodasSelecoes(true)" style="background:rgba(29,185,84,.15);border:1px solid rgba(29,185,84,.3);color:#1db954;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit">✅ Ativar todas</button>
+            <button onclick="toggleTodasSelecoes(false)" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#ef4444;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit">🚫 Desativar todas</button>
+          </div>
+          <div style="display:flex;gap:16px;margin-bottom:12px;font-size:13px">
+            <span>🟢 Ativas: <strong id="cont-ativas" style="color:#1db954">0</strong></span>
+            <span>🔴 Desativadas: <strong id="cont-desativas" style="color:#ef4444">0</strong></span>
+            <span style="color:var(--muted)">Total: <strong id="cont-total" style="color:#dce8f5">0</strong></span>
+          </div>
+          <div id="grid-selecoes-admin" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;max-height:500px;overflow-y:auto"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" id="sec-chaveamento" style="padding:0;height:calc(100vh - 56px);overflow:hidden">
       <div style="display:grid;grid-template-columns:220px 1fr;height:100%">
         <div class="selecoes-panel" style="height:100%;overflow-y:auto;padding:0">
           <div style="padding:16px 12px 12px;border-bottom:1px solid var(--border);margin-bottom:12px"><span style="font-family:Barlow Condensed,sans-serif;font-size:16px;font-weight:700;color:var(--gold)">⚽ Seleções</span></div>
@@ -292,7 +315,7 @@ tr:last-child td{border-bottom:none}
       </div>
     </div>
 
-    <div class="section" id="sec-fases">
+    <div class="section active" id="sec-fases">
       <div class="page-title">📅 Formatar Fases</div>
       <div class="page-sub">Controle de ativação e configuração das fases</div>
       <div class="card">
@@ -659,6 +682,7 @@ function showSec(id) {
   if (navEl) navEl.classList.add('active');
   setTimeout(function() {
     if (id === 'fases' && typeof renderFases === 'function') renderFases();
+    if (id === 'selecoes' && typeof carregarSelesAdmin === 'function') carregarSelesAdmin();
     if (id === 'campanhas' && typeof carregarCampanhas === 'function') carregarCampanhas();
     if (id === 'competicoes' && typeof renderCompeticoes === 'function') { renderCompeticoes(); renderSelectTipo(); renderSelectStatus(); }
   }, 50);
