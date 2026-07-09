@@ -115,7 +115,8 @@
     }
   .sidebar-toggle{cursor:pointer;user-select:none;-webkit-user-select:none;transition:all .2s}
 .sidebar-toggle *{pointer-events:none}
-.app-layout{transition:grid-template-columns .25s}
+.app-layout{display:grid;grid-template-columns:220px 1fr;transition:grid-template-columns .25s;min-height:calc(100vh - 56px)}
+.app-layout.sidebar-collapsed{grid-template-columns:52px 1fr}
 .app-layout.sidebar-collapsed .sidebar{width:52px;min-width:52px;overflow:hidden}
 .app-layout.sidebar-collapsed .label{display:none}
 .app-layout.sidebar-collapsed .sidebar-section{display:none}
