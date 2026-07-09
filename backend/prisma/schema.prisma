@@ -27,6 +27,8 @@ model Usuario {
   palpites           PalpiteCampanha[]
   palpitesPartida    PalpitePartida[]
   palpitesPlacar     PalpitePlacar[]
+  transferenciasAdmin  TransferenciaAdmin[] @relation("AdminTransferencia")
+  transferenciasRecebidas TransferenciaAdmin[] @relation("UsuarioTransferencia")
   pagamentos         Pagamento[]
   indicacoesFeitas   Indicacao[]     @relation("Indicador")
   indicacaoRecebida  Indicacao?      @relation("Indicado")
@@ -266,4 +268,27 @@ model PalpitePlacar {
   usuario  Usuario  @relation(fields: [usuarioId], references: [id])
   partida  Partida  @relation(fields: [partidaId], references: [id])
   @@map("palpites_placar")
+}
+
+// ── Saldo Administrativo ─────────────────────────────────────────
+model SaldoAdmin {
+  id           Int      @id @default(autoincrement())
+  saldo        Decimal  @default(0.00) @db.Decimal(10,2)
+  totalEntrada Decimal  @default(0.00) @map("total_entrada") @db.Decimal(10,2)
+  totalSaida   Decimal  @default(0.00) @map("total_saida") @db.Decimal(10,2)
+  atualizadoEm DateTime @updatedAt @map("atualizado_em")
+  @@map("saldo_admin")
+}
+
+// ── Transferências Administrativas ───────────────────────────────
+model TransferenciaAdmin {
+  id          Int      @id @default(autoincrement())
+  adminId     Int      @map("admin_id")
+  usuarioId   Int      @map("usuario_id")
+  valor       Decimal  @db.Decimal(10,2)
+  descricao   String   @default("Pagamento em dinheiro")
+  criadoEm   DateTime  @default(now()) @map("criado_em")
+  admin    Usuario  @relation("AdminTransferencia", fields: [adminId], references: [id])
+  usuario  Usuario  @relation("UsuarioTransferencia", fields: [usuarioId], references: [id])
+  @@map("transferencias_admin")
 }

@@ -275,6 +275,15 @@ input[type=text]::placeholder{color:var(--muted)}
           <div class="kpi-value" style="color:var(--green)" id="kpi-fundo">—</div>
           <div class="kpi-sub">60% da arrecadação total</div>
         </div>
+        <div class="kpi" style="border-color:rgba(0,163,134,.3)">
+          <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#00a386,#007a63)"></div>
+          <div class="kpi-label" style="color:#00a386">💰 Saldo Administrativo</div>
+          <div class="kpi-value" style="color:#00a386" id="kpi-saldo-admin">—</div>
+          <div class="kpi-sub" style="display:flex;align-items:center;justify-content:space-between">
+            <span>Disponível para créditos</span>
+            <button onclick="abrirDepositarAdmin()" style="background:rgba(0,163,134,.15);border:1px solid rgba(0,163,134,.3);color:#00a386;padding:2px 8px;border-radius:6px;cursor:pointer;font-size:10px;font-family:inherit">+ Depositar</button>
+          </div>
+        </div>
       </div>
 
       <!-- Gráficos linha 1 -->
@@ -1511,6 +1520,7 @@ function buildTblMembros() {
           <button class="btn-icon" onclick="abrirEditarMembro(${m.id})" title="Editar dados">✏️</button>
           <button class="btn-icon" onclick="abrirResetSenhaMembro(${m.id})" title="Resetar senha">🔑</button>
           <button class="btn-icon ${m.bloqueado ? 'success' : 'danger'}" onclick="abrirBloqueioMembro(${m.id})" title="${m.bloqueado ? 'Desbloquear' : 'Bloquear'}">${m.bloqueado ? '✅' : '🚫'}</button>
+          <button class="btn-icon" onclick="abrirCreditoMembro(${m.id},'${m.apelido}','${m.codigoCdp}')" title="Crédito $" style="background:rgba(0,163,134,.15);color:#00a386;border-color:rgba(0,163,134,.3)">💰</button>
           <button class="btn-icon danger" onclick="abrirExcluirMembro(${m.id})" title="Excluir">🗑️</button>
         </div>
       </td>
@@ -2792,5 +2802,119 @@ async function toggleTodasSelecoes(ativa) {
   </div>
 </div>
 
+
+<!-- MODAL CRÉDITO ADMINISTRATIVO -->
+<div class="modal-overlay" id="modal-credito-admin">
+  <div class="modal-box" style="max-width:480px">
+    <div class="modal-title" style="color:#00a386">💰 Crédito Administrativo</div>
+    <input type="hidden" id="credito-usuario-id">
+    <div style="background:rgba(0,163,134,.08);border:1px solid rgba(0,163,134,.2);border-radius:10px;padding:12px 16px;margin-bottom:16px">
+      <div style="font-size:12px;color:var(--muted)">Membro:</div>
+      <div style="font-size:16px;font-weight:700;color:#dce8f5" id="credito-usuario-nome">—</div>
+    </div>
+    <div style="background:rgba(0,163,134,.08);border:1px solid rgba(0,163,134,.2);border-radius:10px;padding:12px 16px;margin-bottom:16px">
+      <div style="font-size:12px;color:var(--muted)">Saldo Administrativo disponível:</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:700;color:#00a386" id="credito-saldo-admin">R$ 0,00</div>
+    </div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px">Valor a transferir (R$)</label>
+      <input type="number" id="credito-valor" placeholder="Ex: 50.00" min="0.01" step="0.01" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(0,163,134,.3);background:var(--navy2);color:#dce8f5;font-size:16px;font-weight:700;outline:none">
+    </div>
+    <div class="form-group" style="margin-bottom:16px">
+      <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px">Descrição</label>
+      <input type="text" id="credito-descricao" placeholder="Ex: Pagamento em dinheiro" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--navy2);color:#dce8f5;font-size:13px;outline:none">
+    </div>
+    <div class="modal-footer">
+      <button class="btn-icon" onclick="fecharModalMembro('modal-credito-admin')">Cancelar</button>
+      <button class="btn-icon success" onclick="confirmarCreditoAdmin()" style="background:rgba(0,163,134,.2);border-color:rgba(0,163,134,.4);color:#00a386">💰 Confirmar Transferência</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DEPOSITAR SALDO ADMIN -->
+<div class="modal-overlay" id="modal-depositar-admin">
+  <div class="modal-box" style="max-width:420px">
+    <div class="modal-title" style="color:#00a386">💵 Depositar no Saldo Administrativo</div>
+    <div class="form-group" style="margin-bottom:16px">
+      <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px">Valor a depositar (R$)</label>
+      <input type="number" id="depositar-admin-valor" placeholder="Ex: 500.00" min="0.01" step="0.01" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(0,163,134,.3);background:var(--navy2);color:#dce8f5;font-size:16px;font-weight:700;outline:none">
+    </div>
+    <div class="modal-footer">
+      <button class="btn-icon" onclick="fecharModalMembro('modal-depositar-admin')">Cancelar</button>
+      <button class="btn-icon success" onclick="confirmarDepositarAdmin()" style="background:rgba(0,163,134,.2);border-color:rgba(0,163,134,.4);color:#00a386">💵 Depositar</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
+<script>
+// ── Saldo Administrativo ──────────────────────────────────────
+let SALDO_ADMIN_CACHE = 0;
+
+async function carregarSaldoAdmin() {
+  try {
+    const r = await fetch('/api/admin-saldo', { headers: authHeadersAdmin() });
+    if (!r.ok) return;
+    const data = await r.json();
+    SALDO_ADMIN_CACHE = Number(data.saldo?.saldo || 0);
+    const el = document.getElementById('kpi-saldo-admin');
+    if (el) el.textContent = 'R$ ' + SALDO_ADMIN_CACHE.toFixed(2).replace('.', ',');
+  } catch(e) { console.error('[SaldoAdmin]', e); }
+}
+
+function abrirDepositarAdmin() {
+  document.getElementById('depositar-admin-valor').value = '';
+  document.getElementById('modal-depositar-admin').classList.add('show');
+}
+
+async function confirmarDepositarAdmin() {
+  const valor = document.getElementById('depositar-admin-valor').value;
+  if (!valor || valor <= 0) { showToast('Informe um valor válido.'); return; }
+  try {
+    const r = await fetch('/api/admin-saldo/depositar', {
+      method: 'POST', headers: authHeadersAdmin(),
+      body: JSON.stringify({ valor: Number(valor) }),
+    });
+    const data = await r.json();
+    if (!r.ok) { showToast(data.error || 'Erro ao depositar.'); return; }
+    SALDO_ADMIN_CACHE = Number(data.saldo?.saldo || 0);
+    const el = document.getElementById('kpi-saldo-admin');
+    if (el) el.textContent = 'R$ ' + SALDO_ADMIN_CACHE.toFixed(2).replace('.', ',');
+    fecharModalMembro('modal-depositar-admin');
+    showToast('R$ ' + Number(valor).toFixed(2) + ' depositado no saldo admin!');
+  } catch(e) { showToast('Erro ao conectar.'); }
+}
+
+function abrirCreditoMembro(id, apelido, cdp) {
+  document.getElementById('credito-usuario-id').value = id;
+  document.getElementById('credito-usuario-nome').textContent = apelido + ' · ' + cdp;
+  document.getElementById('credito-saldo-admin').textContent = 'R$ ' + SALDO_ADMIN_CACHE.toFixed(2).replace('.', ',');
+  document.getElementById('credito-valor').value = '';
+  document.getElementById('credito-descricao').value = 'Pagamento em dinheiro';
+  document.getElementById('modal-credito-admin').classList.add('show');
+}
+
+async function confirmarCreditoAdmin() {
+  const usuarioId = document.getElementById('credito-usuario-id').value;
+  const valor = document.getElementById('credito-valor').value;
+  const descricao = document.getElementById('credito-descricao').value;
+  if (!valor || valor <= 0) { showToast('Informe um valor válido.'); return; }
+  if (Number(valor) > SALDO_ADMIN_CACHE) { showToast('Saldo administrativo insuficiente!'); return; }
+  try {
+    const r = await fetch('/api/admin-saldo/transferir', {
+      method: 'POST', headers: authHeadersAdmin(),
+      body: JSON.stringify({ usuarioId: Number(usuarioId), valor: Number(valor), descricao }),
+    });
+    const data = await r.json();
+    if (!r.ok) { showToast(data.error || 'Erro ao transferir.'); return; }
+    SALDO_ADMIN_CACHE -= Number(valor);
+    const el = document.getElementById('kpi-saldo-admin');
+    if (el) el.textContent = 'R$ ' + SALDO_ADMIN_CACHE.toFixed(2).replace('.', ',');
+    fecharModalMembro('modal-credito-admin');
+    showToast(data.mensagem || 'Transferência realizada!');
+  } catch(e) { showToast('Erro ao conectar.'); }
+}
+
+// Carregar saldo admin ao abrir painel geral
+carregarSaldoAdmin();
+</script>

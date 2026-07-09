@@ -58,6 +58,7 @@ app.use('/api/whatsapp',   whatsappRoutes);
 app.use('/api/indicacao',  indicacaoRoutes);
 app.use('/api/partidas',   partidaRoutes);
 app.use('/api/placar',     placarRoutes);
+app.use('/api/admin-saldo', require('./routes/admin-saldo.routes'));
 
 // ── Ranking público (sem auth) ──────────────────────────────────
 app.get('/api/ranking', ranking);
