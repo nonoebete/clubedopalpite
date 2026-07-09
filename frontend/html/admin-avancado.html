@@ -604,6 +604,7 @@ input[type=text]::placeholder{color:var(--muted)}
         <button class="filter-btn" onclick="filtroMembros('1fase',this)">1ª Fase</button>
         <button class="filter-btn" onclick="filtroMembros('2fase',this)">2ª Fase</button>
         <button class="filter-btn" onclick="filtroMembros('3fase',this)">Palpite por Resultado</button>
+        <button class="filter-btn" onclick="filtroMembros('4fase',this)">Palpite o Placar</button>
       </div>
       <div class="card" style="padding:0">
         <table>
@@ -1440,6 +1441,7 @@ async function admCarregarGraficos(periodo = '7d') {
 // ── Membros: dados reais via API (GET /api/admin/usuarios) ──────
 let MEMBROS = [];
 let membrosFilter = 'todos', membrosSearch = '';
+let MEMBROS_4FASE = [];
 let membroSelecionado = null;
 
 function authHeadersAdmin() {
@@ -1476,6 +1478,9 @@ function buildTblMembros() {
   if (membrosFilter === '3fase') {
     const ids3 = (RK_CACHE[3]||[]).map(x=>x.usuarioId);
     dados = dados.filter(m => ids3.includes(m.id));
+  }
+  if (membrosFilter === '4fase') {
+    dados = dados.filter(m => (MEMBROS_4FASE||[]).includes(m.id));
   }
   if (membrosSearch) {
     dados = dados.filter(m =>
@@ -1514,7 +1519,16 @@ async function filtroMembros(f, btn) {
   if (f === '1fase' && RK_CACHE[1] === undefined) await rkCarregarFase(1);
   if (f === '2fase' && RK_CACHE[2] === undefined) await rkCarregarFase(2);
   if (f === '3fase' && RK_CACHE[3] === undefined) await rkCarregarFase(3);
+  if (f === '4fase') await carregar4FaseMembros();
   buildTblMembros();
+}
+async function carregar4FaseMembros() {
+  try {
+    const r = await fetch('/api/placar/meus-admin', { headers: authHeadersAdmin() });
+    if (!r.ok) return;
+    const data = await r.json();
+    MEMBROS_4FASE = [...new Set(data.map(p => p.usuarioId))];
+  } catch(e) { console.error('[4Fase Membros]', e); }
 }
 function filtrarMembros() { membrosSearch = document.getElementById('busca-membro').value.toLowerCase(); buildTblMembros(); }
 function fecharModalMembro(id) { document.getElementById(id).classList.remove('show'); }

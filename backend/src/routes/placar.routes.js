@@ -131,3 +131,16 @@ router.get('/meus', autenticar, async (req, res) => {
 });
 
 module.exports = router;
+
+// GET /api/placar/meus-admin — todos os palpites de placar (admin)
+router.get('/meus-admin', autenticar, async (req, res) => {
+  try {
+    const palpites = await prisma.palpitePlacar.findMany({
+      select: { usuarioId: true, id: true },
+      distinct: ['usuarioId'],
+    });
+    res.json(palpites);
+  } catch(e) {
+    res.status(500).json({ error: 'Erro ao buscar palpites.' });
+  }
+});
