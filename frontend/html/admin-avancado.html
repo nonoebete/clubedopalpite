@@ -1080,6 +1080,7 @@ async function admCarregarDadosReais() {
     const f1 = porFase(1);
     const f2 = porFase(2);
     const f3 = porFase(3);
+    const f4 = porFase(4);
 
     // parseVal: a API retorna "R$ 40.00" (ponto decimal) — basta remover "R$ "
     const parseVal = str => parseFloat((str || 'R$ 0').replace('R$ ', '')) || 0;
@@ -1100,7 +1101,13 @@ async function admCarregarDadosReais() {
     const p1c = f1?.totalPalpites || 0;
     const p2c = f2?.totalPalpites || 0;
     const p3c = f3?.totalPalpites || 0;
-    set('kpi-palpites-sub', `${p1c} fase 1 · ${p2c} fase 2 · ${p3c} fase 3`);
+    // Buscar palpites da 4a fase (placar)
+    let p4c = 0;
+    try {
+      const rP4 = await fetch(`${API_BASE}/placar/meus-admin`, { headers: authHeadersAdmin() });
+      if (rP4.ok) { const d4 = await rP4.json(); p4c = d4.length || 0; }
+    } catch(e) {}
+    set('kpi-palpites-sub', `${p1c} fase 1 · ${p2c} fase 2 · ${p3c} fase 3 · ${p4c} fase 4`);
     if (f3) set('kpi-bilhetes', f3.totalPalpites);
 
     // ── Gráfico top seleções (seção Arrecadação) ─────────────
